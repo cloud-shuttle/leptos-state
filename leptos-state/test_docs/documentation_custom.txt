@@ -1,0 +1,3 @@
+Title: State Machine Documentation
+States: idle, counting
+Events: start, stop, pause

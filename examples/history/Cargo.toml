@@ -1,0 +1,13 @@
+[package]
+name = "history-example"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+leptos = { workspace = true }
+leptos-state = { path = "../../leptos-state" }
+console_error_panic_hook = "0.1"
+wasm-bindgen = { workspace = true }
+
+[target.wasm32-unknown-unknown.dependencies]
+wasm-bindgen = { workspace = true }

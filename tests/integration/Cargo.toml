@@ -1,0 +1,19 @@
+[package]
+name = "integration-tests"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+leptos = { workspace = true }
+leptos-state = { path = "../../leptos-state" }
+leptos_test = { workspace = true }
+wasm-bindgen-test = { workspace = true }
+console_error_panic_hook = { workspace = true }
+serde = { workspace = true }
+
+[target.wasm32-unknown-unknown.dependencies]
+wasm-bindgen-test = { workspace = true }
+
+[[test]]
+name = "integration"
+path = "lib.rs"

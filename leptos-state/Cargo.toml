@@ -1,0 +1,51 @@
+[package]
+name = "leptos-state"
+version = "0.1.0"
+edition = "2021"
+authors = ["Cloud Shuttle <team@cloud-shuttle.com>"]
+description = "A powerful state management library for Leptos applications with state machines, persistence, and DevTools"
+repository = "https://github.com/cloud-shuttle/leptos-state"
+license = "MIT OR Apache-2.0"
+keywords = ["leptos", "state-management", "reactive", "wasm"]
+categories = ["wasm", "web-programming"]
+
+[dependencies]
+leptos = { workspace = true }
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+serde_yaml = { workspace = true, optional = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+web-sys = { workspace = true }
+wasm-bindgen = { workspace = true }
+uuid = { workspace = true, optional = true }
+js-sys = { workspace = true }
+
+[dev-dependencies]
+leptos_test = { workspace = true }
+wasm-bindgen-test = { workspace = true }
+pretty_assertions = { workspace = true }
+proptest = { workspace = true }
+quickcheck = { workspace = true }
+tokio-test = { workspace = true }
+async-std = { workspace = true }
+criterion = { workspace = true }
+divan = { workspace = true }
+mockall = { workspace = true }
+fake = { workspace = true }
+rstest = { workspace = true }
+test-case = { workspace = true }
+insta = { workspace = true }
+console_error_panic_hook = { workspace = true }
+
+[features]
+default = []
+persist = ["serde", "serde_json"]
+visualization = ["serde", "serde_json"]
+testing = []
+performance = []
+integration = []
+documentation = ["serde", "serde_json", "serde_yaml"]
+codegen = []
+devtools = []
+ssr = ["leptos/ssr"]

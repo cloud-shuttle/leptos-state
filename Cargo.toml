@@ -1,0 +1,45 @@
+[workspace]
+members = ["leptos-state", "examples/*", "tests/integration"]
+
+[workspace.dependencies]
+leptos = "0.6"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+thiserror = "1.0"
+tracing = "0.1"
+web-sys = "0.3"
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+uuid = { version = "1.0", features = ["v4"] }
+leptos_test = "0.1"
+wasm-bindgen-test = "0.3"
+pretty_assertions = "1.4"
+proptest = "1.4"
+quickcheck = "1.0"
+tokio-test = "0.4"
+async-std = "1.0"
+criterion = { version = "0.5", features = ["html_reports"] }
+console_error_panic_hook = "0.1"
+divan = "0.1"
+mockall = "0.12"
+fake = "2.9"
+rstest = "0.18"
+test-case = "3.1"
+insta = "1.34"
+
+[workspace.dev-dependencies]
+leptos_test = "0.1"
+wasm-bindgen-test = "0.3"
+pretty_assertions = "1.4"
+proptest = "1.4"
+quickcheck = "1.0"
+tokio-test = "0.4"
+criterion = { version = "0.5", features = ["html_reports"] }
+divan = "0.1"
+mockall = "0.12"
+fake = "2.9"
+rstest = "0.18"
+test-case = "3.1"
+insta = "1.34"
+console_error_panic_hook = "0.1"
