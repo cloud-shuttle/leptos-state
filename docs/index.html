@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leptos State - Powerful State Management for Leptos</title>
+    <meta name="description" content="A powerful state management library for Leptos applications with state machines, persistence, and DevTools. Built with Rust's type safety and performance.">
+    <meta name="keywords" content="leptos, rust, state management, wasm, web development, state machines">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Leptos State - Powerful State Management for Leptos">
+    <meta property="og:description" content="A powerful state management library for Leptos applications with state machines, persistence, and DevTools.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cloud-shuttle.github.io/leptos-state/">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Leptos State - Powerful State Management for Leptos">
+    <meta name="twitter:description" content="A powerful state management library for Leptos applications with state machines, persistence, and DevTools.">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #667eea;
+        }
+        
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            color: white;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .hero p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        /* Features Section */
+        .features {
+            background: white;
+            padding: 4rem 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #333;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        /* Code Section */
+        .code-section {
+            background: #1a1a1a;
+            color: white;
+            padding: 4rem 0;
+        }
+        
+        .code-container {
+            background: #2d2d2d;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+        
+        .code-container pre {
+            margin: 0;
+            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .code-container code {
+            color: #e6e6e6;
+        }
+        
+        /* Examples Section */
+        .examples {
+            background: #f8f9fa;
+            padding: 4rem 0;
+        }
+        
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .example-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        .example-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .example-image {
+            height: 200px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+        
+        .example-content {
+            padding: 1.5rem;
+        }
+        
+        .example-content h3 {
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        
+        .example-content p {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        
+        .example-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .example-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* Stats Section */
+        .stats {
+            background: #667eea;
+            color: white;
+            padding: 3rem 0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+        
+        .stat-item h3 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-item p {
+            opacity: 0.9;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #333;
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-links a {
+            color: #ccc;
+            text-decoration: none;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .examples-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav container">
+            <a href="#" class="logo">🦀 Leptos State</a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#examples">Examples</a></li>
+                <li><a href="#docs">Documentation</a></li>
+                <li><a href="https://github.com/cloud-shuttle/leptos-state">GitHub</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Powerful State Management for Leptos</h1>
+            <p>A comprehensive state management library with state machines, persistence, and DevTools. Built with Rust's type safety and performance.</p>
+            <div class="cta-buttons">
+                <a href="https://crates.io/crates/leptos-state" class="btn btn-primary">Get Started</a>
+                <a href="https://docs.rs/leptos-state" class="btn btn-secondary">View Docs</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Why Leptos State?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>State Machines</h3>
+                    <p>XState-inspired finite state machines with hierarchical states, guards, and actions. Perfect for complex application logic.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Reactive Stores</h3>
+                    <p>Zustand-inspired reactive stores with middleware support. Simple, performant, and type-safe state management.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3>DevTools</h3>
+                    <p>Built-in visualization and time-travel debugging. Monitor state changes and debug with ease.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>WASM Optimized</h3>
+                    <p>Performance optimized for WebAssembly. Fast, efficient, and perfect for modern web applications.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Type Safe</h3>
+                    <p>Strong compile-time guarantees powered by Rust. Catch errors early and build with confidence.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📚</div>
+                    <h3>Well Documented</h3>
+                    <p>Comprehensive documentation, examples, and guides. Get up and running quickly.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Section -->
+    <section class="code-section">
+        <div class="container">
+            <h2 class="section-title" style="color: white;">Simple & Powerful</h2>
+            <div class="code-container">
+                <pre><code>use leptos::*;
+use leptos_state::*;
+
+// Create a reactive store
+create_store!(AppStore, AppState, AppState { 
+    count: 0, 
+    user: None 
+});
+
+// Use in components
+#[component]
+fn Counter() -> impl IntoView {
+    let (state, set_state) = use_store::<AppStore>();
+    
+    let increment = move |_| {
+        set_state.update(|s| s.count += 1);
+    };
+    
+    view! {
+        <div>
+            <p>"Count: " {move || state.get().count}</p>
+            <button on:click=increment>"Increment"</button>
+        </div>
+    }
+}</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Examples Section -->
+    <section class="examples" id="examples">
+        <div class="container">
+            <h2 class="section-title">Real-World Examples</h2>
+            <div class="examples-grid">
+                <div class="example-card">
+                    <div class="example-image">📝</div>
+                    <div class="example-content">
+                        <h3>Todo App</h3>
+                        <p>Complete CRUD application with persistence, state machines for edit modes, and bulk operations.</p>
+                        <a href="https://github.com/cloud-shuttle/leptos-state/tree/main/examples/todo-app" class="example-link">View Example →</a>
+                    </div>
+                </div>
+                <div class="example-card">
+                    <div class="example-image">📊</div>
+                    <div class="example-content">
+                        <h3>Analytics Dashboard</h3>
+                        <p>Real-time data visualization with complex state management, interactive charts, and responsive design.</p>
+                        <a href="https://github.com/cloud-shuttle/leptos-state/tree/main/examples/analytics-dashboard" class="example-link">View Example →</a>
+                    </div>
+                </div>
+                <div class="example-card">
+                    <div class="example-image">🚦</div>
+                    <div class="example-content">
+                        <h3>Traffic Light</h3>
+                        <p>Simple state machine demonstrating timer-based transitions and visual state representation.</p>
+                        <a href="https://github.com/cloud-shuttle/leptos-state/tree/main/examples/traffic-light" class="example-link">View Example →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3>90+</h3>
+                    <p>Tests Passing</p>
+                </div>
+                <div class="stat-item">
+                    <h3>3</h3>
+                    <p>Complete Examples</p>
+                </div>
+                <div class="stat-item">
+                    <h3>37</h3>
+                    <p>Source Files</p>
+                </div>
+                <div class="stat-item">
+                    <h3>MIT</h3>
+                    <p>License</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://crates.io/crates/leptos-state">Crates.io</a>
+                <a href="https://docs.rs/leptos-state">Documentation</a>
+                <a href="https://github.com/cloud-shuttle/leptos-state">GitHub</a>
+                <a href="https://github.com/cloud-shuttle/leptos-state/blob/main/LICENSE-MIT">License</a>
+            </div>
+            <p>&copy; 2024 Cloud Shuttle. Built with ❤️ and 🦀 for the Leptos community.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add some interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate stats on scroll
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            });
+
+            document.querySelectorAll('.stat-item').forEach(item => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(20px)';
+                item.style.transition = 'opacity 0.6s, transform 0.6s';
+                observer.observe(item);
+            });
+        });
+    </script>
+</body>
+</html>

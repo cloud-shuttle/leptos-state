@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - Leptos State</title>
+    <meta name="description" content="Documentation and guides for Leptos State library">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav container">
+            <a href="index.html" class="logo">🦀 Leptos State</a>
+            <ul class="nav-links">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#examples">Examples</a></li>
+                <li><a href="documentation.html">Documentation</a></li>
+                <li><a href="https://github.com/cloud-shuttle/leptos-state">GitHub</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Documentation Content -->
+    <section class="docs-content">
+        <div class="container">
+            <h1>Documentation</h1>
+            
+            <div class="docs-grid">
+                <div class="docs-sidebar">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="https://docs.rs/leptos-state">API Documentation</a></li>
+                        <li><a href="https://github.com/cloud-shuttle/leptos-state">GitHub Repository</a></li>
+                        <li><a href="https://crates.io/crates/leptos-state">Crates.io</a></li>
+                    </ul>
+                    
+                    <h3>Examples</h3>
+                    <ul>
+                        <li><a href="https://github.com/cloud-shuttle/leptos-state/tree/main/examples/todo-app">Todo App</a></li>
+                        <li><a href="https://github.com/cloud-shuttle/leptos-state/tree/main/examples/analytics-dashboard">Analytics Dashboard</a></li>
+                        <li><a href="https://github.com/cloud-shuttle/leptos-state/tree/main/examples/traffic-light">Traffic Light</a></li>
+                    </ul>
+                </div>
+                
+                <div class="docs-main">
+                    <h2>Getting Started</h2>
+                    
+                    <h3>Installation</h3>
+                    <div class="code-block">
+                        <pre><code>[dependencies]
+leptos = "0.6"
+leptos-state = "0.1"</code></pre>
+                    </div>
+                    
+                    <h3>Quick Start</h3>
+                    <p>Here's a simple example to get you started:</p>
+                    <div class="code-block">
+                        <pre><code>use leptos::*;
+use leptos_state::*;
+
+// Define your state
+#[derive(Clone, Debug)]
+struct AppState {
+    count: i32,
+    user: Option<String>,
+}
+
+// Create a store
+create_store!(AppStore, AppState, AppState { 
+    count: 0, 
+    user: None 
+});
+
+// Use in components
+#[component]
+fn Counter() -> impl IntoView {
+    let (state, set_state) = use_store::<AppStore>();
+    
+    let increment = move |_| {
+        set_state.update(|s| s.count += 1);
+    };
+    
+    view! {
+        <div>
+            <p>"Count: " {move || state.get().count}</p>
+            <button on:click=increment>"Increment"</button>
+        </div>
+    }
+}</code></pre>
+                    </div>
+                    
+                    <h2>State Machines</h2>
+                    <p>Leptos State provides powerful state machines inspired by XState:</p>
+                    <div class="code-block">
+                        <pre><code>use leptos_state::*;
+
+#[derive(Clone, Debug)]
+enum GameEvent {
+    Start,
+    Stop,
+    Pause,
+}
+
+#[derive(Clone, Debug)]
+struct GameContext {
+    score: i32,
+    level: i32,
+}
+
+let machine = MachineBuilder::<GameContext, GameEvent>::new()
+    .state("idle")
+        .on(GameEvent::Start, "playing")
+    .state("playing")
+        .on(GameEvent::Pause, "paused")
+        .on(GameEvent::Stop, "idle")
+    .state("paused")
+        .on(GameEvent::Start, "playing")
+        .on(GameEvent::Stop, "idle")
+    .initial("idle")
+    .build();</code></pre>
+                    </div>
+                    
+                    <h2>Features</h2>
+                    
+                    <h3>State Machines</h3>
+                    <ul>
+                        <li>Hierarchical states</li>
+                        <li>Parallel states</li>
+                        <li>Guards and conditions</li>
+                        <li>Actions and effects</li>
+                        <li>History states</li>
+                        <li>State persistence</li>
+                        <li>Visualization tools</li>
+                    </ul>
+                    
+                    <h3>Stores</h3>
+                    <ul>
+                        <li>Reactive updates</li>
+                        <li>Middleware system</li>
+                        <li>Computed state</li>
+                        <li>Time-travel debugging</li>
+                        <li>Async store support</li>
+                        <li>DevTools integration</li>
+                    </ul>
+                    
+                    <h3>Development Features</h3>
+                    <ul>
+                        <li>Comprehensive testing</li>
+                        <li>Performance optimization</li>
+                        <li>Documentation generation</li>
+                        <li>Code generation</li>
+                        <li>Integration patterns</li>
+                    </ul>
+                    
+                    <h2>Examples</h2>
+                    <p>Check out our complete examples to see Leptos State in action:</p>
+                    
+                    <div class="example-cards">
+                        <div class="example-card">
+                            <h3>Todo App</h3>
+                            <p>Complete CRUD application with persistence, state machines for edit modes, and bulk operations.</p>
+                            <a href="https://github.com/cloud-shuttle/leptos-state/tree/main/examples/todo-app" class="btn btn-primary">View Example</a>
+                        </div>
+                        
+                        <div class="example-card">
+                            <h3>Analytics Dashboard</h3>
+                            <p>Real-time data visualization with complex state management, interactive charts, and responsive design.</p>
+                            <a href="https://github.com/cloud-shuttle/leptos-state/tree/main/examples/analytics-dashboard" class="btn btn-primary">View Example</a>
+                        </div>
+                        
+                        <div class="example-card">
+                            <h3>Traffic Light</h3>
+                            <p>Simple state machine demonstrating timer-based transitions and visual state representation.</p>
+                            <a href="https://github.com/cloud-shuttle/leptos-state/tree/main/examples/traffic-light" class="btn btn-primary">View Example</a>
+                        </div>
+                    </div>
+                    
+                    <h2>Contributing</h2>
+                    <p>We welcome contributions! Please see our <a href="https://github.com/cloud-shuttle/leptos-state/blob/main/CONTRIBUTING.md">Contributing Guide</a> for details.</p>
+                    
+                    <h2>License</h2>
+                    <p>This project is dual-licensed under either:</p>
+                    <ul>
+                        <li>MIT License</li>
+                        <li>Apache License 2.0</li>
+                    </ul>
+                    <p>at your option.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://crates.io/crates/leptos-state">Crates.io</a>
+                <a href="https://docs.rs/leptos-state">Documentation</a>
+                <a href="https://github.com/cloud-shuttle/leptos-state">GitHub</a>
+                <a href="https://github.com/cloud-shuttle/leptos-state/blob/main/LICENSE-MIT">License</a>
+            </div>
+            <p>&copy; 2024 Cloud Shuttle. Built with ❤️ and 🦀 for the Leptos community.</p>
+        </div>
+    </footer>
+
+    <style>
+        .docs-content {
+            background: white;
+            padding: 2rem 0;
+            min-height: 80vh;
+        }
+        
+        .docs-grid {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+        
+        .docs-sidebar {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+        
+        .docs-sidebar h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        
+        .docs-sidebar ul {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+        
+        .docs-sidebar li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .docs-sidebar a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .docs-sidebar a:hover {
+            text-decoration: underline;
+        }
+        
+        .docs-main h1 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+        
+        .docs-main h2 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem 0;
+            color: #333;
+        }
+        
+        .docs-main h3 {
+            font-size: 1.3rem;
+            margin: 1.5rem 0 0.5rem 0;
+            color: #333;
+        }
+        
+        .docs-main p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        
+        .docs-main ul {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+        
+        .docs-main li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .code-block {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #e6e6e6;
+        }
+        
+        .example-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .example-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .example-card h3 {
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        
+        .example-card p {
+            margin-bottom: 1rem;
+            color: #666;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+        
+        @media (max-width: 768px) {
+            .docs-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .docs-sidebar {
+                position: static;
+                margin-bottom: 2rem;
+            }
+        }
+    </style>
+</body>
+</html>
