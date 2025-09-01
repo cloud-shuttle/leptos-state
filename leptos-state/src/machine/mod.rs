@@ -28,4 +28,4 @@ pub use testing::{MachineTestRunner, TestConfig, TestCase, TestResult};
 pub use performance::{OptimizedMachine, PerformanceConfig, PerformanceProfiler};
 pub use integration::{IntegrationManager, IntegrationConfig, IntegrationAdapter};
 pub use documentation::{DocumentationGenerator, DocumentationConfig, GeneratedDocument};
-pub use codegen::{CodeGenerator, CodeGenConfig, GeneratedFile};
+pub use codegen::{CodeGenerator, CodeGenConfig, GeneratedFile, MachineCodeGenExt};

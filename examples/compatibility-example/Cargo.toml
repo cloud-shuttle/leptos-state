@@ -1,0 +1,13 @@
+[package]
+name = "compatibility-example"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+leptos = { version = "0.7", features = ["csr"] }
+leptos-state = { path = "../../leptos-state", features = ["leptos-0-7"] }
+console_error_panic_hook = "0.1"
+console_log = "1.0"
+tracing = "0.1"
+wasm-bindgen = "0.2"
+web-sys = "0.3"

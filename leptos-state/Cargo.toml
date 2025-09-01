@@ -20,9 +20,9 @@ web-sys = { workspace = true }
 wasm-bindgen = { workspace = true }
 uuid = { workspace = true, optional = true }
 js-sys = { workspace = true }
+futures = "0.3"
 
 [dev-dependencies]
-leptos_test = { workspace = true }
 wasm-bindgen-test = { workspace = true }
 pretty_assertions = { workspace = true }
 proptest = { workspace = true }
@@ -49,3 +49,8 @@ documentation = ["serde", "serde_json", "serde_yaml"]
 codegen = []
 devtools = []
 ssr = ["leptos/ssr"]
+
+# Leptos version compatibility features
+leptos-0-6 = []
+leptos-0-7 = []
+leptos-0-8 = []

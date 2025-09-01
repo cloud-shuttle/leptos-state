@@ -1,7 +1,8 @@
 use leptos::*;
-use chrono::{DateTime, Utc, Duration};
+use leptos::prelude::{ElementChild, StyleAttribute, OnAttribute, create_signal, set_timeout, Get, Set};
+use leptos::either::Either;
+use chrono::{DateTime, Utc};
 use uuid::Uuid;
-use rand::Rng;
 
 // Data Models
 #[derive(Debug, Clone, PartialEq)]
@@ -74,6 +75,8 @@ fn generate_mock_data() -> Vec<Metric> {
     ]
 }
 
+
+
 // Main Dashboard Component
 #[component]
 pub fn AnalyticsDashboard() -> impl IntoView {
@@ -128,66 +131,70 @@ pub fn AnalyticsDashboard() -> impl IntoView {
                 </div>
             </div>
             
-            {move || if is_loading.get() {
-                view! {
-                    <div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #64748b;">
-                        <div style="width: 20px; height: 20px; border: 2px solid #e2e8f0; border-top: 2px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 0.5rem;"></div>
-                        "Updating data..."
-                    </div>
-                }.into_view()
-            } else {
-                view! {
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-                        {move || metrics.get().into_iter().map(|metric| {
-                            let category_style = match metric.category {
-                                MetricCategory::Revenue => "background: #dbeafe; color: #1e40af;",
-                                MetricCategory::Users => "background: #dcfce7; color: #166534;",
-                                MetricCategory::Performance => "background: #fef3c7; color: #d97706;",
-                                MetricCategory::Engagement => "background: #f3e8ff; color: #7c3aed;",
-                            };
-                            
-                            let change_color = match metric.trend {
-                                Trend::Up => "#10b981",
-                                Trend::Down => "#ef4444",
-                                Trend::Stable => "#6b7280",
-                            };
-                            
-                            let change_icon = match metric.trend {
-                                Trend::Up => "↗",
-                                Trend::Down => "↘",
-                                Trend::Stable => "→",
-                            };
-                            
-                            let formatted_value = if metric.value >= 1000.0 {
-                                format!("${:.1}K", metric.value / 1000.0)
-                            } else {
-                                format!("{:.1}", metric.value)
-                            };
-                            
-                            view! {
-                                <div style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 1rem; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); transition: transform 0.2s;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                                        <span style="font-size: 0.875rem; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">{metric.name}</span>
-                                        <span style=format!("padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600; {}", category_style)>
-                                            {match metric.category {
-                                                MetricCategory::Revenue => "Revenue",
-                                                MetricCategory::Users => "Users",
-                                                MetricCategory::Performance => "Performance",
-                                                MetricCategory::Engagement => "Engagement",
-                                            }}
-                                        </span>
+            {move || {
+                let loading = is_loading.get();
+                if loading {
+                    Either::Left(view! {
+                        <div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #64748b;">
+                            <div style="width: 20px; height: 20px; border: 2px solid #e2e8f0; border-top: 2px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 0.5rem;"></div>
+                            "Updating data..."
+                        </div>
+                    })
+                } else {
+                    let metrics_data = metrics.get();
+                    Either::Right(view! {
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                            {metrics_data.into_iter().map(|metric| {
+                                let category_style = match metric.category {
+                                    MetricCategory::Revenue => "background: #dbeafe; color: #1e40af;",
+                                    MetricCategory::Users => "background: #dcfce7; color: #166534;",
+                                    MetricCategory::Performance => "background: #fef3c7; color: #d97706;",
+                                    MetricCategory::Engagement => "background: #f3e8ff; color: #7c3aed;",
+                                };
+                                
+                                let change_color = match metric.trend {
+                                    Trend::Up => "#10b981",
+                                    Trend::Down => "#ef4444",
+                                    Trend::Stable => "#6b7280",
+                                };
+                                
+                                let change_icon = match metric.trend {
+                                    Trend::Up => "↗",
+                                    Trend::Down => "↘",
+                                    Trend::Stable => "→",
+                                };
+                                
+                                let formatted_value = if metric.value >= 1000.0 {
+                                    format!("${:.1}K", metric.value / 1000.0)
+                                } else {
+                                    format!("{:.1}", metric.value)
+                                };
+                                
+                                view! {
+                                    <div style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 1rem; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); transition: transform 0.2s;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                            <span style="font-size: 0.875rem; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">{metric.name}</span>
+                                            <span style=format!("padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600; {}", category_style)>
+                                                {match metric.category {
+                                                    MetricCategory::Revenue => "Revenue",
+                                                    MetricCategory::Users => "Users",
+                                                    MetricCategory::Performance => "Performance",
+                                                    MetricCategory::Engagement => "Engagement",
+                                                }}
+                                            </span>
+                                        </div>
+                                        <div style="font-size: 2rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">{formatted_value}</div>
+                                        <div style=format!("display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500; color: {}", change_color)>
+                                            <span>{change_icon}</span>
+                                            <span>{format!("{:.1}%", metric.change.abs())}</span>
+                                            <span>"from last period"</span>
+                                        </div>
                                     </div>
-                                    <div style="font-size: 2rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">{formatted_value}</div>
-                                    <div style=format!("display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500; color: {}", change_color)>
-                                        <span>{change_icon}</span>
-                                        <span>{format!("{:.1}%", metric.change.abs())}</span>
-                                        <span>"from last period"</span>
-                                    </div>
-                                </div>
-                            }
-                        }).collect::<Vec<_>>()}
-                    </div>
-                }.into_view()
+                                }
+                            }).collect::<Vec<_>>()}
+                        </div>
+                    })
+                }
             }}
         </div>
     }

@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::prelude::*;
 use crate::store::*;
 
 /// Hook to access a store's state and setter
@@ -12,8 +12,8 @@ pub fn use_store_slice<S: Store, Slice: StoreSlice<S>>() -> Memo<Slice::Output> 
 }
 
 /// Hook to create a computed value from store state
-pub fn use_computed<S: Store, T: PartialEq + Clone + 'static>(
-    selector: impl Fn(&S::State) -> T + 'static,
+pub fn use_computed<S: Store, T: PartialEq + Clone + Send + Sync + 'static>(
+    selector: impl Fn(&S::State) -> T + Send + Sync + 'static,
 ) -> Memo<T> {
     crate::store::create_computed::<S, T>(selector)
 }
@@ -25,11 +25,11 @@ pub fn use_store_actions<S: Store>() -> StoreActions<S::State> {
 }
 
 /// Helper struct for common store actions
-pub struct StoreActions<T: 'static> {
+pub struct StoreActions<T: Clone + Send + Sync + 'static> {
     setter: WriteSignal<T>,
 }
 
-impl<T: Clone> StoreActions<T> {
+impl<T: Clone + Send + Sync> StoreActions<T> {
     pub fn new(setter: WriteSignal<T>) -> Self {
         Self { setter }
     }
@@ -62,12 +62,12 @@ pub fn use_store_batch<S: Store>() -> StoreBatch<S::State> {
 }
 
 /// Helper for batching multiple store updates
-pub struct StoreBatch<T: 'static> {
+pub struct StoreBatch<T: Clone + Send + Sync + 'static> {
     setter: WriteSignal<T>,
     pending_updates: std::cell::RefCell<Vec<Box<dyn FnOnce(&mut T)>>>,
 }
 
-impl<T: Clone> StoreBatch<T> {
+impl<T: Clone + Send + Sync> StoreBatch<T> {
     pub fn new(setter: WriteSignal<T>) -> Self {
         Self {
             setter,
@@ -99,11 +99,11 @@ where
     S::State: Clone + PartialEq,
 {
     let (state, set_state) = use_store::<S>();
-    let history = create_rw_signal(Vec::<S::State>::new());
-    let current_index = create_rw_signal(0);
+    let history = RwSignal::new(Vec::<S::State>::new());
+    let current_index = RwSignal::new(0);
     
     // Track state changes and add to history
-    create_effect(move |prev_state: Option<Option<S::State>>| {
+    Effect::new(move |prev_state: Option<Option<S::State>>| {
         let current_state = state.get();
         
         if let Some(Some(prev)) = prev_state {
@@ -132,14 +132,14 @@ where
 }
 
 /// Store history manager
-pub struct StoreHistory<T: 'static> {
+pub struct StoreHistory<T: Clone + Send + Sync + 'static> {
     set_state: WriteSignal<T>,
     history: ReadSignal<Vec<T>>,
     current_index: ReadSignal<usize>,
     set_index: WriteSignal<usize>,
 }
 
-impl<T: Clone> StoreHistory<T> {
+impl<T: Clone + Send + Sync> StoreHistory<T> {
     /// Check if undo is possible
     pub fn can_undo(&self) -> bool {
         self.current_index.get() > 0

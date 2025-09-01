@@ -21,7 +21,7 @@ pub trait Action<C, E> {
     }
     
     /// Check if this action can be executed (optional validation)
-    fn can_execute(&self, context: &C, event: &E) -> bool {
+    fn can_execute(&self, _context: &C, _event: &E) -> bool {
         true
     }
 }

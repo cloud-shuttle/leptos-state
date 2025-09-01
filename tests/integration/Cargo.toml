@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 leptos = { workspace = true }
 leptos-state = { path = "../../leptos-state" }
-leptos_test = { workspace = true }
 wasm-bindgen-test = { workspace = true }
 console_error_panic_hook = { workspace = true }
 serde = { workspace = true }

@@ -174,7 +174,7 @@ pub enum EventPriority {
 }
 
 /// Integration manager for state machines
-pub struct IntegrationManager<C, E> {
+pub struct IntegrationManager<C: Send + Sync, E> {
     config: IntegrationConfig,
     adapters: Arc<RwLock<HashMap<String, Box<dyn IntegrationAdapterTrait + Send + Sync>>>>,
     event_queue: Arc<Mutex<VecDeque<IntegrationEvent>>>,
@@ -368,7 +368,7 @@ impl IntegrationAdapterTrait for HttpApiAdapter {
 /// Database adapter
 pub struct DatabaseAdapter {
     name: String,
-    connection_string: String,
+    _connection_string: String,
     table_name: String,
 }
 
@@ -376,7 +376,7 @@ impl DatabaseAdapter {
     pub fn new(name: String, connection_string: String, table_name: String) -> Self {
         Self {
             name,
-            connection_string,
+            _connection_string: connection_string,
             table_name,
         }
     }
@@ -406,7 +406,7 @@ impl IntegrationAdapterTrait for DatabaseAdapter {
 /// Message queue adapter
 pub struct MessageQueueAdapter {
     name: String,
-    queue_url: String,
+    _queue_url: String,
     queue_name: String,
 }
 
@@ -414,7 +414,7 @@ impl MessageQueueAdapter {
     pub fn new(name: String, queue_url: String, queue_name: String) -> Self {
         Self {
             name,
-            queue_url,
+            _queue_url: queue_url,
             queue_name,
         }
     }
@@ -469,7 +469,7 @@ impl IntegrationMetrics {
 }
 
 /// Extension trait for adding integration to machines
-pub trait MachineIntegrationExt<C, E> {
+pub trait MachineIntegrationExt<C: Send + Sync, E> {
     /// Add integration capabilities to the machine
     fn with_integration(self, config: IntegrationConfig) -> IntegrationManager<C, E>;
 }
@@ -485,7 +485,7 @@ where
 }
 
 /// Integration builder for fluent configuration
-pub struct IntegrationBuilder<C, E> {
+pub struct IntegrationBuilder<C: Send + Sync, E> {
     machine: Machine<C, E>,
     config: IntegrationConfig,
 }

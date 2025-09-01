@@ -1,11 +1,13 @@
 //! Integration tests for state machine functionality
 
-use leptos::*;
+use leptos::prelude::*;
 use leptos_state::*;
 use wasm_bindgen_test::*;
 
-mod fixtures;
-use fixtures::*;
+use super::fixtures::*;
+use leptos_state::machine::states::StateValue;
+use leptos_state::machine::guards::FunctionGuard;
+use leptos_state::machine::actions::FunctionAction;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
@@ -74,10 +76,7 @@ fn machine_with_guards() {
     
     // Update context to satisfy guard
     let context_with_high_value = TestContext { value: 10, flag: false };
-    let state_with_high_value = MachineStateImpl {
-        value: StateValue::simple("locked"),
-        context: context_with_high_value,
-    };
+    let state_with_high_value = machine.initial_with_context(context_with_high_value);
     
     // Should transition because guard passes (value >= 5)
     let unlocked = machine.transition(&state_with_high_value, TestEvent::Increment);
@@ -132,14 +131,15 @@ fn machine_builder_fluent_api() {
     let machine = MachineBuilder::<TestContext, TestEvent>::new()
         .state("state1")
             .on(TestEvent::Increment, "state2")
-            .on(TestEvent::Reset, "state1")
         .state("state2")
+            .on(TestEvent::Reset, "state1")
+        .state("state3")
             .on(TestEvent::Decrement, "state1")
         .initial("state1")
         .build();
     
     // Verify machine was built correctly
-    assert_eq!(machine.initial, "state1");
-    assert!(machine.states.contains_key("state1"));
-    assert!(machine.states.contains_key("state2"));
+    assert_eq!(machine.initial_state_id(), "state1");
+    assert!(machine.get_states().contains(&"state1".to_string()));
+    assert!(machine.get_states().contains(&"state2".to_string()));
 }

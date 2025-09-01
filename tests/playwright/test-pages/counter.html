@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Counter Test Page</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .counter-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .counter-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: #2563eb;
+            margin: 20px 0;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background-color: #2563eb;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .btn-danger {
+            background-color: #dc2626;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+        .user-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+        input[type="text"] {
+            padding: 8px 12px;
+            font-size: 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            margin-right: 10px;
+        }
+        .user-display {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Counter Test Page</h1>
+        
+        <div class="counter-section">
+            <div class="counter-display" data-testid="counter">0</div>
+            <div class="button-group">
+                <button class="btn-primary" data-testid="increment">+</button>
+                <button class="btn-secondary" data-testid="decrement">-</button>
+                <button class="btn-danger" data-testid="reset">Reset</button>
+            </div>
+        </div>
+        
+        <div class="user-section">
+            <h3>User Settings</h3>
+            <input type="text" placeholder="Enter your name" data-testid="name-input" />
+            <div class="user-display" data-testid="user-display">Guest</div>
+        </div>
+    </div>
+
+    <script>
+        // Simple JavaScript to make the test page interactive
+        let counter = 0;
+        const counterDisplay = document.querySelector('[data-testid="counter"]');
+        const incrementBtn = document.querySelector('[data-testid="increment"]');
+        const decrementBtn = document.querySelector('[data-testid="decrement"]');
+        const resetBtn = document.querySelector('[data-testid="reset"]');
+        const nameInput = document.querySelector('[data-testid="name-input"]');
+        const userDisplay = document.querySelector('[data-testid="user-display"]');
+
+        function updateCounter() {
+            counterDisplay.textContent = counter;
+        }
+
+        incrementBtn.addEventListener('click', () => {
+            counter++;
+            updateCounter();
+        });
+
+        decrementBtn.addEventListener('click', () => {
+            counter--;
+            updateCounter();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            counter = 0;
+            updateCounter();
+        });
+
+        nameInput.addEventListener('input', (e) => {
+            userDisplay.textContent = e.target.value || 'Guest';
+        });
+    </script>
+</body>
+</html>

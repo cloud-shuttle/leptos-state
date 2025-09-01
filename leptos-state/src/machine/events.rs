@@ -171,12 +171,12 @@ where
 
 /// Spawn action for async operations (placeholder)
 pub struct SpawnAction<F> {
-    future_factory: F,
+    _future_factory: F,
 }
 
 impl<F> SpawnAction<F> {
     pub fn new(future_factory: F) -> Self {
-        Self { future_factory }
+        Self { _future_factory: future_factory }
     }
 }
 

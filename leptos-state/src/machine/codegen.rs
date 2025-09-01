@@ -56,7 +56,7 @@ pub enum ProgrammingLanguage {
 }
 
 /// Code generator for state machines
-pub struct CodeGenerator<C, E> {
+pub struct CodeGenerator<C: Send + Sync, E> {
     config: CodeGenConfig,
     machine: Arc<Machine<C, E>>,
     generated_files: Arc<RwLock<Vec<GeneratedFile>>>,
@@ -551,6 +551,11 @@ where
 
         Ok(index)
     }
+
+    /// Expose config for read-only access
+    pub fn config(&self) -> &CodeGenConfig {
+        &self.config
+    }
 }
 
 /// Generated file information
@@ -578,7 +583,7 @@ pub struct TransitionInfo {
 }
 
 /// Extension trait for adding code generation to machines
-pub trait MachineCodeGenExt<C, E> {
+pub trait MachineCodeGenExt<C: Send + Sync, E> {
     /// Add code generation capabilities to the machine
     fn with_code_generation(self, config: CodeGenConfig) -> CodeGenerator<C, E>;
 }
@@ -594,9 +599,9 @@ where
 }
 
 /// Code generation builder for fluent configuration
-pub struct CodeGenBuilder<C, E> {
+pub struct CodeGenBuilder<C: Send + Sync, E> {
     machine: Machine<C, E>,
-    config: CodeGenConfig,
+    pub(crate) config: CodeGenConfig,
 }
 
 impl<C, E> CodeGenBuilder<C, E>

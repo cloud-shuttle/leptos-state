@@ -163,7 +163,7 @@ impl MachineMetadata {
 }
 
 /// Persistence manager for state machines
-pub struct MachinePersistence<C, E> {
+pub struct MachinePersistence<C: Send + Sync, E> {
     config: PersistenceConfig,
     storage: Arc<dyn MachineStorage>,
     backups: Arc<Mutex<Vec<BackupEntry>>>,
@@ -171,9 +171,9 @@ pub struct MachinePersistence<C, E> {
     _phantom: std::marker::PhantomData<(C, E)>,
 }
 
-impl<C, E> MachinePersistence<C, E>
+impl<C: Send + Sync + 'static, E> MachinePersistence<C, E>
 where
-    C: Clone,
+    C: Clone + Send + Sync + 'static,
     E: Clone,
 {
     pub fn new(config: PersistenceConfig) -> Self {
@@ -197,7 +197,7 @@ where
             return Ok(());
         }
         
-        let serialized = self.serialize_machine(machine, state)?;
+        let _serialized = self.serialize_machine(machine, state)?;
         
         #[cfg(feature = "serde_json")]
         {
@@ -256,37 +256,37 @@ where
         }
         
         // Load from storage
-        let data = self.storage.load(&self.config.storage_key)?;
+        let _data = self.storage.load(&self.config.storage_key)?;
         
         // Decrypt if needed
-        let data = if self.config.encrypt {
-            self.decrypt_data(&data)?
+        let _data = if self.config.encrypt {
+            self.decrypt_data(&_data)?
         } else {
-            data
+            _data
         };
         
         // Decompress if needed
-        let data = if self.config.compression_level > 0 {
-            self.decompress_data(&data)?
+        let _data = if self.config.compression_level > 0 {
+            self.decompress_data(&_data)?
         } else {
-            data
+            _data
         };
         
         // Deserialize
         #[cfg(feature = "serde_json")]
         {
-            let serialized: SerializedMachine<C, E> = serde_json::from_str(&data)?;
+            let _serialized: SerializedMachine<C, E> = serde_json::from_str(&_data)?;
             
             // Validate checksum
-            self.validate_checksum(&serialized)?;
+            self.validate_checksum(&_serialized)?;
             
             // Create machine state
-            let state = MachineStateImpl {
-                value: serialized.state_value,
-                context: serialized.context,
+            let _state = MachineStateImpl {
+                value: _serialized.state_value,
+                context: _serialized.context,
             };
             
-            Ok(state)
+            Ok(_state)
         }
         
         #[cfg(not(feature = "serde_json"))]
@@ -520,85 +520,24 @@ impl LocalStorage {
 }
 
 impl MachineStorage for LocalStorage {
-    fn save(&self, key: &str, data: &str) -> StateResult<()> {
-        #[cfg(target_arch = "wasm32")]
-        {
-            use web_sys::Storage;
-            use wasm_bindgen::JsCast;
-            
-            if let Some(window) = web_sys::window() {
-                if let Ok(storage) = window.local_storage() {
-                    if let Some(storage) = storage {
-                        if let Err(_) = storage.set_item(key, data) {
-                            return Err(StateError::new("Failed to save to localStorage"));
-                        }
-                        return Ok(());
-                    }
-                }
-            }
-        }
-        
-        // Fallback for non-wasm targets
-        tracing::warn!("LocalStorage not available on this platform");
+    fn save(&self, _key: &str, _data: &str) -> StateResult<()> {
+        // TODO: Implement localStorage when web-sys features are properly configured
+        tracing::warn!("LocalStorage not yet implemented - web-sys features need configuration");
         Ok(())
     }
     
-    fn load(&self, key: &str) -> StateResult<String> {
-        #[cfg(target_arch = "wasm32")]
-        {
-            use web_sys::Storage;
-            use wasm_bindgen::JsCast;
-            
-            if let Some(window) = web_sys::window() {
-                if let Ok(storage) = window.local_storage() {
-                    if let Some(storage) = storage {
-                        if let Ok(Some(data)) = storage.get_item(key) {
-                            return Ok(data);
-                        }
-                    }
-                }
-            }
-        }
-        
-        Err(StateError::new("Data not found in localStorage"))
+    fn load(&self, _key: &str) -> StateResult<String> {
+        // TODO: Implement localStorage when web-sys features are properly configured
+        Err(StateError::new("LocalStorage not yet implemented"))
     }
     
-    fn delete(&self, key: &str) -> StateResult<()> {
-        #[cfg(target_arch = "wasm32")]
-        {
-            use web_sys::Storage;
-            use wasm_bindgen::JsCast;
-            
-            if let Some(window) = web_sys::window() {
-                if let Ok(storage) = window.local_storage() {
-                    if let Some(storage) = storage {
-                        if let Err(_) = storage.remove_item(key) {
-                            return Err(StateError::new("Failed to delete from localStorage"));
-                        }
-                        return Ok(());
-                    }
-                }
-            }
-        }
-        
+    fn delete(&self, _key: &str) -> StateResult<()> {
+        // TODO: Implement localStorage when web-sys features are properly configured
         Ok(())
     }
     
-    fn exists(&self, key: &str) -> bool {
-        #[cfg(target_arch = "wasm32")]
-        {
-            use web_sys::Storage;
-            use wasm_bindgen::JsCast;
-            
-            if let Some(window) = web_sys::window() {
-                if let Ok(storage) = window.local_storage() {
-                    if let Some(storage) = storage {
-                        return storage.get_item(key).unwrap_or(None).is_some();
-                    }
-                }
-            }
-        }
-        
+    fn exists(&self, _key: &str) -> bool {
+        // TODO: Implement localStorage when web-sys features are properly configured
         false
     }
 }
@@ -655,14 +594,14 @@ impl MachineStorage for MemoryStorage {
 }
 
 /// Extension trait for adding persistence to machines
-pub trait MachinePersistenceExt<C, E> {
+pub trait MachinePersistenceExt<C: Send + Sync, E> {
     /// Add persistence to the machine
     fn with_persistence(self, config: PersistenceConfig) -> PersistentMachine<C, E>;
 }
 
-impl<C, E> MachinePersistenceExt<C, E> for Machine<C, E>
+impl<C: Send + Sync, E> MachinePersistenceExt<C, E> for Machine<C, E>
 where
-    C: Clone + std::default::Default + 'static + std::fmt::Debug,
+    C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
     E: Clone + std::cmp::PartialEq + 'static + std::fmt::Debug,
 {
     fn with_persistence(self, config: PersistenceConfig) -> PersistentMachine<C, E> {
@@ -671,15 +610,15 @@ where
 }
 
 /// A state machine with persistence capabilities
-pub struct PersistentMachine<C, E> {
+pub struct PersistentMachine<C: Send + Sync, E> {
     machine: Machine<C, E>,
     persistence: MachinePersistence<C, E>,
     current_state: Option<MachineStateImpl<C>>,
 }
 
-impl<C, E> PersistentMachine<C, E>
+impl<C: Send + Sync, E> PersistentMachine<C, E>
 where
-    C: Clone + std::default::Default + 'static + std::fmt::Debug,
+    C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
     E: Clone + std::cmp::PartialEq + 'static + std::fmt::Debug,
 {
     pub fn new(machine: Machine<C, E>, config: PersistenceConfig) -> Self {

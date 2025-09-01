@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Traffic Light Test Page</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .traffic-light {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        .light {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 10px;
+            border: 3px solid #333;
+            transition: all 0.3s ease;
+        }
+        .light.red { background-color: #dc2626; }
+        .light.yellow { background-color: #ca8a04; }
+        .light.green { background-color: #16a34a; }
+        .light.off { background-color: #6b7280; }
+        .state-display {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #374151;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f3f4f6;
+            border-radius: 6px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background-color: #2563eb;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .btn-warning {
+            background-color: #ca8a04;
+            color: white;
+        }
+        .btn-warning:hover {
+            background-color: #a16207;
+        }
+        .btn-danger {
+            background-color: #dc2626;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+        .status-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9fafb;
+            border-radius: 6px;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        .status-label {
+            font-weight: 500;
+            color: #374151;
+        }
+        .status-value {
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚦 Traffic Light Test Page</h1>
+        
+        <div class="traffic-light">
+            <div class="light red" id="red-light"></div>
+            <div class="light yellow" id="yellow-light"></div>
+            <div class="light green" id="green-light"></div>
+        </div>
+        
+        <div class="state-display" data-testid="current-state-display">Red</div>
+        
+        <div class="controls">
+            <button class="btn-primary" data-testid="timer">Timer</button>
+            <button class="btn-warning" data-testid="pedestrian">Pedestrian Request</button>
+            <button class="btn-danger" data-testid="emergency">Emergency Stop</button>
+            <button class="btn-secondary" data-testid="reset">Reset</button>
+        </div>
+        
+        <div class="status-section">
+            <div class="status-item">
+                <span class="status-label">Current State:</span>
+                <span class="status-value" data-testid="current-state-value">Red</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Pedestrian Waiting:</span>
+                <span class="status-value" data-testid="pedestrian-waiting">No</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Emergency Mode:</span>
+                <span class="status-value" data-testid="emergency-mode">No</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple JavaScript to make the test page interactive
+        console.log('Script loading...');
+        
+        let currentState = 'Red';
+        let pedestrianWaiting = false;
+        let emergencyMode = false;
+        let stateIndex = 0;
+        const states = ['Red', 'Yellow', 'Green'];
+        
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up event listeners...');
+            
+            const stateDisplay = document.querySelector('[data-testid="current-state-display"]');
+            const stateValue = document.querySelector('[data-testid="current-state-value"]');
+            const pedestrianStatus = document.querySelector('[data-testid="pedestrian-waiting"]');
+            const emergencyStatus = document.querySelector('[data-testid="emergency-mode"]');
+            const timerBtn = document.querySelector('[data-testid="timer"]');
+            const pedestrianBtn = document.querySelector('[data-testid="pedestrian"]');
+            const emergencyBtn = document.querySelector('[data-testid="emergency"]');
+            const resetBtn = document.querySelector('[data-testid="reset"]');
+            
+            console.log('Elements found:', {
+                stateDisplay: !!stateDisplay,
+                stateValue: !!stateValue,
+                pedestrianStatus: !!pedestrianStatus,
+                emergencyStatus: !!emergencyStatus,
+                timerBtn: !!timerBtn,
+                pedestrianBtn: !!pedestrianBtn,
+                emergencyBtn: !!emergencyBtn,
+                resetBtn: !!resetBtn
+            });
+
+            function updateDisplay() {
+                stateDisplay.textContent = currentState;
+                stateValue.textContent = currentState;
+                pedestrianStatus.textContent = pedestrianWaiting ? 'Yes' : 'No';
+                emergencyStatus.textContent = emergencyMode ? 'Yes' : 'No';
+            }
+
+            timerBtn.addEventListener('click', () => {
+                console.log('Timer button clicked');
+                if (!emergencyMode) {
+                    stateIndex = (stateIndex + 1) % states.length;
+                    currentState = states[stateIndex];
+                    console.log('State changed to:', currentState);
+                    updateDisplay();
+                }
+            });
+
+            pedestrianBtn.addEventListener('click', () => {
+                console.log('Pedestrian button clicked');
+                pedestrianWaiting = !pedestrianWaiting;
+                console.log('Pedestrian waiting:', pedestrianWaiting);
+                updateDisplay();
+            });
+
+            emergencyBtn.addEventListener('click', () => {
+                emergencyMode = true;
+                currentState = 'Red';
+                stateIndex = 0;
+                updateDisplay();
+            });
+
+            resetBtn.addEventListener('click', () => {
+                currentState = 'Red';
+                stateIndex = 0;
+                pedestrianWaiting = false;
+                emergencyMode = false;
+                updateDisplay();
+            });
+            
+            console.log('Event listeners set up successfully');
+        });
+    </script>
+</body>
+</html>

@@ -1,4 +1,6 @@
 use leptos_state::machine::*;
+use leptos_state::machine::history::{HistoryState, HistoryMachine};
+use leptos_state::machine::states::StateValue;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 struct TestContext {

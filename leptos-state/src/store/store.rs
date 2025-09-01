@@ -1,10 +1,10 @@
-use leptos::*;
+use leptos::prelude::*;
 use std::marker::PhantomData;
 
 /// Core trait for defining stores
 pub trait Store: Clone + 'static {
     /// The state type for this store
-    type State: Clone + PartialEq + 'static;
+    type State: Clone + PartialEq + Send + Sync + 'static;
     
     /// Create the initial state
     fn create() -> Self::State;
@@ -24,9 +24,9 @@ pub struct StoreContext<T: Clone + PartialEq + 'static> {
     write: WriteSignal<T>,
 }
 
-impl<T: Clone + PartialEq + 'static> StoreContext<T> {
+impl<T: Clone + PartialEq + Send + Sync + 'static> StoreContext<T> {
     pub fn new(initial: T) -> Self {
-        let (read, write) = create_signal(initial);
+        let (read, write) = signal(initial);
         Self { read, write }
     }
     
@@ -76,7 +76,7 @@ where
 
 /// Trait for selecting slices of store state
 pub trait StoreSlice<T: Store> {
-    type Output: PartialEq + Clone + 'static;
+    type Output: PartialEq + Clone + Send + Sync + 'static;
     
     fn select(state: &T::State) -> Self::Output;
 }
@@ -84,15 +84,15 @@ pub trait StoreSlice<T: Store> {
 /// Create a memoized selector for a store slice
 pub fn use_store_slice<S: Store, Slice: StoreSlice<S>>() -> Memo<Slice::Output> {
     let (state, _) = S::use_store();
-    create_memo(move |_| Slice::select(&state.get()))
+    Memo::new(move |_| Slice::select(&state.get()))
 }
 
 /// Create a computed value from store state
-pub fn create_computed<S: Store, T: PartialEq + Clone + 'static>(
-    selector: impl Fn(&S::State) -> T + 'static,
+pub fn create_computed<S: Store, T: PartialEq + Clone + Send + Sync + 'static>(
+    selector: impl Fn(&S::State) -> T + Send + Sync + 'static,
 ) -> Memo<T> {
     let (state, _) = S::use_store();
-    create_memo(move |_| selector(&state.get()))
+    Memo::new(move |_| selector(&state.get()))
 }
 
 /// Macro for creating store implementations
@@ -137,13 +137,13 @@ where
 
 /// Deep path selector for nested field access
 pub struct PathSelector {
-    path: Vec<String>,
+    _path: Vec<String>,
 }
 
 impl PathSelector {
     pub fn new(path: &str) -> Self {
         Self {
-            path: path.split('.').map(|s| s.to_string()).collect(),
+            _path: path.split('.').map(|s| s.to_string()).collect(),
         }
     }
     
@@ -161,7 +161,7 @@ impl PathSelector {
     fn select_from_json(&self, json: &serde_json::Value) -> Option<serde_json::Value> {
         let mut current = json;
         
-        for segment in &self.path {
+        for segment in &self._path {
             current = match current {
                 serde_json::Value::Object(map) => map.get(segment)?,
                 serde_json::Value::Array(arr) => {

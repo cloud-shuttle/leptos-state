@@ -116,7 +116,7 @@ pub struct ActionExecution {
 }
 
 /// State machine visualizer
-pub struct MachineVisualizer<C, E> {
+pub struct MachineVisualizer<C: Send + Sync, E> {
     config: VisualizationConfig,
     transitions: Arc<Mutex<VecDeque<TransitionEvent<C, E>>>>,
     snapshots: Arc<Mutex<VecDeque<MachineSnapshot<C, E>>>>,
@@ -125,9 +125,9 @@ pub struct MachineVisualizer<C, E> {
     start_time: Instant,
 }
 
-impl<C, E> MachineVisualizer<C, E>
+impl<C: Send + Sync, E> MachineVisualizer<C, E>
 where
-    C: Clone + std::default::Default + 'static + std::fmt::Debug,
+    C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
     E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug,
 {
     pub fn new(machine: Machine<C, E>, config: VisualizationConfig) -> Self {
@@ -376,7 +376,7 @@ where
 
 /// State diagram representation for export
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub struct StateDiagram<'a, C, E> {
+pub struct StateDiagram<'a, C: Send + Sync, E> {
     pub machine: &'a Machine<C, E>,
     pub current_state: Option<MachineStateImpl<C>>,
     pub recent_transitions: Vec<TransitionEvent<C, E>>,
@@ -386,7 +386,7 @@ pub struct StateDiagram<'a, C, E> {
 
 /// Machine snapshot for time travel
 #[derive(Debug, Clone)]
-pub struct MachineSnapshot<C, E> {
+pub struct MachineSnapshot<C: Send + Sync, E> {
     pub state: MachineStateImpl<C>,
     pub timestamp: u64,
     pub uptime: Duration,
@@ -404,16 +404,16 @@ pub struct VisualizationStats {
 }
 
 /// Time travel debugger for state machines
-pub struct TimeTravelDebugger<C, E> {
+pub struct TimeTravelDebugger<C: Send + Sync, E> {
     snapshots: VecDeque<MachineSnapshot<C, E>>,
     current_index: isize,
     max_snapshots: usize,
     _phantom: PhantomData<E>,
 }
 
-impl<C, E> TimeTravelDebugger<C, E>
+impl<C: Send + Sync, E> TimeTravelDebugger<C, E>
 where
-    C: Clone + std::default::Default + 'static + std::fmt::Debug,
+    C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
     E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug,
 {
     pub fn new(max_snapshots: usize) -> Self {
@@ -517,22 +517,22 @@ pub struct TimeTravelPosition {
 }
 
 /// Real-time state monitor
-pub struct StateMonitor<C, E> {
+pub struct StateMonitor<C: Send + Sync, E> {
     visualizer: Arc<MachineVisualizer<C, E>>,
     time_travel: Arc<Mutex<TimeTravelDebugger<C, E>>>,
-    config: VisualizationConfig,
+    _config: VisualizationConfig,
 }
 
-impl<C, E> StateMonitor<C, E>
+impl<C: Send + Sync, E> StateMonitor<C, E>
 where
-    C: Clone + std::default::Default + 'static + std::fmt::Debug,
+    C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
     E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug,
 {
     pub fn new(visualizer: Arc<MachineVisualizer<C, E>>, config: VisualizationConfig) -> Self {
         Self {
             time_travel: Arc::new(Mutex::new(TimeTravelDebugger::new(config.max_history))),
             visualizer,
-            config,
+            _config: config,
         }
     }
     
@@ -576,7 +576,7 @@ where
 
 /// Real-time state information
 #[derive(Debug, Clone)]
-pub struct StateInfo<C, E> {
+pub struct StateInfo<C: Send + Sync, E> {
     pub current_state: Option<MachineStateImpl<C>>,
     pub stats: VisualizationStats,
     pub recent_transitions: Vec<TransitionEvent<C, E>>,
@@ -584,14 +584,14 @@ pub struct StateInfo<C, E> {
 }
 
 /// Extension trait for adding visualization to machines
-pub trait MachineVisualizationExt<C, E> {
+pub trait MachineVisualizationExt<C: Send + Sync, E> {
     /// Add visualization capabilities to the machine
     fn with_visualization(self, config: VisualizationConfig) -> VisualizedMachine<C, E>;
 }
 
-impl<C, E> MachineVisualizationExt<C, E> for Machine<C, E>
+impl<C: Send + Sync, E> MachineVisualizationExt<C, E> for Machine<C, E>
 where
-    C: Clone + std::default::Default + 'static + std::fmt::Debug,
+    C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
     E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug,
 {
     fn with_visualization(self, _config: VisualizationConfig) -> VisualizedMachine<C, E> {
@@ -602,16 +602,16 @@ where
 }
 
 /// A state machine with visualization capabilities
-pub struct VisualizedMachine<C, E> {
+pub struct VisualizedMachine<C: Send + Sync, E> {
     machine: Machine<C, E>,
     visualizer: Arc<MachineVisualizer<C, E>>,
     monitor: Arc<StateMonitor<C, E>>,
     config: VisualizationConfig,
 }
 
-impl<C, E> VisualizedMachine<C, E>
+impl<C: Send + Sync, E> VisualizedMachine<C, E>
 where
-    C: Clone + std::default::Default + 'static + std::fmt::Debug,
+    C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
     E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug,
 {
     // TODO: This method is temporarily disabled because Machine doesn't implement Clone

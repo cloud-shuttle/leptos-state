@@ -521,15 +521,15 @@ impl MemoryTracker {
 }
 
 /// Transition cache for performance optimization
-pub struct TransitionCache<C, E> {
+pub struct TransitionCache<C: Send + Sync, E> {
     cache: Arc<RwLock<HashMap<CacheKey<C, E>, CachedTransition<C>>>>,
     config: PerformanceConfig,
     profiler: Arc<PerformanceProfiler>,
 }
 
-impl<C, E> TransitionCache<C, E>
+impl<C: Send + Sync, E> TransitionCache<C, E>
 where
-    C: Clone + std::hash::Hash + Eq,
+    C: Clone + std::hash::Hash + Eq + Send + Sync,
     E: Clone + std::hash::Hash + Eq,
 {
     pub fn new(config: PerformanceConfig, profiler: Arc<PerformanceProfiler>) -> Self {
@@ -605,7 +605,9 @@ where
     /// Get cache statistics
     pub fn stats(&self) -> CacheStats {
         if let Ok(cache) = self.cache.read() {
-            let valid_entries = cache.values().filter(|v| v.is_valid()).count();
+            let _valid_entries = cache.values()
+                .filter(|entry| entry.is_valid())
+                .count();
             CacheStats {
                 hits: 0, // Would be tracked separately
                 misses: 0,
@@ -620,21 +622,21 @@ where
 
 /// Cache key for transitions
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
-pub struct CacheKey<C, E> {
+pub struct CacheKey<C: Send + Sync, E> {
     pub from_state: String,
     pub event: E,
     pub context_hash: u64, // Simplified hash of context
     _phantom: PhantomData<C>,
 }
 
-impl<C, E> CacheKey<C, E>
+impl<C: Send + Sync, E> CacheKey<C, E>
 where
     C: Clone + std::hash::Hash,
     E: Clone,
 {
     pub fn new(from_state: String, event: E, context: &C) -> Self {
         use std::collections::hash_map::DefaultHasher;
-        use std::hash::{Hash, Hasher};
+        use std::hash::Hasher;
 
         let mut hasher = DefaultHasher::new();
         context.hash(&mut hasher);
@@ -651,13 +653,13 @@ where
 
 /// Cached transition result
 #[derive(Debug, Clone)]
-pub struct CachedTransition<C> {
+pub struct CachedTransition<C: Send + Sync> {
     pub result: MachineStateImpl<C>,
     pub timestamp: Instant,
     pub ttl: Duration,
 }
 
-impl<C> CachedTransition<C> {
+impl<C: Send + Sync> CachedTransition<C> {
     pub fn is_valid(&self) -> bool {
         self.timestamp.elapsed() < self.ttl
     }
@@ -707,16 +709,16 @@ where
 }
 
 /// Performance-optimized state machine
-pub struct OptimizedMachine<C, E> {
+pub struct OptimizedMachine<C: Send + Sync, E> {
     machine: Machine<C, E>,
     cache: Arc<TransitionCache<C, E>>,
     profiler: Arc<PerformanceProfiler>,
     config: PerformanceConfig,
 }
 
-impl<C, E> OptimizedMachine<C, E>
+impl<C: Send + Sync, E> OptimizedMachine<C, E>
 where
-    C: Clone + std::hash::Hash + Eq + std::fmt::Debug + 'static,
+    C: Clone + std::hash::Hash + Eq + std::fmt::Debug + 'static + Send + Sync,
     E: Clone + std::hash::Hash + Eq + Event + 'static,
 {
     pub fn new(machine: Machine<C, E>, config: PerformanceConfig) -> Self {
@@ -795,12 +797,12 @@ where
 }
 
 /// Extension trait for adding performance optimization to machines
-pub trait MachinePerformanceExt<C, E> {
+pub trait MachinePerformanceExt<C: Send + Sync, E> {
     /// Add performance optimization capabilities to the machine
     fn with_performance_optimization(self, config: PerformanceConfig) -> OptimizedMachine<C, E>;
 }
 
-impl<C, E> MachinePerformanceExt<C, E> for Machine<C, E>
+impl<C: Send + Sync, E> MachinePerformanceExt<C, E> for Machine<C, E>
 where
     C: Clone + std::hash::Hash + Eq + std::fmt::Debug + 'static,
     E: Clone + std::hash::Hash + Eq + Event + 'static,
@@ -811,12 +813,12 @@ where
 }
 
 /// Performance builder for fluent configuration
-pub struct PerformanceBuilder<C, E> {
+pub struct PerformanceBuilder<C: Send + Sync, E> {
     machine: Machine<C, E>,
     config: PerformanceConfig,
 }
 
-impl<C, E> PerformanceBuilder<C, E>
+impl<C: Send + Sync, E> PerformanceBuilder<C, E>
 where
     C: Clone + std::hash::Hash + Eq + std::fmt::Debug + 'static,
     E: Clone + std::hash::Hash + Eq + Event + 'static,

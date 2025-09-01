@@ -1,17 +1,16 @@
 //! Integration tests for store functionality
 
-use leptos::*;
+use leptos::prelude::*;
 use leptos_state::*;
 use wasm_bindgen_test::*;
 
-mod fixtures;
-use fixtures::*;
+use super::fixtures::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 fn store_creation_and_access() {
-    let _runtime = create_test_runtime();
+    // Runtime not needed in Leptos 0.8
     
     provide_store::<TestStore>(TestState::default());
     let (state, _) = use_store::<TestStore>();
@@ -23,7 +22,7 @@ fn store_creation_and_access() {
 
 #[wasm_bindgen_test]
 fn store_state_updates() {
-    let _runtime = create_test_runtime();
+    // Runtime not needed in Leptos 0.8
     
     provide_store::<TestStore>(TestState::default());
     let (state, set_state) = use_store::<TestStore>();
@@ -42,13 +41,13 @@ fn store_state_updates() {
 
 #[wasm_bindgen_test]
 fn store_reactivity() {
-    let _runtime = create_test_runtime();
+    // Runtime not needed in Leptos 0.8
     
     provide_store::<TestStore>(TestState::default());
     let (state, set_state) = use_store::<TestStore>();
     let (trigger_effect, effect_count) = track_effect_count();
     
-    create_effect(move |_| {
+    Effect::new(move |_| {
         state.get(); // Subscribe to state changes
         trigger_effect();
     });
@@ -67,7 +66,7 @@ fn store_reactivity() {
 
 #[wasm_bindgen_test]
 fn computed_state_selectors() {
-    let _runtime = create_test_runtime();
+    // Runtime not needed in Leptos 0.8
     
     provide_store::<TestStore>(TestState::default());
     let (state, set_state) = use_store::<TestStore>();
@@ -114,7 +113,7 @@ fn store_persistence() {
 
 #[test]
 fn store_middleware_chain() {
-    let _runtime = create_test_runtime();
+    // Runtime not needed in Leptos 0.8
     
     // Test that middleware can be created without runtime errors
     let logger = LoggerMiddleware::<TestStore>::new("test");

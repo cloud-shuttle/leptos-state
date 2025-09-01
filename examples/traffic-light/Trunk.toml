@@ -1,0 +1,32 @@
+[build]
+target = "index.html"
+dist = "dist"
+public_url = "./"
+
+[watch]
+watch = ["src", "index.html", "styles.css"]
+
+[serve]
+address = "127.0.0.1"
+port = 8080
+open = false
+
+[[hooks]]
+stage = "pre_build"
+command = "cargo"
+command_arguments = ["build", "--target", "wasm32-unknown-unknown", "--package", "traffic-light-example", "--manifest-path", "../../Cargo.toml"]
+
+[[hooks]]
+stage = "post_build"
+command = "wasm-bindgen"
+command_arguments = ["../../target/wasm32-unknown-unknown/debug/traffic-light-example.wasm", "--out-dir", "dist", "--target", "web"]
+
+[[hooks]]
+stage = "post_build"
+command = "sh"
+command_arguments = ["-c", "cp ../../examples/traffic-light/styles.css ../../examples/traffic-light/dist/"]
+
+[[hooks]]
+stage = "post_build"
+command = "sh"
+command_arguments = ["-c", "echo 'TrunkApplicationStarted event will be dispatched by Trunk'"]
