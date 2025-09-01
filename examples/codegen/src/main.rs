@@ -3,6 +3,7 @@
 //! This example demonstrates the code generation capabilities
 //! of the state machine library.
 
+use std::collections::HashMap;
 use leptos_state::machine::*;
 use leptos_state::machine::codegen::*;
 
@@ -45,34 +46,34 @@ fn main() {
     // Create a state machine with code generation capabilities
     let machine = MachineBuilder::<GameContext, GameEvent>::new()
         .state("idle")
-            .on(GameEvent::Start, "playing")
             .on_entry_fn(|ctx, _| {
                 println!("Entering idle state");
                 ctx.score = 0;
                 ctx.level = 1;
                 ctx.lives = 3;
             })
+            .on(GameEvent::Start, "playing")
         .state("playing")
-            .on(GameEvent::Pause, "paused")
-            .on(GameEvent::Stop, "idle")
-            .on(GameEvent::GameOver, "game_over")
             .on_entry_fn(|ctx, _| {
                 println!("Starting game for player: {}", ctx.player_name);
             })
+            .on(GameEvent::Pause, "paused")
+            .on(GameEvent::Stop, "idle")
+            .on(GameEvent::GameOver, "game_over")
             .on_exit_fn(|ctx, _| {
                 println!("Exiting playing state with score: {}", ctx.score);
             })
         .state("paused")
-            .on(GameEvent::Resume, "playing")
-            .on(GameEvent::Stop, "idle")
             .on_entry_fn(|ctx, _| {
                 println!("Game paused at level {}", ctx.level);
             })
+            .on(GameEvent::Resume, "playing")
+            .on(GameEvent::Stop, "idle")
         .state("game_over")
-            .on(GameEvent::Start, "idle")
             .on_entry_fn(|ctx, _| {
                 println!("Game over! Final score: {}", ctx.score);
             })
+            .on(GameEvent::Start, "idle")
         .initial("idle")
         .build_codegen();
 
@@ -230,7 +231,7 @@ mod tests {
         .with_metadata("test".to_string(), "builder".to_string())
         .build();
 
-        let config = generator.config;
+        let config = generator.config();
         assert_eq!(config.target_languages.len(), 1);
         assert_eq!(config.output_directory, "builder_test");
         assert!(!config.include_tests);

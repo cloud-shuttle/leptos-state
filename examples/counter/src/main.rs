@@ -1,8 +1,9 @@
 use leptos::*;
 use leptos_state::*;
+use leptos::prelude::{ClassAttribute, ElementChild, Get, OnAttribute, Update, event_target_value};
 
 #[derive(Clone, PartialEq, Debug)]
-struct CounterState {
+pub struct CounterState {
     count: i32,
     step: i32,
 }

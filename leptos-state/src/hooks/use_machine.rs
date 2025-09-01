@@ -1,10 +1,10 @@
-use leptos::*;
+use leptos::prelude::*;
 use crate::machine::*;
 use crate::machine::states::StateValue;
 
 /// Hook to interact with state machines in Leptos components
 pub fn use_machine<M: StateMachine>() -> MachineHandle<M> {
-    let (state, set_state) = create_signal(M::initial());
+    let (state, set_state) = signal(M::initial());
     
     let send = Callback::new(move |event: M::Event| {
         set_state.update(|s| *s = M::transition(s, event));
@@ -13,14 +13,14 @@ pub fn use_machine<M: StateMachine>() -> MachineHandle<M> {
     MachineHandle {
         state: state.into(),
         send,
-        context: create_memo(move |_| state.get().context().clone()),
-        value: create_memo(move |_| state.get().value().clone()),
+        context: Memo::new(move |_| state.get().context().clone()),
+        value: Memo::new(move |_| state.get().value().clone()),
     }
 }
 
 /// Hook to create a machine with initial context
 pub fn use_machine_with_context<M: StateMachine>(
-    initial_context: M::Context,
+    _initial_context: M::Context,
 ) -> MachineHandle<M> 
 where
     M::State: MachineState<Context = M::Context>,
@@ -31,6 +31,7 @@ where
 }
 
 /// Handle for interacting with a state machine
+#[derive(Clone)]
 pub struct MachineHandle<M: StateMachine> {
     pub state: ReadSignal<M::State>,
     pub send: Callback<M::Event>,
@@ -63,13 +64,13 @@ impl<M: StateMachine> MachineHandle<M> {
     
     /// Send an event to the machine
     pub fn emit(&self, event: M::Event) {
-        self.send.call(event);
+        self.send.run(event);
     }
     
     /// Create a reactive memo for state matching
     pub fn create_matcher(&self, pattern: String) -> Memo<bool> {
         let state = self.state;
-        create_memo(move |_| state.get().matches(&pattern))
+        Memo::new(move |_| state.get().matches(&pattern))
     }
     
     /// Create multiple matchers at once
@@ -90,7 +91,7 @@ pub fn use_machine_subscription<M, F>(
     F: Fn(&M::State) + 'static,
 {
     let state = handle.state;
-    create_effect(move |_| {
+    Effect::new(move |_| {
         let current_state = state.get();
         callback(&current_state);
     });
@@ -106,7 +107,7 @@ pub fn use_machine_effect<M, F>(
     F: Fn(&M::State) + 'static,
 {
     let state = handle.state;
-    create_effect(move |_| {
+    Effect::new(move |_| {
         let current_state = state.get();
         if condition(&current_state) {
             effect(&current_state);
@@ -121,12 +122,12 @@ pub fn use_machine_history<M: StateMachine>(
 where
     M::State: Clone + PartialEq,
 {
-    let history = create_rw_signal(Vec::<M::State>::new());
-    let current_index = create_rw_signal(0);
+    let history = RwSignal::new(Vec::<M::State>::new());
+    let current_index = RwSignal::new(0);
     
     // Track state changes
     let state = handle.state;
-    create_effect(move |prev_state: Option<Option<M::State>>| {
+    Effect::new(move |prev_state: Option<Option<M::State>>| {
         let current_state = state.get();
         
         if let Some(Some(prev)) = prev_state {
@@ -195,7 +196,7 @@ where
     ParallelMachineHandle {
         machine1,
         machine2,
-        both_active: create_memo(move |_| {
+        both_active: Memo::new(move |_| {
             // This would depend on specific parallel state logic
             true
         }),

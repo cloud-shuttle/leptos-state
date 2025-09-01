@@ -1,4 +1,5 @@
 use leptos::*;
+use leptos::prelude::*;
 
 mod simple_todo;
 
@@ -14,7 +15,7 @@ fn main() {
     log::info!("Starting Simple Todo App...");
     
     // Mount the app
-    mount_to_body(|| {
+    leptos::mount::mount_to_body(|| {
         view! {
             <SimpleTodoApp />
         }

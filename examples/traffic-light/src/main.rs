@@ -1,5 +1,7 @@
 use leptos::*;
 use leptos_state::*;
+use leptos_state::machine::states::StateValue;
+use leptos::prelude::{ClassAttribute, ElementChild, Get, OnAttribute};
 
 #[derive(Debug, Clone, PartialEq, Default)]
 struct TrafficContext {
@@ -53,6 +55,7 @@ impl MachineState for TrafficMachineState {
     }
 }
 
+#[derive(Clone)]
 struct TrafficMachine;
 
 impl StateMachine for TrafficMachine {
@@ -99,8 +102,9 @@ impl StateMachine for TrafficMachine {
 fn TrafficLight() -> impl IntoView {
     let machine = use_machine::<TrafficMachine>();
     
+    let machine_current = machine.clone();
     let current_light = move || {
-        let state = machine.current();
+        let state = machine_current.current();
         match state {
             StateValue::Simple(s) => s,
             _ => "unknown".to_string(),
@@ -111,10 +115,14 @@ fn TrafficLight() -> impl IntoView {
     let is_yellow = machine.create_matcher("yellow".to_string());
     let is_green = machine.create_matcher("green".to_string());
     
-    let next_timer = move |_| machine.emit(TrafficEvent::Timer);
-    let request_pedestrian = move |_| machine.emit(TrafficEvent::PedestrianRequest);
-    let emergency_stop = move |_| machine.emit(TrafficEvent::EmergencyStop);
-    let reset = move |_| machine.emit(TrafficEvent::Reset);
+    let machine_timer = machine.clone();
+    let next_timer = move |_| machine_timer.emit(TrafficEvent::Timer);
+    let machine_pedestrian = machine.clone();
+    let request_pedestrian = move |_| machine_pedestrian.emit(TrafficEvent::PedestrianRequest);
+    let machine_emergency = machine.clone();
+    let emergency_stop = move |_| machine_emergency.emit(TrafficEvent::EmergencyStop);
+    let machine_reset = machine.clone();
+    let reset = move |_| machine_reset.emit(TrafficEvent::Reset);
     
     view! {
         <div class="traffic-light">

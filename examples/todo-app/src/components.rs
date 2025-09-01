@@ -42,14 +42,14 @@ pub fn TodoList() -> impl IntoView {
 #[component]
 pub fn TodoItem(todo: Todo) -> impl IntoView {
     let store = use_context::<TodoStore>().expect("TodoStore not found");
-    let (is_editing, set_is_editing) = create_signal(false);
-    let (is_expanded, set_is_expanded) = create_signal(false);
-    
-    // Create signals for editing
-    let (edit_title, set_edit_title) = create_signal(todo.title.clone());
-    let (edit_description, set_edit_description) = create_signal(todo.description.clone());
-    let (edit_priority, set_edit_priority) = create_signal(todo.priority.clone());
-    let (edit_tags, set_edit_tags) = create_signal(todo.tags.clone());
+            let (is_editing, set_is_editing) = create_signal(false);
+        let (is_expanded, set_is_expanded) = create_signal(false);
+        
+        // Create signals for editing
+        let (edit_title, set_edit_title) = create_signal(todo.title.clone());
+        let (edit_description, set_edit_description) = create_signal(todo.description.clone());
+        let (edit_priority, set_edit_priority) = create_signal(todo.priority.clone());
+        let (edit_tags, set_edit_tags) = create_signal(todo.tags.clone());
     
     // Handle save
     let handle_save = move |_| {

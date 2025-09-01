@@ -5,8 +5,13 @@
 //! property-based testing, and automated test generation.
 
 use super::*;
-
-use crate::machine::states::StateValue;
+use crate::{
+    machine::{Machine, MachineState, Transition, TransitionBuilder, StateBuilder},
+    store::Store,
+    utils::types::{StateResult, StateError},
+    machine::states::StateValue,
+};
+use crate::machine::events::Event;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::time::{Duration, Instant};
 use std::marker::PhantomData;
@@ -158,7 +163,7 @@ pub struct TestStep {
 }
 
 /// State machine test runner
-pub struct MachineTestRunner<C, E> {
+pub struct MachineTestRunner<C: Send + Sync, E> {
     machine: Machine<C, E>,
     config: TestConfig,
     test_data_generator: Box<dyn TestDataGenerator<C, E>>,
@@ -168,8 +173,8 @@ pub struct MachineTestRunner<C, E> {
 
 impl<C, E> MachineTestRunner<C, E>
 where
-    C: Clone + std::fmt::Debug + PartialEq + std::default::Default + 'static,
-    E: Clone + std::fmt::Debug + Event + std::cmp::PartialEq + 'static,
+    C: Clone + std::fmt::Debug + PartialEq + std::default::Default + Send + Sync + 'static,
+    E: Clone + std::fmt::Debug + PartialEq + std::default::Default + Send + Sync + Event + 'static,
 {
     pub fn new(machine: Machine<C, E>, config: TestConfig) -> Self {
         let test_data_generator = Box::new(DefaultTestDataGenerator::new());
@@ -721,7 +726,7 @@ impl CoverageTracker {
         self.actions_executed.insert(action.to_string());
     }
 
-    pub fn calculate_coverage<C, E>(&self, machine: &Machine<C, E>) -> TestCoverage {
+    pub fn calculate_coverage<C: Send + Sync + Clone, E: Clone>(&self, machine: &Machine<C, E>) -> TestCoverage {
         let total_states = machine.states_map().len();
         let total_transitions: usize = machine.states_map().values()
             .map(|state| state.transitions.len())
@@ -803,15 +808,15 @@ impl PerformanceTracker {
 }
 
 /// Extension trait for adding testing to machines
-pub trait MachineTestingExt<C, E> {
+pub trait MachineTestingExt<C: Send + Sync, E> {
     /// Add testing capabilities to the machine
     fn with_testing(self, config: TestConfig) -> MachineTestRunner<C, E>;
 }
 
 impl<C, E> MachineTestingExt<C, E> for Machine<C, E>
 where
-    C: Clone + std::fmt::Debug + PartialEq + std::default::Default + 'static,
-    E: Clone + std::fmt::Debug + Event + std::cmp::PartialEq + 'static,
+    C: Clone + std::fmt::Debug + PartialEq + std::default::Default + Send + Sync + 'static,
+    E: Clone + std::fmt::Debug + Event + std::cmp::PartialEq + std::default::Default + Send + Sync + 'static,
 {
     fn with_testing(self, config: TestConfig) -> MachineTestRunner<C, E> {
         MachineTestRunner::new(self, config)
@@ -819,15 +824,15 @@ where
 }
 
 /// Test builder for fluent test creation
-pub struct TestBuilder<C, E> {
+pub struct TestBuilder<C: Send + Sync, E> {
     machine: Machine<C, E>,
     config: TestConfig,
 }
 
 impl<C, E> TestBuilder<C, E>
 where
-    C: Clone + std::fmt::Debug + PartialEq + std::default::Default + 'static,
-    E: Clone + std::fmt::Debug + Event + std::cmp::PartialEq + 'static,
+    C: Clone + std::fmt::Debug + PartialEq + std::default::Default + Send + Sync + 'static,
+    E: Clone + std::fmt::Debug + Event + std::cmp::PartialEq + std::default::Default + Send + Sync + 'static,
 {
     pub fn new(machine: Machine<C, E>) -> Self {
         Self {
@@ -925,6 +930,12 @@ mod tests {
         Increment,
         Decrement,
         SetName(String),
+    }
+
+    impl Default for TestEvent {
+        fn default() -> Self {
+            TestEvent::Increment
+        }
     }
 
     impl Event for TestEvent {

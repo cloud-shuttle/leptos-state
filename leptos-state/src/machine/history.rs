@@ -45,13 +45,13 @@ impl HistoryState {
 }
 
 /// Machine with history tracking capabilities
-pub struct HistoryMachine<C, E> {
+pub struct HistoryMachine<C: Send + Sync, E> {
     pub base_machine: Machine<C, E>,
     pub history_states: HashMap<String, HistoryState>,
     pub history_tracker: HistoryTracker<C>,
 }
 
-impl<C: Clone + PartialEq + Default + 'static + std::fmt::Debug, E: Clone + 'static + std::fmt::Debug> HistoryMachine<C, E> {
+impl<C: Clone + PartialEq + Default + 'static + std::fmt::Debug + std::marker::Send + std::marker::Sync, E: Clone + 'static + std::fmt::Debug> HistoryMachine<C, E> {
     pub fn new(base_machine: Machine<C, E>) -> Self {
         Self {
             base_machine,
@@ -136,12 +136,12 @@ impl<C: Clone + PartialEq + Default + 'static + std::fmt::Debug, E: Clone + 'sta
 }
 
 /// Tracks state history for history states
-pub struct HistoryTracker<C> {
+pub struct HistoryTracker<C: Send + Sync> {
     shallow_history: std::cell::RefCell<HashMap<String, StateValue>>,
     deep_history: std::cell::RefCell<HashMap<String, MachineStateImpl<C>>>,
 }
 
-impl<C: Clone + PartialEq + Default> HistoryTracker<C> {
+impl<C: Clone + PartialEq + Default + Send + Sync + 'static> HistoryTracker<C> {
     pub fn new() -> Self {
         Self {
             shallow_history: std::cell::RefCell::new(HashMap::new()),
@@ -228,18 +228,18 @@ impl<C: Clone + PartialEq + Default> HistoryTracker<C> {
     }
 }
 
-impl<C: Clone + PartialEq + Default> Default for HistoryTracker<C> {
+impl<C: Clone + PartialEq + Default + Send + Sync + 'static> Default for HistoryTracker<C> {
     fn default() -> Self {
         Self::new()
     }
 }
 
 /// Builder extension for adding history states
-pub trait HistoryMachineBuilder<C, E> {
+pub trait HistoryMachineBuilder<C: Send + Sync, E> {
     fn with_history_state(self, id: &str, history_state: HistoryState) -> HistoryMachine<C, E>;
 }
 
-impl<C: Clone + PartialEq + Default + 'static + std::fmt::Debug, E: Clone + 'static + std::fmt::Debug> HistoryMachineBuilder<C, E> for Machine<C, E> {
+impl<C: Clone + PartialEq + Default + 'static + std::fmt::Debug + std::marker::Send + std::marker::Sync, E: Clone + 'static + std::fmt::Debug> HistoryMachineBuilder<C, E> for Machine<C, E> {
     fn with_history_state(self, id: &str, history_state: HistoryState) -> HistoryMachine<C, E> {
         HistoryMachine::new(self).add_history_state(id.to_string(), history_state)
     }

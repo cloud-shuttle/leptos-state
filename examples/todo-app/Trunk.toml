@@ -1,0 +1,22 @@
+[build]
+target = "index.html"
+dist = "dist"
+public_url = "./"
+
+[watch]
+watch = ["src", "index.html"]
+
+[serve]
+address = "127.0.0.1"
+port = 8080
+open = false
+
+[[hooks]]
+stage = "pre_build"
+command = "cargo"
+command_arguments = ["build", "--target", "wasm32-unknown-unknown", "--package", "todo-app", "--manifest-path", "../../Cargo.toml", "--bin", "todo-app"]
+
+[[hooks]]
+stage = "post_build"
+command = "wasm-bindgen"
+command_arguments = ["../../target/wasm32-unknown-unknown/debug/todo-app.wasm", "--out-dir", "dist", "--target", "web"]

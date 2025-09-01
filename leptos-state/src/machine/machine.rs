@@ -3,7 +3,6 @@ use crate::machine::states::StateValue;
 use crate::StateResult;
 use std::collections::HashMap;
 use std::marker::PhantomData;
-use std::time::Duration;
 
 // Extension traits
 #[cfg(feature = "persist")]
@@ -23,9 +22,9 @@ use crate::machine::codegen::{CodeGenerator, CodeGenConfig, ProgrammingLanguage}
 
 /// Core trait for state machines
 pub trait StateMachine: Sized + 'static {
-    type Context: Clone + PartialEq;
-    type Event: Clone;
-    type State: MachineState<Context = Self::Context> + Clone;
+    type Context: Clone + PartialEq + Send + Sync + 'static;
+    type Event: Clone + Send + Sync + 'static;
+    type State: MachineState<Context = Self::Context> + Clone + Send + Sync + 'static;
     
     fn initial() -> Self::State;
     fn transition(state: &Self::State, event: Self::Event) -> Self::State;
@@ -33,7 +32,7 @@ pub trait StateMachine: Sized + 'static {
 
 /// Trait for machine states
 pub trait MachineState {
-    type Context;
+    type Context: Send + Sync + 'static;
     
     fn value(&self) -> &StateValue;
     fn context(&self) -> &Self::Context;
@@ -42,13 +41,13 @@ pub trait MachineState {
 }
 
 /// Builder for creating state machines
-pub struct MachineBuilder<C, E> {
+pub struct MachineBuilder<C: Send + Sync, E> {
     states: HashMap<String, StateNode<C, E>>,
     initial: String,
     _phantom: PhantomData<(C, E)>,
 }
 
-impl<C: Clone + 'static, E: Clone + 'static> MachineBuilder<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> MachineBuilder<C, E> {
     pub fn new() -> Self {
         Self {
             states: HashMap::new(),
@@ -161,7 +160,7 @@ impl<C: Clone + 'static, E: Clone + 'static> MachineBuilder<C, E> {
         let config = TestConfig {
             max_iterations: 1000,
             max_transitions: 50,
-            test_timeout: Duration::from_secs(30),
+            test_timeout: std::time::Duration::from_secs(30),
             verbose: false,
             track_coverage: true,
             benchmark: false,
@@ -197,10 +196,10 @@ impl<C: Clone + 'static, E: Clone + 'static> MachineBuilder<C, E> {
             enable_lazy_evaluation: true,
             enable_profiling: true,
             cache_size_limit: 1000,
-            cache_ttl: Duration::from_secs(300),
+            cache_ttl: std::time::Duration::from_secs(300),
             cache_guard_results: true,
             cache_action_results: false,
-            monitoring_interval: Duration::from_secs(1),
+            monitoring_interval: std::time::Duration::from_secs(1),
             track_memory_usage: true,
             track_allocations: true,
             optimization_strategies: vec![
@@ -309,14 +308,14 @@ impl<C: Clone + 'static, E: Clone + 'static> MachineBuilder<C, E> {
     }
 }
 
-impl<C: Clone + 'static + std::fmt::Debug, E: Clone + 'static + std::fmt::Debug> Default for MachineBuilder<C, E> {
+impl<C: Clone + 'static + std::fmt::Debug + Send + Sync, E: Clone + 'static + std::fmt::Debug> Default for MachineBuilder<C, E> {
     fn default() -> Self {
         Self::new()
     }
 }
 
 /// State builder for fluent API
-pub struct StateBuilder<C, E> {
+pub struct StateBuilder<C: Send + Sync, E> {
     machine_builder: MachineBuilder<C, E>,
     current_state: String,
     transitions: Vec<Transition<C, E>>,
@@ -326,7 +325,7 @@ pub struct StateBuilder<C, E> {
     initial_child: Option<String>,
 }
 
-impl<C: Clone + 'static, E: Clone + 'static> StateBuilder<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> StateBuilder<C, E> {
     pub fn new(machine_builder: MachineBuilder<C, E>, state_id: String) -> Self {
         Self {
             machine_builder,
@@ -471,7 +470,7 @@ impl<C: Clone + 'static, E: Clone + 'static> StateBuilder<C, E> {
 }
 
 /// Builder for child states in hierarchical machines
-pub struct ChildStateBuilder<C, E> {
+pub struct ChildStateBuilder<C: Send + Sync, E> {
     parent_builder: StateBuilder<C, E>,
     child_id: String,
     transitions: Vec<Transition<C, E>>,
@@ -479,7 +478,7 @@ pub struct ChildStateBuilder<C, E> {
     exit_actions: Vec<Box<dyn Action<C, E>>>,
 }
 
-impl<C: Clone + 'static, E: Clone + 'static> ChildStateBuilder<C, E> {
+impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildStateBuilder<C, E> {
     pub fn new(parent_builder: StateBuilder<C, E>, child_id: String) -> Self {
         Self {
             parent_builder,
@@ -596,7 +595,7 @@ impl<C: Clone + 'static, E: Clone + 'static> ChildStateBuilder<C, E> {
 }
 
 /// Transition builder for child states
-pub struct ChildTransitionBuilder<C, E> {
+pub struct ChildTransitionBuilder<C: Send + Sync, E> {
     child_builder: ChildStateBuilder<C, E>,
     event: E,
     target: String,
@@ -604,7 +603,7 @@ pub struct ChildTransitionBuilder<C, E> {
     actions: Vec<Box<dyn Action<C, E>>>,
 }
 
-impl<C: Clone + 'static, E: Clone + 'static> ChildTransitionBuilder<C, E> {
+impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildTransitionBuilder<C, E> {
     pub fn new(child_builder: ChildStateBuilder<C, E>, event: E, target: String) -> Self {
         Self {
             child_builder,
@@ -695,7 +694,7 @@ impl<C: Clone + 'static, E: Clone + 'static> ChildTransitionBuilder<C, E> {
 }
 
 /// Transition builder for fluent API
-pub struct TransitionBuilder<C, E> {
+pub struct TransitionBuilder<C: Clone + Send + Sync + 'static, E: Clone + 'static> {
     state_builder: StateBuilder<C, E>,
     event: E,
     target: String,
@@ -703,7 +702,7 @@ pub struct TransitionBuilder<C, E> {
     actions: Vec<Box<dyn Action<C, E>>>,
 }
 
-impl<C: Clone + 'static, E: Clone + 'static> TransitionBuilder<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> TransitionBuilder<C, E> {
     pub fn new(state_builder: StateBuilder<C, E>, event: E, target: String) -> Self {
         Self {
             state_builder,
@@ -792,6 +791,37 @@ impl<C: Clone + 'static, E: Clone + 'static> TransitionBuilder<C, E> {
         state_builder.state(id)
     }
     
+    /// Finish the current transition and set the initial state on the underlying builder
+    pub fn initial(self, state_id: &str) -> MachineBuilder<C, E> {
+        let transition = Transition {
+            event: self.event,
+            target: self.target,
+            guards: self.guards,
+            actions: self.actions,
+        };
+
+        let mut state_builder = self.state_builder;
+        state_builder.transitions.push(transition);
+        state_builder.initial(state_id)
+    }
+
+    /// Finish the current transition and add an exit function to the current state
+    pub fn on_exit_fn<F>(self, func: F) -> StateBuilder<C, E>
+    where
+        F: Fn(&mut C, &E) + 'static,
+    {
+        let transition = Transition {
+            event: self.event,
+            target: self.target,
+            guards: self.guards,
+            actions: self.actions,
+        };
+
+        let mut state_builder = self.state_builder;
+        state_builder.transitions.push(transition);
+        state_builder.on_exit_fn(func)
+    }
+
     pub fn build(self) -> Machine<C, E> {
         let transition = Transition {
             event: self.event,
@@ -825,7 +855,7 @@ pub struct Transition<C, E> {
 }
 
 /// Complete machine implementation
-pub struct Machine<C, E> {
+pub struct Machine<C: Send + Sync, E> {
     states: HashMap<String, StateNode<C, E>>,
     initial: String,
 }
@@ -859,7 +889,29 @@ impl<C: Clone, E: Clone> Clone for StateNode<C, E> {
     }
 }
 
-impl<C: Clone + 'static + std::fmt::Debug, E: Clone + 'static + std::fmt::Debug> Machine<C, E> {
+impl<C: Send + Sync + Clone, E: Clone> Machine<C, E> {
+    /// Get all state IDs in the machine
+    pub fn get_states(&self) -> Vec<String> {
+        self.states.keys().cloned().collect()
+    }
+    
+    /// Get the initial state ID
+    pub fn initial_state_id(&self) -> &str {
+        &self.initial
+    }
+    
+    /// Get a reference to the states map
+    pub fn states_map(&self) -> &HashMap<String, StateNode<C, E>> {
+        &self.states
+    }
+    
+    /// Export a diagram of the machine
+    pub fn export_diagram(&self, _format: crate::machine::visualization::ExportFormat) -> StateResult<String> {
+        // Note: Machine doesn't implement Clone, so we can't use visualization in this context
+        // This would need to be addressed in a future iteration
+        Err(crate::utils::types::StateError::new("Visualization not available - Machine doesn't implement Clone"))
+    }
+
     pub fn initial_state(&self) -> MachineStateImpl<C> 
     where
         C: Default,
@@ -1021,12 +1073,12 @@ impl<C: Clone + 'static + std::fmt::Debug, E: Clone + 'static + std::fmt::Debug>
 
 /// Concrete implementation of machine state
 #[derive(Debug, Clone, PartialEq)]
-pub struct MachineStateImpl<C> {
+pub struct MachineStateImpl<C: Send + Sync> {
     value: StateValue,
     context: C,
 }
 
-impl<C> MachineState for MachineStateImpl<C> {
+impl<C: Send + Sync + 'static> MachineState for MachineStateImpl<C> {
     type Context = C;
     
     fn value(&self) -> &StateValue {
@@ -1047,7 +1099,7 @@ impl<C> MachineState for MachineStateImpl<C> {
     }
 }
 
-impl<C> MachineStateImpl<C> {
+impl<C: Send + Sync> MachineStateImpl<C> {
     /// Create a new machine state with the given value and context
     pub fn new(value: StateValue, context: C) -> Self {
         Self { value, context }
@@ -1073,31 +1125,9 @@ impl<C> MachineStateImpl<C> {
     }
 }
 
-impl<C, E> Machine<C, E> {
-    /// Get all state IDs in the machine
-    pub fn get_states(&self) -> Vec<String> {
-        self.states.keys().cloned().collect()
-    }
-    
-    /// Get the initial state ID
-    pub fn initial_state_id(&self) -> &str {
-        &self.initial
-    }
-    
-    /// Get a reference to the states map
-    pub fn states_map(&self) -> &HashMap<String, StateNode<C, E>> {
-        &self.states
-    }
-    
-    /// Export a diagram of the machine
-    pub fn export_diagram(&self, format: crate::machine::visualization::ExportFormat) -> StateResult<String> {
-        // Note: Machine doesn't implement Clone, so we can't use visualization in this context
-        // This would need to be addressed in a future iteration
-        Err(crate::utils::types::StateError::new("Visualization not available - Machine doesn't implement Clone"))
-    }
-}
 
-impl<C> Default for MachineStateImpl<C> 
+
+impl<C: Send + Sync> Default for MachineStateImpl<C> 
 where 
     C: Default 
 {

@@ -41,6 +41,7 @@ pub mod store;
 pub mod machine;
 pub mod hooks;
 pub mod utils;
+pub mod compat;
 
 // Re-export commonly used items
 // Store types
@@ -51,3 +52,5 @@ pub use machine::{StateMachine, MachineState, MachineBuilder, Machine};
 pub use hooks::{use_machine, use_machine_history};
 // Utility types
 pub use utils::{StateResult, StateError, LogLevel};
+// Compatibility layer
+pub use compat::*;

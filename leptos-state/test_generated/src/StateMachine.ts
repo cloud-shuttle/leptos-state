@@ -2,8 +2,8 @@
 // This file was automatically generated
 
 export enum State {
-    counting,
     idle,
+    counting,
 }
 
 export enum StateEvent {

@@ -1,5 +1,6 @@
 use leptos::*;
 use leptos::ev::SubmitEvent;
+use leptos::prelude::*;
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -48,7 +49,7 @@ pub fn SimpleTodoApp() -> impl IntoView {
                     placeholder="What needs to be done?"
                     prop:value=new_todo_title
                     on:input=move |ev| {
-                        let value = event_target_value(&ev);
+                        let value = ev.target().unwrap().value_of().as_string().unwrap_or_default();
                         set_new_todo_title.set(value);
                     }
                     required=true
@@ -60,55 +61,48 @@ pub fn SimpleTodoApp() -> impl IntoView {
             </form>
             
             <div>
+                <p>"Todo List:"</p>
                 {move || {
                     let todo_list: Vec<Todo> = todos.get().values().cloned().collect();
-                    if todo_list.is_empty() {
-                        view! {
-                            <p style="text-align: center; color: #64748b; margin-top: 2rem;">
-                                "No todos yet. Create your first todo!"
-                            </p>
-                        }.into_view()
-                    } else {
-                        view! {
-                            <div>
-                                {todo_list.into_iter().map(|todo| {
-                                    let todo_id = todo.id;
-                                    let completed = todo.completed;
-                                    let title = todo.title.clone();
-                                    
-                                    view! {
-                                        <div style="display: flex; align-items: center; padding: 0.5rem; border: 1px solid #e2e8f0; margin-bottom: 0.5rem; border-radius: 0.25rem;">
-                                            <input
-                                                type="checkbox"
-                                                checked=completed
-                                                on:change=move |_| {
-                                                    set_todos.update(|todos| {
-                                                        if let Some(todo) = todos.get_mut(&todo_id) {
-                                                            todo.completed = !todo.completed;
-                                                        }
-                                                    });
-                                                }
-                                                style="margin-right: 0.5rem;"
-                                            />
-                                            <span style=move || if completed { "text-decoration: line-through; color: #64748b; flex: 1;" } else { "flex: 1;" }>
-                                                {title}
-                                            </span>
-                                            <button
-                                                on:click=move |_| {
-                                                    set_todos.update(|todos| {
-                                                        todos.remove(&todo_id);
-                                                    });
-                                                }
-                                                style="background: #ef4444; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer;"
-                                            >
-                                                "Delete"
-                                            </button>
-                                        </div>
-                                    }
-                                }).collect::<Vec<_>>()}
-                            </div>
-                        }.into_view()
-                    }
+                    view! {
+                        <div>
+                            {todo_list.into_iter().map(|todo| {
+                                let todo_id = todo.id;
+                                let completed = todo.completed;
+                                let title = todo.title.clone();
+                                
+                                view! {
+                                    <div style="display: flex; align-items: center; padding: 0.5rem; border: 1px solid #e2e8f0; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                                        <input
+                                            type="checkbox"
+                                            checked=completed
+                                            on:change=move |_| {
+                                                set_todos.update(|todos| {
+                                                    if let Some(todo) = todos.get_mut(&todo_id) {
+                                                        todo.completed = !todo.completed;
+                                                    }
+                                                });
+                                            }
+                                            style="margin-right: 0.5rem;"
+                                        />
+                                        <span style=move || if completed { "text-decoration: line-through; color: #64748b; flex: 1;" } else { "flex: 1;" }>
+                                            {title}
+                                        </span>
+                                        <button
+                                            on:click=move |_| {
+                                                set_todos.update(|todos| {
+                                                    todos.remove(&todo_id);
+                                                });
+                                            }
+                                            style="background: #ef4444; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer;"
+                                        >
+                                            "Delete"
+                                        </button>
+                                    </div>
+                                }
+                            }).collect::<Vec<_>>()}
+                        </div>
+                    }.into_view()
                 }}
             </div>
         </div>

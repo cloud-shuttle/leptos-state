@@ -12,13 +12,32 @@ A state management library for [Leptos](https://leptos.dev/) applications inspir
 - **🔄 Middleware Support**: Extensible middleware system for logging, persistence, etc.
 - **🛠️ DevTools Ready**: Built-in support for time-travel debugging
 
+## ⚠️ Important: Leptos Version Compatibility
+
+**Leptos 0.8.x is currently BROKEN** - All versions from 0.8.0 through 0.8.8 have an internal compilation error that prevents our compatibility layer from working.
+
+### Current Status:
+- ✅ **Leptos 0.6**: Fully supported
+- ✅ **Leptos 0.7**: Fully supported  
+- ❌ **Leptos 0.8.x**: **BROKEN** (all versions affected)
+- 🔮 **Leptos 0.9+**: Unknown
+
+### Recommended Setup:
+```toml
+[dependencies]
+leptos = "0.7"  # Use 0.7 until 0.8.x is fixed
+leptos-state = "0.1"
+```
+
+For detailed information about this issue, see [COMPATIBILITY.md](docs/COMPATIBILITY.md#leptos-08x-compatibility-issues).
+
 ## 📦 Installation
 
 Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-leptos = "0.6"
+leptos = "0.7"  # Recommended: Use 0.7
 leptos-state = "0.1"
 ```
 

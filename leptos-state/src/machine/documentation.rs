@@ -134,7 +134,7 @@ impl Default for DocumentationStyling {
 }
 
 /// Documentation generator for state machines
-pub struct DocumentationGenerator<C, E> {
+pub struct DocumentationGenerator<C: Send + Sync, E> {
     config: DocumentationConfig,
     machine: Arc<Machine<C, E>>,
     templates: Arc<RwLock<HashMap<String, String>>>,
@@ -466,7 +466,7 @@ where
 
     /// Generate JSON documentation
     fn generate_json_documentation(&self) -> StateResult<String> {
-        let doc = DocumentationData {
+        let _doc = DocumentationData {
             title: "State Machine Documentation".to_string(),
             states: self.machine.get_states(),
             events: self.get_machine_events(),
@@ -479,7 +479,7 @@ where
 
         #[cfg(feature = "serde_json")]
         {
-            serde_json::to_string_pretty(&doc)
+            serde_json::to_string_pretty(&_doc)
                 .map_err(|e| StateError::custom(format!("Failed to serialize documentation: {}", e)))
         }
         
@@ -489,7 +489,7 @@ where
 
     /// Generate YAML documentation
     fn generate_yaml_documentation(&self) -> StateResult<String> {
-        let doc = DocumentationData {
+        let _doc = DocumentationData {
             title: "State Machine Documentation".to_string(),
             states: self.machine.get_states(),
             events: self.get_machine_events(),
@@ -502,7 +502,7 @@ where
 
         #[cfg(feature = "serde_yaml")]
         {
-            serde_yaml::to_string(&doc)
+            serde_yaml::to_string(&_doc)
                 .map_err(|e| StateError::custom(format!("Failed to serialize documentation: {}", e)))
         }
         
@@ -686,7 +686,7 @@ pub struct DocumentationData {
 }
 
 /// Extension trait for adding documentation to machines
-pub trait MachineDocumentationExt<C, E> {
+pub trait MachineDocumentationExt<C: Send + Sync, E> {
     /// Add documentation generation capabilities to the machine
     fn with_documentation(self, config: DocumentationConfig) -> DocumentationGenerator<C, E>;
 }
@@ -702,7 +702,7 @@ where
 }
 
 /// Documentation builder for fluent configuration
-pub struct DocumentationBuilder<C, E> {
+pub struct DocumentationBuilder<C: Send + Sync, E> {
     machine: Machine<C, E>,
     config: DocumentationConfig,
 }
