@@ -128,8 +128,8 @@ where
     // This implementation will only be available when serde feature is enabled
 }
 
-// Manual serde implementation for when the feature is enabled
-#[cfg(feature = "serde")]
+// Manual serde implementation for when the serialization feature is enabled
+#[cfg(feature = "serialization")]
 impl<C, E> serde::Serialize for SerializedMachine<C, E>
 where
     C: serde::Serialize,
@@ -152,7 +152,7 @@ where
     }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "serialization")]
 impl<'de, C, E> serde::Deserialize<'de> for SerializedMachine<C, E>
 where
     C: for<'a> serde::Deserialize<'a>,

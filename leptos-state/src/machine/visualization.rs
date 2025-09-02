@@ -386,7 +386,7 @@ pub struct MachineSnapshot<C: Send + Sync, E> {
 }
 
 // Conditional serde implementation for StateDiagram
-#[cfg(feature = "serde")]
+#[cfg(feature = "serialization")]
 impl<'a, C, E> serde::Serialize for StateDiagram<'a, C, E>
 where
     C: Send + Sync + serde::Serialize + 'static,
@@ -409,7 +409,7 @@ where
 }
 
 // Conditional serde implementation for MachineSnapshot
-#[cfg(feature = "serde")]
+#[cfg(feature = "serialization")]
 impl<C, E> serde::Serialize for MachineSnapshot<C, E>
 where
     C: Send + Sync + serde::Serialize + 'static,
@@ -429,11 +429,10 @@ where
     }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "serialization")]
 impl<'de, C, E> serde::Deserialize<'de> for MachineSnapshot<C, E>
 where
     C: Send + Sync + for<'a> serde::Deserialize<'a>,
-    MachineStateImpl<C>: for<'a> serde::Deserialize<'a>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

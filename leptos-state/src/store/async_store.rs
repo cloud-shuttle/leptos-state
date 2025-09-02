@@ -45,7 +45,7 @@ impl<A: AsyncStore> ResourceStore<A> {
 }
 
 /// Hook for using async stores with Resources
-#[cfg(feature = "serde")]
+#[cfg(feature = "serialization")]
 pub fn use_async_store<A: AsyncStore>(
     _input: impl Fn() -> A::LoaderInput + 'static,
 ) -> (
@@ -95,7 +95,7 @@ impl AsyncStoreActions {
 }
 
 /// Suspense wrapper for async stores
-#[cfg(feature = "serde")]
+#[cfg(feature = "serialization")]
 pub fn AsyncStoreProvider<A>(
     _input: A::LoaderInput,
     _children: Children,
