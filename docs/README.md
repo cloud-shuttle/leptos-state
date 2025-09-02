@@ -101,6 +101,7 @@ fn Counter() -> impl IntoView {
 - **[Migration Guide](./migration/)**: Upgrade to Leptos 0.8+
 - **[API Reference](./api-reference/)**: Complete API docs
 - **[Contributing](./contributing/)**: Help improve the project
+- **[Roadmap](./ROADMAP.md)**: Future development plans
 
 ## 🆘 Need Help?
 
