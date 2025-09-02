@@ -4,10 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-leptos = { version = "0.7", features = ["csr"] }
-leptos-state = { path = "../../leptos-state", features = ["leptos-0-7"] }
-console_error_panic_hook = "0.1"
+leptos = { workspace = true, features = ["csr"] }
+leptos-state = { path = "../../leptos-state" }
+console_error_panic_hook = { workspace = true }
 console_log = "1.0"
-tracing = "0.1"
-wasm-bindgen = "0.2"
-web-sys = "0.3"
+tracing = { workspace = true }
+wasm-bindgen = { workspace = true }
+web-sys = { workspace = true }

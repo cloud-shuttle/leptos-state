@@ -4,7 +4,9 @@
 //! with multiple Leptos versions without changing your application code.
 
 use leptos::*;
-use leptos_state::*;
+use leptos_state::{Store, create_store, mount_to_body};
+use leptos_state::hooks::use_store::{use_store};
+use leptos_state::store::provide_store;
 use leptos::prelude::{OnAttribute, ClassAttribute, ElementChild, Get, Update, Memo, Effect};
 
 #[derive(Clone, PartialEq, Debug)]

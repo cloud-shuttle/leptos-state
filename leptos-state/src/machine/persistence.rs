@@ -182,7 +182,7 @@ where
             backups: Arc::new(Mutex::new(Vec::new())),
             last_save: Arc::new(Mutex::new(None)),
             config,
-            _phantom: PhantomData,
+            _phantom: PhantomData::<(C, E)>,
         }
     }
     
@@ -245,12 +245,10 @@ where
         {
             return Err(StateError::new("Serialization requires serde_json feature"));
         }
-        
-        Ok(())
     }
     
     /// Load and restore machine state
-    pub fn load(&self, machine: &Machine<C, E>) -> StateResult<MachineStateImpl<C>> {
+    pub fn load(&self, _machine: &Machine<C, E>) -> StateResult<MachineStateImpl<C>> {
         if !self.config.enabled || !self.config.auto_restore {
             return Err(StateError::new("Persistence not enabled or auto-restore disabled"));
         }
@@ -275,18 +273,18 @@ where
         // Deserialize
         #[cfg(feature = "serde_json")]
         {
-            let _serialized: SerializedMachine<C, E> = serde_json::from_str(&_data)?;
+            let serialized: SerializedMachine<C, E> = serde_json::from_str(&_data)?;
             
             // Validate checksum
-            self.validate_checksum(&_serialized)?;
+            self.validate_checksum(&serialized)?;
             
             // Create machine state
-            let _state = MachineStateImpl {
-                value: _serialized.state_value,
-                context: _serialized.context,
+            let state = MachineStateImpl {
+                value: serialized.state_value,
+                context: serialized.context,
             };
             
-            Ok(_state)
+            Ok(state)
         }
         
         #[cfg(not(feature = "serde_json"))]
@@ -389,7 +387,7 @@ where
     }
     
     /// Serialize machine state
-    fn serialize_machine(&self, machine: &Machine<C, E>, state: &MachineStateImpl<C>) -> StateResult<SerializedMachine<C, E>> {
+    fn serialize_machine(&self, _machine: &Machine<C, E>, state: &MachineStateImpl<C>) -> StateResult<SerializedMachine<C, E>> {
         let timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -400,6 +398,7 @@ where
             .with_custom_data("context_type", std::any::type_name::<C>())
             .with_custom_data("event_type", std::any::type_name::<E>());
         
+        #[allow(unused_variables)]
         let serialized = SerializedMachine {
             version: "1.0".to_string(),
             timestamp,
@@ -407,32 +406,30 @@ where
             context: state.context().clone(),
             metadata,
             checksum: String::new(), // Will be calculated below
-            _phantom: PhantomData,
+            _phantom: PhantomData::<E>,
         };
         
         // Calculate checksum
-        let checksum = if cfg!(feature = "serde_json") {
-            #[cfg(feature = "serde_json")]
-            {
-                let data = serde_json::to_string(&serialized)?;
-                self.calculate_checksum(&data)
-            }
-            #[cfg(not(feature = "serde_json"))]
-            {
-                return Err(StateError::new("Checksum calculation requires serde_json feature"));
-            }
-        } else {
-            return Err(StateError::new("Checksum calculation requires serde_json feature"));
-        };
+        #[cfg(feature = "serde_json")]
+        {
+            let data = serde_json::to_string(&serialized)?;
+            let checksum = self.calculate_checksum(&data);
+            
+            Ok(SerializedMachine {
+                checksum,
+                _phantom: PhantomData::<(C, E)>,
+                ..serialized
+            })
+        }
         
-        Ok(SerializedMachine {
-            checksum,
-            _phantom: PhantomData,
-            ..serialized
-        })
+        #[cfg(not(feature = "serde_json"))]
+        {
+            Err(StateError::new("Checksum calculation requires serde_json feature"))
+        }
     }
     
     /// Calculate checksum for data integrity
+    #[allow(dead_code)]
     fn calculate_checksum(&self, data: &str) -> String {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};
@@ -443,6 +440,7 @@ where
     }
     
     /// Validate checksum
+    #[allow(dead_code)]
     fn validate_checksum(&self, serialized: &SerializedMachine<C, E>) -> StateResult<()> {
         let mut temp_serialized = serialized.clone();
         temp_serialized.checksum = String::new();
@@ -476,6 +474,7 @@ where
     }
     
     /// Encrypt data
+    #[allow(dead_code)]
     fn encrypt_data(&self, data: &str) -> StateResult<String> {
         // Simple encryption - in a real implementation, you'd use a proper encryption library
         Ok(data.to_string())

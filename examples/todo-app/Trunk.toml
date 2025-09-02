@@ -14,9 +14,9 @@ open = false
 [[hooks]]
 stage = "pre_build"
 command = "cargo"
-command_arguments = ["build", "--target", "wasm32-unknown-unknown", "--package", "todo-app", "--manifest-path", "../../Cargo.toml", "--bin", "todo-app"]
+command_arguments = ["build", "--target", "wasm32-unknown-unknown", "--package", "todo-app", "--manifest-path", "../../Cargo.toml"]
 
 [[hooks]]
 stage = "post_build"
 command = "wasm-bindgen"
-command_arguments = ["../../target/wasm32-unknown-unknown/debug/todo-app.wasm", "--out-dir", "dist", "--target", "web"]
+command_arguments = ["../../target/wasm32-unknown-unknown/debug/todo_app.wasm", "--out-dir", "dist", "--target", "web"]

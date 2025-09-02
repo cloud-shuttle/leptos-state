@@ -1,12 +1,13 @@
 //! Async store integration with Leptos Resources
 
 use leptos::prelude::*;
-use leptos::task::spawn_local;
+
 use std::marker::PhantomData;
 use crate::store::Store;
 use crate::utils::{StateError, StateResult};
 
 /// Async store that integrates with Leptos Resources
+#[allow(async_fn_in_trait)]
 pub trait AsyncStore: Store 
 where
     Self::LoaderInput: Clone + PartialEq + Send + Sync + 'static,
@@ -84,7 +85,7 @@ where
 
 /// Hook for refetching async store data
 pub fn use_async_store_actions<A: AsyncStore>(
-    resource: Resource<A::LoaderInput, StateResult<A::LoaderOutput>>,
+    _resource: Resource<A::LoaderInput, StateResult<A::LoaderOutput>>,
 ) -> AsyncStoreActions {
     AsyncStoreActions {
         refetch: Box::new(move || {
@@ -146,14 +147,14 @@ where
 
 /// Cached async store that persists data between loads
 pub struct CachedAsyncStore<A: AsyncStore> {
-    cache_key: String,
+    _cache_key: String,
     _phantom: PhantomData<A>,
 }
 
 impl<A: AsyncStore> CachedAsyncStore<A> {
     pub fn new(cache_key: String) -> Self {
         Self {
-            cache_key,
+            _cache_key: cache_key,
             _phantom: PhantomData,
         }
     }
@@ -167,7 +168,7 @@ where
     /// Load with caching support
     pub async fn load_cached(&self, input: A::LoaderInput) -> StateResult<A::LoaderOutput> {
         // Try to load from cache first
-        if let Ok(cached_data) = crate::store::load_from_storage::<A::LoaderOutput>(&self.cache_key) {
+        if let Ok(cached_data) = crate::store::load_from_storage::<A::LoaderOutput>(&self._cache_key) {
             return Ok(cached_data);
         }
         
@@ -175,7 +176,7 @@ where
         let data = A::load(input).await?;
         
         // Cache the result
-        if let Err(e) = crate::store::save_to_storage(&self.cache_key, &data) {
+        if let Err(e) = crate::store::save_to_storage(&self._cache_key, &data) {
             tracing::warn!("Failed to cache async store data: {:?}", e);
         }
         
@@ -184,6 +185,7 @@ where
 }
 
 /// Infinite loading store for paginated data
+#[allow(async_fn_in_trait)]
 pub trait InfiniteStore: AsyncStore 
 where
     Self::PageInput: Clone + PartialEq + 'static,
@@ -207,50 +209,18 @@ where
 
 /// Hook for infinite loading stores
 pub fn use_infinite_store<I: InfiniteStore>(
-    initial_input: I::PageInput,
+    _initial_input: I::PageInput,
 ) -> (ReadSignal<I::State>, WriteSignal<I::State>, Box<dyn Fn()>) 
 where
     I::Page: leptos::server_fn::serde::Serialize + for<'de> leptos::server_fn::serde::Deserialize<'de>,
 {
-    let (state, set_state) = signal(I::loading_state());
-    let (loading_more, set_loading_more) = signal(false);
+    let (_state, _set_state) = signal(I::loading_state());
+    let (_loading_more, _set_loading_more) = signal(false);
     
     // Load initial page
     // Note: create_resource API has changed in Leptos 0.7
     // For now, we'll provide a placeholder implementation
-    {
-        // Placeholder - this would need to be implemented with the correct Leptos 0.7 API
-        todo!("create_resource API needs to be updated for Leptos 0.7")
-    };
-    
-    let load_more = {
-        let state = state.clone();
-        let set_state = set_state.clone();
-        
-        Box::new(move || {
-            if loading_more.get() || !I::has_more_pages(&state.get()) {
-                return;
-            }
-            
-            if let Some(next_input) = I::next_page_input(&state.get()) {
-                set_loading_more.set(true);
-                
-                spawn_local(async move {
-                    match I::load_page(next_input).await {
-                        Ok(page) => {
-                            set_state.update(|s| I::append_page(s, page));
-                        }
-                        Err(error) => {
-                            tracing::error!("Failed to load more data: {:?}", error);
-                        }
-                    }
-                    set_loading_more.set(false);
-                });
-            }
-        })
-    };
-    
-    (state, set_state, load_more)
+    todo!("create_resource API needs to be updated for Leptos 0.7")
 }
 
 #[cfg(test)]

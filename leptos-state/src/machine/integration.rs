@@ -177,8 +177,9 @@ pub enum EventPriority {
 pub struct IntegrationManager<C: Send + Sync, E> {
     config: IntegrationConfig,
     adapters: Arc<RwLock<HashMap<String, Box<dyn IntegrationAdapterTrait + Send + Sync>>>>,
-    event_queue: Arc<Mutex<VecDeque<IntegrationEvent>>>,
+    _event_queue: Arc<Mutex<VecDeque<IntegrationEvent>>>,
     metrics: Arc<RwLock<IntegrationMetrics>>,
+    #[allow(dead_code)]
     machine: Arc<Machine<C, E>>,
 }
 
@@ -191,7 +192,7 @@ where
         Self {
             config,
             adapters: Arc::new(RwLock::new(HashMap::new())),
-            event_queue: Arc::new(Mutex::new(VecDeque::new())),
+            _event_queue: Arc::new(Mutex::new(VecDeque::new())),
             metrics: Arc::new(RwLock::new(IntegrationMetrics::new())),
             machine: Arc::new(machine),
         }

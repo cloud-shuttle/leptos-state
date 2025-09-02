@@ -6,5 +6,5 @@ edition = "2021"
 [dependencies]
 leptos = { workspace = true, features = ["csr"] }
 leptos-state = { path = "../../leptos-state" }
-console_error_panic_hook = "0.1"
+console_error_panic_hook = { workspace = true }
 wasm-bindgen = { workspace = true }

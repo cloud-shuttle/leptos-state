@@ -56,7 +56,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> MachineBuilder<C, E> 
         }
     }
     
-    pub fn state(mut self, id: &str) -> StateBuilder<C, E> {
+    pub fn state(self, id: &str) -> StateBuilder<C, E> {
         StateBuilder::new(self, id.to_string())
     }
     
@@ -338,7 +338,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> StateBuilder<C, E> {
         }
     }
     
-    pub fn on(mut self, event: E, target: &str) -> TransitionBuilder<C, E> {
+    pub fn on(self, event: E, target: &str) -> TransitionBuilder<C, E> {
         TransitionBuilder::new(self, event, target.to_string())
     }
     
@@ -409,7 +409,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> StateBuilder<C, E> {
     }
     
     /// Add a child state (for hierarchical states)
-    pub fn child_state(mut self, id: &str) -> ChildStateBuilder<C, E> {
+    pub fn child_state(self, id: &str) -> ChildStateBuilder<C, E> {
         ChildStateBuilder::new(self, id.to_string())
     }
     
@@ -489,7 +489,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildStateBuilder<C, 
         }
     }
     
-    pub fn on(mut self, event: E, target: &str) -> ChildTransitionBuilder<C, E> {
+    pub fn on(self, event: E, target: &str) -> ChildTransitionBuilder<C, E> {
         ChildTransitionBuilder::new(self, event, target.to_string())
     }
     
@@ -559,7 +559,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildStateBuilder<C, 
         self
     }
     
-    pub fn child_state(mut self, id: &str) -> ChildStateBuilder<C, E> {
+    pub fn child_state(self, id: &str) -> ChildStateBuilder<C, E> {
         // Finish current child state
         let child_node = StateNode {
             id: self.child_id.clone(),
@@ -577,7 +577,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildStateBuilder<C, 
         parent.child_state(id)
     }
     
-    pub fn parent(mut self) -> StateBuilder<C, E> {
+    pub fn parent(self) -> StateBuilder<C, E> {
         // Finish current child state and return to parent
         let child_node = StateNode {
             id: self.child_id.clone(),

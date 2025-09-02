@@ -14,15 +14,6 @@
 </head>
 <body>
     <div id="app"></div>
-    <script type="module">
-        import init, { main } from './pkg/analytics_dashboard.js';
-        
-        async function run() {
-            await init();
-            main();
-        }
-        
-        run().catch(console.error);
-    </script>
+    <!-- Trunk will automatically inject the WASM loading script -->
 </body>
 </html>

@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 use leptos::*;
-use leptos::prelude::*;
+
 use console_error_panic_hook;
 
 mod simple_todo;

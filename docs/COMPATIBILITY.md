@@ -6,10 +6,12 @@ The `leptos-state` library includes a comprehensive compatibility layer that all
 
 The compatibility layer provides version-agnostic APIs for all Leptos primitives, automatically adapting to the underlying Leptos version at compile time. This means you can:
 
-- **Write once, run anywhere**: Your code works with Leptos 0.6, 0.7, and 0.8+
+- **Write once, run anywhere**: Your code works with Leptos 0.8+ (primary support)
 - **Gradual migration**: Migrate your Leptos version without rewriting your state management code
 - **Future-proof**: New Leptos versions are supported by updating the compatibility layer
 - **Zero overhead**: Direct delegation to underlying APIs with no runtime cost
+
+> **Note**: As of leptos-state v0.2.0, Leptos 0.8+ is the primary supported version. The compatibility layer is maintained for future Leptos versions and migration scenarios.
 
 ## 🚀 Quick Start
 
@@ -19,8 +21,10 @@ Add the appropriate feature flag to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-leptos-state = { version = "0.1", features = ["leptos-0-8"] }
+leptos-state = { version = "0.2", features = ["leptos-0-8"] }
 ```
+
+> **Note**: Leptos 0.8+ is now the default and recommended version. The compatibility layer is primarily maintained for future Leptos versions.
 
 ### 2. Use Compatibility APIs
 

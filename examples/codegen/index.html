@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codegen Example - Leptos State</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 2rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            border: none;
+            border-radius: 4px;
+            background: #3b82f6;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .game-info {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f3f4f6;
+            border-radius: 4px;
+        }
+        .generated-files {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #fef3c7;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>State Machine Code Generation Example</h1>
+        <p>Testing code generation functionality</p>
+        
+        <div class="game-info">
+            <h3>Game State</h3>
+            <p>Current State: <span data-testid="game-state">idle</span></p>
+            <p>Score: <span data-testid="score">0</span></p>
+            <p>Level: <span data-testid="level">1</span></p>
+            <p>Lives: <span data-testid="lives">3</span></p>
+        </div>
+        
+        <div>
+            <button data-testid="start-game">Start</button>
+            <button data-testid="pause-game">Pause</button>
+            <button data-testid="resume-game">Resume</button>
+            <button data-testid="stop-game">Stop</button>
+            <button data-testid="game-over">Game Over</button>
+        </div>
+        
+        <div>
+            <button data-testid="add-score">Add Score</button>
+            <button data-testid="level-up">Level Up</button>
+        </div>
+        
+        <div class="generated-files" data-testid="generated-files">
+            <h3>Generated Files</h3>
+            <div data-testid="file-item">Rust code</div>
+            <div data-testid="file-item">TypeScript code</div>
+            <div data-testid="file-item">Python code</div>
+            <p>Status: <span data-testid="generation-status">Generated</span></p>
+        </div>
+    </div>
+    
+    <script type="module">
+        import init, { main } from './pkg/codegen_example.js';
+        
+        async function run() {
+            await init();
+            main();
+        }
+        
+        run().catch(console.error);
+    </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 use leptos::*;
-use leptos::prelude::{ElementChild, StyleAttribute, OnAttribute, create_signal, set_timeout, Get, Set};
+use leptos::prelude::{ElementChild, StyleAttribute, OnAttribute, signal, set_timeout, Get, Set};
 use leptos::either::Either;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -17,6 +17,7 @@ pub struct Metric {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+#[allow(dead_code)]
 pub enum Trend {
     Up,
     Down,
@@ -80,9 +81,9 @@ fn generate_mock_data() -> Vec<Metric> {
 // Main Dashboard Component
 #[component]
 pub fn AnalyticsDashboard() -> impl IntoView {
-    let (metrics, set_metrics) = create_signal(generate_mock_data());
-    let (selected_timeframe, set_selected_timeframe) = create_signal("7d".to_string());
-    let (is_loading, set_is_loading) = create_signal(false);
+    let (metrics, set_metrics) = signal(generate_mock_data());
+    let (selected_timeframe, set_selected_timeframe) = signal("7d".to_string());
+    let (is_loading, set_is_loading) = signal(false);
 
     // Refresh data function
     let refresh_data = move |_| {

@@ -1,5 +1,7 @@
 use leptos::*;
-use leptos_state::*;
+use leptos_state::{Store, create_store, mount_to_body};
+use leptos_state::hooks::use_store::{use_store, use_computed};
+use leptos_state::store::provide_store;
 use leptos::prelude::{ClassAttribute, ElementChild, Get, OnAttribute, Update, event_target_value};
 
 #[derive(Clone, PartialEq, Debug)]

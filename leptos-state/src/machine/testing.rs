@@ -4,11 +4,8 @@
 //! for state machines, including unit testing, integration testing,
 //! property-based testing, and automated test generation.
 
-use super::*;
 use crate::{
-    machine::{Machine, MachineState, Transition, TransitionBuilder, StateBuilder},
-    store::Store,
-    utils::types::{StateResult, StateError},
+    machine::{Machine, MachineState, Transition},
     machine::states::StateValue,
 };
 use crate::machine::events::Event;

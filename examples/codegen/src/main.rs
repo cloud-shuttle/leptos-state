@@ -16,6 +16,7 @@ struct GameContext {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+#[allow(dead_code)]
 enum GameEvent {
     Start,
     Pause,

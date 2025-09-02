@@ -9,12 +9,21 @@
     "test:wasm": "playwright test tests/playwright/wasm-examples/",
     "test:wasm:ui": "playwright test tests/playwright/wasm-examples/ --ui",
     "test:wasm:headed": "playwright test tests/playwright/wasm-examples/ --headed",
+    "test:examples": "playwright test tests/playwright/wasm-examples/",
+    "test:examples:ui": "playwright test tests/playwright/wasm-examples/ --ui",
+    "test:examples:headed": "playwright test tests/playwright/wasm-examples/ --headed",
+    "test:all-examples": "playwright test tests/playwright/run-all-examples.spec.ts",
+    "test:all-examples:ui": "playwright test tests/playwright/run-all-examples.spec.ts --ui",
+    "test:all-examples:headed": "playwright test tests/playwright/run-all-examples.spec.ts --headed",
     "install:browsers": "playwright install",
     "build:wasm": "cargo build --target wasm32-unknown-unknown",
     "serve:examples": "python3 -m http.server 8000 --directory examples",
     "dev:counter": "cd examples/counter && trunk serve",
     "dev:todo": "cd examples/todo-app && trunk serve",
-    "dev:analytics": "cd examples/analytics-dashboard && trunk serve"
+    "dev:analytics": "cd examples/analytics-dashboard && trunk serve",
+    "dev:compatibility": "cd examples/compatibility-example && trunk serve",
+    "dev:codegen": "cd examples/codegen && trunk serve",
+    "dev:history": "cd examples/history && trunk serve"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",

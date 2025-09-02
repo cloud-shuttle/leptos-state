@@ -23,8 +23,8 @@ impl Todo {
 
 #[component]
 pub fn SimpleTodoApp() -> impl IntoView {
-    let (todos, set_todos) = create_signal(HashMap::new());
-    let (new_todo_title, set_new_todo_title) = create_signal(String::new());
+    let (todos, set_todos) = signal(HashMap::new());
+    let (new_todo_title, set_new_todo_title) = signal(String::new());
 
     let handle_add_todo = move |ev: SubmitEvent| {
         ev.prevent_default();

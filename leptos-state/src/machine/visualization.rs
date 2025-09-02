@@ -262,7 +262,7 @@ where
         dot.push_str("  node [shape=circle];\n\n");
         
         // Add states
-        for (state_id, state_node) in self.machine.states_map() {
+        for (state_id, _state_node) in self.machine.states_map() {
             let style = if state_id == self.machine.initial_state_id() {
                 " [style=filled, fillcolor=lightgreen]"
             } else {
@@ -312,7 +312,7 @@ where
     
     /// Export as JSON format
     fn export_json(&self) -> StateResult<String> {
-        let diagram = StateDiagram {
+        let _diagram = StateDiagram {
             machine: self.machine.as_ref(),
             current_state: self.current_state(),
             recent_transitions: self.recent_transitions(10),
