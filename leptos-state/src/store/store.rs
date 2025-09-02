@@ -5,10 +5,10 @@ use std::marker::PhantomData;
 pub trait Store: Clone + 'static {
     /// The state type for this store
     type State: Clone + PartialEq + Send + Sync + 'static;
-    
+
     /// Create the initial state
     fn create() -> Self::State;
-    
+
     /// Get the store's signals (read and write)
     fn use_store() -> (ReadSignal<Self::State>, WriteSignal<Self::State>) {
         use_context::<StoreContext<Self::State>>()
@@ -29,7 +29,7 @@ impl<T: Clone + PartialEq + Send + Sync + 'static> StoreContext<T> {
         let (read, write) = signal(initial);
         Self { read, write }
     }
-    
+
     pub fn signals(self) -> (ReadSignal<T>, WriteSignal<T>) {
         (self.read, self.write)
     }
@@ -43,13 +43,12 @@ pub fn provide_store<S: Store>(initial: S::State) {
 
 /// Provide a store with persistence loading from localStorage
 #[cfg(feature = "persist")]
-pub fn provide_store_with_persistence<S: Store>(key: &str) 
+pub fn provide_store_with_persistence<S: Store>(key: &str)
 where
     S::State: serde::Serialize + for<'de> serde::Deserialize<'de>,
 {
-    let initial_state = load_from_storage::<S::State>(key)
-        .unwrap_or_else(|_| S::create());
-    
+    let initial_state = load_from_storage::<S::State>(key).unwrap_or_else(|_| S::create());
+
     let context = StoreContext::new(initial_state);
     provide_context(context);
 }
@@ -77,7 +76,7 @@ where
 /// Trait for selecting slices of store state
 pub trait StoreSlice<T: Store> {
     type Output: PartialEq + Clone + Send + Sync + 'static;
-    
+
     fn select(state: &T::State) -> Self::Output;
 }
 
@@ -101,10 +100,10 @@ macro_rules! create_store {
     ($name:ident, $state:ty, $init:expr) => {
         #[derive(Clone)]
         pub struct $name;
-        
+
         impl Store for $name {
             type State = $state;
-            
+
             fn create() -> Self::State {
                 $init
             }
@@ -118,7 +117,7 @@ pub struct FieldSelector<T, F, O> {
     _phantom: PhantomData<(T, O)>,
 }
 
-impl<T, F, O> FieldSelector<T, F, O> 
+impl<T, F, O> FieldSelector<T, F, O>
 where
     F: Fn(&T) -> O,
     O: PartialEq + Clone + 'static,
@@ -129,7 +128,7 @@ where
             _phantom: PhantomData,
         }
     }
-    
+
     pub fn select(&self, state: &T) -> O {
         (self.selector_fn)(state)
     }
@@ -146,32 +145,32 @@ impl PathSelector {
             _path: path.split('.').map(|s| s.to_string()).collect(),
         }
     }
-    
+
     /// Select a nested field using JSON path notation
     #[cfg(feature = "serde")]
     pub fn select<T>(&self, state: &T) -> Option<serde_json::Value>
-    where 
+    where
         T: serde::Serialize,
     {
         let json = serde_json::to_value(state).ok()?;
         self.select_from_json(&json)
     }
-    
+
     #[cfg(feature = "serde")]
     fn select_from_json(&self, json: &serde_json::Value) -> Option<serde_json::Value> {
         let mut current = json;
-        
+
         for segment in &self._path {
             current = match current {
                 serde_json::Value::Object(map) => map.get(segment)?,
                 serde_json::Value::Array(arr) => {
                     let index: usize = segment.parse().ok()?;
                     arr.get(index)?
-                },
+                }
                 _ => return None,
             };
         }
-        
+
         Some(current.clone())
     }
 }
@@ -183,7 +182,7 @@ macro_rules! select_field {
         |state| state.$field.clone()
     };
     ($field:ident.$nested:ident) => {
-        |state| state.$field.$nested.clone()  
+        |state| state.$field.$nested.clone()
     };
     ($field:ident.$nested:ident.$deep:ident) => {
         |state| state.$field.$nested.$deep.clone()
@@ -202,7 +201,7 @@ where
     T: Clone + PartialEq,
     O: Clone,
 {
-    pub fn new<F>(selector_fn: F) -> Self 
+    pub fn new<F>(selector_fn: F) -> Self
     where
         F: Fn(&T) -> O + 'static,
     {
@@ -212,21 +211,21 @@ where
             selector_fn: Box::new(selector_fn),
         }
     }
-    
+
     pub fn select(&self, input: &T) -> O {
         let mut last_input = self.last_input.borrow_mut();
         let mut last_output = self.last_output.borrow_mut();
-        
+
         if let (Some(prev_input), Some(prev_output)) = (last_input.as_ref(), last_output.as_ref()) {
             if prev_input == input {
                 return prev_output.clone();
             }
         }
-        
+
         let output = (self.selector_fn)(input);
         *last_input = Some(input.clone());
         *last_output = Some(output.clone());
-        
+
         output
     }
 }
@@ -244,7 +243,7 @@ impl<T> CombinedSelector<T> {
             selectors: Vec::new(),
         }
     }
-    
+
     pub fn add_selector<F, O>(mut self, selector: F) -> Self
     where
         F: Fn(&T) -> O + 'static,
@@ -256,9 +255,12 @@ impl<T> CombinedSelector<T> {
         self.selectors.push(boxed_selector);
         self
     }
-    
+
     pub fn select(&self, state: &T) -> Vec<serde_json::Value> {
-        self.selectors.iter().map(|selector| selector(state)).collect()
+        self.selectors
+            .iter()
+            .map(|selector| selector(state))
+            .collect()
     }
 }
 
@@ -272,10 +274,14 @@ mod tests {
         name: String,
     }
 
-    create_store!(TestStore, TestState, TestState {
-        count: 0,
-        name: "test".to_string()
-    });
+    create_store!(
+        TestStore,
+        TestState,
+        TestState {
+            count: 0,
+            name: "test".to_string()
+        }
+    );
 
     #[test]
     fn store_creation_works() {

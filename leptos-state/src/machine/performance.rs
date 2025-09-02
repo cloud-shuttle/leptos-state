@@ -1,5 +1,5 @@
 //! State Machine Performance Optimization
-//! 
+//!
 //! This module provides advanced performance optimization features
 //! for state machines, including caching, lazy evaluation, performance
 //! profiling, and optimization strategies.
@@ -219,7 +219,7 @@ impl PerformanceProfiler {
         // Update transition times
         if let Ok(mut times) = self.transition_times.lock() {
             times.push_back(duration);
-            
+
             // Keep only recent times for rolling average
             while times.len() > 100 {
                 times.pop_front();
@@ -232,7 +232,9 @@ impl PerformanceProfiler {
             metrics.total_execution_time += duration;
 
             // Update min/max times
-            if metrics.min_transition_time == Duration::ZERO || duration < metrics.min_transition_time {
+            if metrics.min_transition_time == Duration::ZERO
+                || duration < metrics.min_transition_time
+            {
                 metrics.min_transition_time = duration;
             }
             if duration > metrics.max_transition_time {
@@ -354,9 +356,13 @@ impl PerformanceProfiler {
             if metrics.cache_hit_ratio < 0.5 && metrics.total_transitions > 10 {
                 bottlenecks.push(PerformanceBottleneck {
                     bottleneck_type: BottleneckType::CacheMiss,
-                    description: format!("Low cache hit ratio: {:.2}%", metrics.cache_hit_ratio * 100.0),
+                    description: format!(
+                        "Low cache hit ratio: {:.2}%",
+                        metrics.cache_hit_ratio * 100.0
+                    ),
                     impact: 0.6,
-                    solution: "Consider increasing cache size or improving cache key strategy".to_string(),
+                    solution: "Consider increasing cache size or improving cache key strategy"
+                        .to_string(),
                     location: "Cache system".to_string(),
                 });
             }
@@ -412,7 +418,7 @@ impl PerformanceProfiler {
     /// Reset performance metrics
     pub fn reset(&mut self) {
         self.start_time = Instant::now();
-        
+
         if let Ok(mut metrics) = self.metrics.write() {
             *metrics = PerformanceMetrics {
                 total_transitions: 0,
@@ -507,7 +513,7 @@ impl MemoryTracker {
         self.total_allocated += size;
         self.current_usage += size;
         self.allocation_count += 1;
-        
+
         if self.current_usage > self.peak_usage {
             self.peak_usage = self.current_usage;
         }
@@ -575,14 +581,9 @@ where
             // Check cache size limit
             if cache.len() >= self.config.cache_size_limit {
                 // Remove oldest entries
-                let to_remove: Vec<_> = cache.iter()
-                    .filter_map(|(k, v)| {
-                        if !v.is_valid() {
-                            Some(k.clone())
-                        } else {
-                            None
-                        }
-                    })
+                let to_remove: Vec<_> = cache
+                    .iter()
+                    .filter_map(|(k, v)| if !v.is_valid() { Some(k.clone()) } else { None })
                     .take(cache.len() - self.config.cache_size_limit + 1)
                     .collect();
 
@@ -605,9 +606,7 @@ where
     /// Get cache statistics
     pub fn stats(&self) -> CacheStats {
         if let Ok(cache) = self.cache.read() {
-            let _valid_entries = cache.values()
-                .filter(|entry| entry.is_valid())
-                .count();
+            let _valid_entries = cache.values().filter(|entry| entry.is_valid()).count();
             CacheStats {
                 hits: 0, // Would be tracked separately
                 misses: 0,
@@ -749,10 +748,10 @@ where
         } else {
             // Perform the actual transition
             let result = self.machine.transition(current, event.clone());
-            
+
             // Cache the result
             self.cache.store(cache_key, result.clone());
-            
+
             result
         };
 
@@ -883,8 +882,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::machine::*;
     use crate::machine::states::StateValue;
+    use crate::machine::*;
 
     #[derive(Debug, Clone, PartialEq, Hash, Eq, Default)]
     struct TestContext {
@@ -924,17 +923,17 @@ mod tests {
     fn test_performance_profiler() {
         let config = PerformanceConfig::default();
         let profiler = PerformanceProfiler::new(config);
-        
+
         // Record some transitions
         profiler.record_transition(Duration::from_millis(10));
         profiler.record_transition(Duration::from_millis(20));
         profiler.record_transition(Duration::from_millis(15));
-        
+
         // Record cache accesses
         profiler.record_cache_access(true);
         profiler.record_cache_access(false);
         profiler.record_cache_access(true);
-        
+
         let metrics = profiler.get_metrics();
         assert_eq!(metrics.total_transitions, 3);
         assert_eq!(metrics.cache_hits, 2);
@@ -947,20 +946,26 @@ mod tests {
         let config = PerformanceConfig::default();
         let profiler = Arc::new(PerformanceProfiler::new(config.clone()));
         let cache = TransitionCache::new(config, profiler);
-        
-        let context = TestContext { count: 0, name: "test".to_string() };
+
+        let context = TestContext {
+            count: 0,
+            name: "test".to_string(),
+        };
         let key = CacheKey::new("idle".to_string(), TestEvent::Increment, &context);
-        
+
         // Initially no cached result
         assert!(cache.get(&key).is_none());
-        
+
         // Store a result
-            let result = MachineStateImpl::new(
-        StateValue::Simple("counting".to_string()),
-        TestContext { count: 1, name: "test".to_string() },
-    );
+        let result = MachineStateImpl::new(
+            StateValue::Simple("counting".to_string()),
+            TestContext {
+                count: 1,
+                name: "test".to_string(),
+            },
+        );
         cache.store(key.clone(), result.clone());
-        
+
         // Should now get cached result
         let cached = cache.get(&key);
         assert!(cached.is_some());
@@ -973,13 +978,13 @@ mod tests {
             println!("Evaluating expensive operation");
             42
         });
-        
+
         assert!(!evaluator.is_evaluated());
-        
+
         let value = evaluator.get();
         assert_eq!(*value, 42);
         assert!(evaluator.is_evaluated());
-        
+
         // Second call should not trigger evaluation again
         let value2 = evaluator.get();
         assert_eq!(*value2, 42);
@@ -990,29 +995,29 @@ mod tests {
         let machine = MachineBuilder::<TestContext, TestEvent>::new()
             .initial("idle")
             .state("idle")
-                .on(TestEvent::Increment, "counting")
+            .on(TestEvent::Increment, "counting")
             .state("counting")
-                .on(TestEvent::Decrement, "idle")
+            .on(TestEvent::Decrement, "idle")
             .build();
-        
+
         let config = PerformanceConfig {
             enable_caching: true,
             enable_profiling: true,
             ..Default::default()
         };
-        
+
         let optimized_machine = OptimizedMachine::new(machine, config);
-        
+
         let initial_state = optimized_machine.machine().initial_state();
-        
+
         // First transition (cache miss)
         let result1 = optimized_machine.transition(&initial_state, TestEvent::Increment);
         assert_eq!(*result1.value(), StateValue::Simple("counting".to_string()));
-        
+
         // Second transition (should be cached)
         let result2 = optimized_machine.transition(&initial_state, TestEvent::Increment);
         assert_eq!(*result2.value(), StateValue::Simple("counting".to_string()));
-        
+
         // Check performance metrics
         let metrics = optimized_machine.get_performance_metrics();
         assert_eq!(metrics.total_transitions, 2);
@@ -1025,11 +1030,11 @@ mod tests {
         let machine = MachineBuilder::<TestContext, TestEvent>::new()
             .initial("idle")
             .state("idle")
-                .on(TestEvent::Increment, "counting")
+            .on(TestEvent::Increment, "counting")
             .state("counting")
-                .on(TestEvent::Decrement, "idle")
+            .on(TestEvent::Decrement, "idle")
             .build();
-        
+
         let optimized_machine = PerformanceBuilder::new(machine)
             .with_caching(true)
             .with_lazy_evaluation(true)
@@ -1040,7 +1045,7 @@ mod tests {
             .with_allocation_tracking(true)
             .with_optimization_strategy(OptimizationStrategy::TransitionCaching)
             .build();
-        
+
         let config = optimized_machine.config();
         assert!(config.enable_caching);
         assert!(config.enable_lazy_evaluation);
@@ -1049,6 +1054,8 @@ mod tests {
         assert_eq!(config.cache_ttl, Duration::from_secs(60));
         assert!(config.track_memory_usage);
         assert!(config.track_allocations);
-        assert!(config.optimization_strategies.contains(&OptimizationStrategy::TransitionCaching));
+        assert!(config
+            .optimization_strategies
+            .contains(&OptimizationStrategy::TransitionCaching));
     }
 }

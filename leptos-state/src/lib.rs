@@ -37,20 +37,23 @@
 //! }
 //! ```
 
-pub mod store;
-pub mod machine;
-pub mod hooks;
-pub mod utils;
 pub mod compat;
+pub mod hooks;
+pub mod machine;
+pub mod store;
+pub mod utils;
 
 // Re-export commonly used items
 // Store types
-pub use store::{Store, StoreSlice, use_store_slice, StoreContext, provide_store, create_computed, LoggerMiddleware, ValidationMiddleware, MiddlewareChain};
+pub use store::{
+    create_computed, provide_store, use_store_slice, LoggerMiddleware, MiddlewareChain, Store,
+    StoreContext, StoreSlice, ValidationMiddleware,
+};
 // Machine types
-pub use machine::{StateMachine, MachineState, MachineBuilder, Machine};
+pub use machine::{Machine, MachineBuilder, MachineState, StateMachine};
 // Hook types
 pub use hooks::{use_machine, use_machine_history, use_store};
 // Utility types
-pub use utils::{StateResult, StateError, LogLevel};
+pub use utils::{LogLevel, StateError, StateResult};
 // Compatibility layer
 pub use compat::*;

@@ -10,10 +10,10 @@ use std::marker::PhantomData;
 pub trait DevToolsConnector {
     /// Connect to the DevTools backend
     fn connect(&self) -> StateResult<DevToolsConnection>;
-    
+
     /// Send a state update to DevTools
     fn send_update(&self, update: StateUpdate);
-    
+
     /// Check if DevTools are available
     fn is_available(&self) -> bool;
 }
@@ -93,7 +93,7 @@ impl<S: Store> TimeTravel<S> {
             _phantom: PhantomData,
         }
     }
-    
+
     pub fn with_max_history(max_history: usize) -> Self {
         Self {
             history: VecDeque::new(),
@@ -102,17 +102,17 @@ impl<S: Store> TimeTravel<S> {
             _phantom: PhantomData,
         }
     }
-    
+
     /// Record a new state snapshot
     pub fn record(&mut self, state: S::State, action: impl Into<String>) {
         let snapshot = Snapshot::new(state, action);
-        
+
         // Remove any future history when recording new action
         self.history.truncate(self.current_index + 1);
-        
+
         // Add new snapshot
         self.history.push_back(snapshot);
-        
+
         // Remove old snapshots if we exceed max history
         if self.history.len() > self.max_history {
             self.history.pop_front();
@@ -120,7 +120,7 @@ impl<S: Store> TimeTravel<S> {
             self.current_index += 1;
         }
     }
-    
+
     /// Undo to previous state
     pub fn undo(&mut self) -> Option<&S::State> {
         if self.can_undo() {
@@ -130,7 +130,7 @@ impl<S: Store> TimeTravel<S> {
             None
         }
     }
-    
+
     /// Redo to next state
     pub fn redo(&mut self) -> Option<&S::State> {
         if self.can_redo() {
@@ -140,7 +140,7 @@ impl<S: Store> TimeTravel<S> {
             None
         }
     }
-    
+
     /// Jump to specific snapshot
     pub fn jump_to(&mut self, index: usize) -> Option<&S::State> {
         if index < self.history.len() {
@@ -150,27 +150,27 @@ impl<S: Store> TimeTravel<S> {
             None
         }
     }
-    
+
     /// Check if undo is possible
     pub fn can_undo(&self) -> bool {
         self.current_index > 0
     }
-    
+
     /// Check if redo is possible
     pub fn can_redo(&self) -> bool {
         self.current_index < self.history.len().saturating_sub(1)
     }
-    
+
     /// Get current snapshot
     pub fn current(&self) -> Option<&Snapshot<S::State>> {
         self.history.get(self.current_index)
     }
-    
+
     /// Get all snapshots
     pub fn snapshots(&self) -> impl Iterator<Item = &Snapshot<S::State>> {
         self.history.iter()
     }
-    
+
     /// Clear all history
     pub fn clear(&mut self) {
         self.history.clear();
@@ -204,12 +204,12 @@ impl DevToolsConnector for WebSocketConnector {
         tracing::info!("Connecting to DevTools at {}", self.url);
         Ok(DevToolsConnection::new(uuid::Uuid::new_v4().to_string()))
     }
-    
+
     fn send_update(&self, update: StateUpdate) {
         // Placeholder for sending update via WebSocket
         tracing::debug!("DevTools update: {:?}", update.action_type);
     }
-    
+
     fn is_available(&self) -> bool {
         // Check if WebSocket API is available
         true
@@ -227,7 +227,7 @@ impl ConsoleConnector {
             enabled: cfg!(debug_assertions),
         }
     }
-    
+
     pub fn with_enabled(enabled: bool) -> Self {
         Self { enabled }
     }
@@ -244,17 +244,28 @@ impl DevToolsConnector for ConsoleConnector {
         tracing::info!("Console DevTools connector enabled");
         Ok(DevToolsConnection::new("console".to_string()))
     }
-    
+
     fn send_update(&self, update: StateUpdate) {
         if self.enabled {
             web_sys::console::group_1(&format!("🔧 State Update: {}", update.action_type).into());
-            web_sys::console::log_2(&"Before:".into(), &update.state_before);
-            web_sys::console::log_2(&"After:".into(), &update.state_after);
-            web_sys::console::log_2(&"Payload:".into(), &update.payload);
+            // Convert serde_json::Value to JsValue for console logging
+            let before_js = serde_json::to_string(&update.state_before)
+                .map(|s| wasm_bindgen::JsValue::from_str(&s))
+                .unwrap_or_else(|_| wasm_bindgen::JsValue::from_str("Error serializing state"));
+            let after_js = serde_json::to_string(&update.state_after)
+                .map(|s| wasm_bindgen::JsValue::from_str(&s))
+                .unwrap_or_else(|_| wasm_bindgen::JsValue::from_str("Error serializing state"));
+            let payload_js = serde_json::to_string(&update.payload)
+                .map(|s| wasm_bindgen::JsValue::from_str(&s))
+                .unwrap_or_else(|_| wasm_bindgen::JsValue::from_str("Error serializing payload"));
+
+            web_sys::console::log_2(&"Before:".into(), &before_js);
+            web_sys::console::log_2(&"After:".into(), &after_js);
+            web_sys::console::log_2(&"Payload:".into(), &payload_js);
             web_sys::console::group_end();
         }
     }
-    
+
     fn is_available(&self) -> bool {
         self.enabled
     }
@@ -275,15 +286,15 @@ mod tests {
     #[test]
     fn time_travel_recording() {
         let mut time_travel = TimeTravel::<TestStore>::new();
-        
+
         let state1 = TestState { count: 0 };
         let state2 = TestState { count: 1 };
         let state3 = TestState { count: 2 };
-        
+
         time_travel.record(state1.clone(), "init");
         time_travel.record(state2.clone(), "increment");
         time_travel.record(state3.clone(), "increment");
-        
+
         assert_eq!(time_travel.snapshots().count(), 3);
         assert_eq!(time_travel.current().unwrap().state.count, 2);
     }
@@ -291,17 +302,17 @@ mod tests {
     #[test]
     fn time_travel_undo_redo() {
         let mut time_travel = TimeTravel::<TestStore>::new();
-        
+
         let state1 = TestState { count: 0 };
         let state2 = TestState { count: 1 };
-        
+
         time_travel.record(state1.clone(), "init");
         time_travel.record(state2.clone(), "increment");
-        
+
         assert!(time_travel.can_undo());
         let undone = time_travel.undo().unwrap();
         assert_eq!(undone.count, 0);
-        
+
         assert!(time_travel.can_redo());
         let redone = time_travel.redo().unwrap();
         assert_eq!(redone.count, 1);
@@ -311,7 +322,7 @@ mod tests {
     fn console_connector_creation() {
         let connector = ConsoleConnector::new();
         assert!(connector.is_available() == cfg!(debug_assertions));
-        
+
         let connection = connector.connect();
         assert!(connection.is_ok());
     }

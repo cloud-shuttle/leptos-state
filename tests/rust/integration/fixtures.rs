@@ -46,7 +46,7 @@ impl Event for TestEvent {
     fn event_type(&self) -> &str {
         match self {
             TestEvent::Increment => "increment",
-            TestEvent::Decrement => "decrement", 
+            TestEvent::Decrement => "decrement",
             TestEvent::Toggle => "toggle",
             TestEvent::Reset => "reset",
         }
@@ -56,10 +56,10 @@ impl Event for TestEvent {
 pub fn create_test_machine() -> Machine<TestContext, TestEvent> {
     MachineBuilder::<TestContext, TestEvent>::new()
         .state("idle")
-            .on(TestEvent::Increment, "active")
+        .on(TestEvent::Increment, "active")
         .state("active")
-            .on(TestEvent::Decrement, "idle")
-            .on(TestEvent::Reset, "idle")
+        .on(TestEvent::Decrement, "idle")
+        .on(TestEvent::Reset, "idle")
         .initial("idle")
         .build()
 }

@@ -2,14 +2,14 @@
 //!
 //! Provides simple, reactive stores with minimal boilerplate.
 
-pub mod store;
-pub mod middleware;
 pub mod async_store;
 #[cfg(feature = "devtools")]
 pub mod devtools;
+pub mod middleware;
+pub mod store;
 
-pub use store::*;
-pub use middleware::*;
 pub use async_store::*;
 #[cfg(feature = "devtools")]
 pub use devtools::*;
+pub use middleware::*;
+pub use store::*;

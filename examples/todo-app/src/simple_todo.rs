@@ -1,6 +1,6 @@
-use leptos::*;
 use leptos::ev::SubmitEvent;
 use leptos::prelude::*;
+use leptos::*;
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -42,7 +42,7 @@ pub fn SimpleTodoApp() -> impl IntoView {
         <div style="max-width: 600px; margin: 0 auto; padding: 2rem;">
             <h1>"Simple Todo App"</h1>
             <p>"Built with Leptos and Rust"</p>
-            
+
             <form on:submit=handle_add_todo>
                 <input
                     type="text"
@@ -59,7 +59,7 @@ pub fn SimpleTodoApp() -> impl IntoView {
                     "Add Todo"
                 </button>
             </form>
-            
+
             <div>
                 <p>"Todo List:"</p>
                 {move || {
@@ -70,7 +70,7 @@ pub fn SimpleTodoApp() -> impl IntoView {
                                 let todo_id = todo.id;
                                 let completed = todo.completed;
                                 let title = todo.title.clone();
-                                
+
                                 view! {
                                     <div style="display: flex; align-items: center; padding: 0.5rem; border: 1px solid #e2e8f0; margin-bottom: 0.5rem; border-radius: 0.25rem;">
                                         <input

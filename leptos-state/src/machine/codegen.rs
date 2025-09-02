@@ -1,14 +1,14 @@
 //! State Machine Code Generation
-//! 
+//!
 //! This module provides automatic code generation for state machines
 //! in multiple programming languages.
 
 use super::*;
-use crate::utils::types::{StateResult, StateError};
+use crate::utils::types::{StateError, StateResult};
 use std::collections::HashMap;
 use std::fs;
-use std::time::Instant;
 use std::sync::{Arc, RwLock};
+use std::time::Instant;
 
 /// Code generation configuration
 #[derive(Debug, Clone)]
@@ -101,13 +101,18 @@ where
     }
 
     /// Generate code for a specific language
-    fn generate_language_code(&self, language: &ProgrammingLanguage) -> StateResult<Vec<GeneratedFile>> {
+    fn generate_language_code(
+        &self,
+        language: &ProgrammingLanguage,
+    ) -> StateResult<Vec<GeneratedFile>> {
         match language {
             ProgrammingLanguage::Rust => self.generate_rust_code(),
             ProgrammingLanguage::TypeScript => self.generate_typescript_code(),
             ProgrammingLanguage::JavaScript => self.generate_javascript_code(),
             ProgrammingLanguage::Python => self.generate_python_code(),
-            ProgrammingLanguage::Custom(ref custom_lang) => self.generate_custom_language_code(custom_lang),
+            ProgrammingLanguage::Custom(ref custom_lang) => {
+                self.generate_custom_language_code(custom_lang)
+            }
         }
     }
 
@@ -195,14 +200,16 @@ where
         code.push_str("impl StateMachine {\n");
         code.push_str("    pub fn new() -> Self {\n");
         code.push_str("        let mut transitions = HashMap::new();\n");
-        
+
         // Add transitions
         let transitions = self.get_machine_transitions();
         for transition in transitions {
-            code.push_str(&format!("        transitions.insert((State::{}, StateEvent::{}), State::{});\n", 
-                transition.from, transition.event, transition.to));
+            code.push_str(&format!(
+                "        transitions.insert((State::{}, StateEvent::{}), State::{});\n",
+                transition.from, transition.event, transition.to
+            ));
         }
-        
+
         code.push_str("        Self {\n");
         code.push_str("            current_state: State::idle,\n");
         code.push_str("            context: StateContext {\n");
@@ -214,7 +221,9 @@ where
         code.push_str("    }\n\n");
 
         // Add transition method
-        code.push_str("    pub fn transition(&mut self, event: StateEvent) -> Result<State, String> {\n");
+        code.push_str(
+            "    pub fn transition(&mut self, event: StateEvent) -> Result<State, String> {\n",
+        );
         code.push_str("        let key = (self.current_state.clone(), event);\n");
         code.push_str("        if let Some(new_state) = self.transitions.get(&key) {\n");
         code.push_str("            self.current_state = new_state.clone();\n");
@@ -254,14 +263,20 @@ where
         code.push_str("    #[test]\n");
         code.push_str("    fn test_valid_transitions() {\n");
         code.push_str("        let mut machine = StateMachine::new();\n");
-        
+
         let transitions = self.get_machine_transitions();
         for transition in transitions {
-            code.push_str(&format!("        let result = machine.transition(StateEvent::{});\n", transition.event));
+            code.push_str(&format!(
+                "        let result = machine.transition(StateEvent::{});\n",
+                transition.event
+            ));
             code.push_str(&format!("        assert!(result.is_ok());\n"));
-            code.push_str(&format!("        assert_eq!(result.unwrap(), State::{});\n", transition.to));
+            code.push_str(&format!(
+                "        assert_eq!(result.unwrap(), State::{});\n",
+                transition.to
+            ));
         }
-        
+
         code.push_str("    }\n");
         code.push_str("}\n");
 
@@ -293,8 +308,10 @@ where
         code.push_str("## Transitions\n\n");
         let transitions = self.get_machine_transitions();
         for transition in transitions {
-            code.push_str(&format!("- **{}** → **{}** (Event: {})\n", 
-                transition.from, transition.to, transition.event));
+            code.push_str(&format!(
+                "- **{}** → **{}** (Event: {})\n",
+                transition.from, transition.to, transition.event
+            ));
         }
         code.push_str("\n");
 
@@ -371,8 +388,10 @@ where
         // Add transitions
         let transitions = self.get_machine_transitions();
         for transition in transitions {
-            code.push_str(&format!("        this.transitions.set(`${{State.{}}}-${{StateEvent.{}}}`, State.{});\n", 
-                transition.from, transition.event, transition.to));
+            code.push_str(&format!(
+                "        this.transitions.set(`${{State.{}}}-${{StateEvent.{}}}`, State.{});\n",
+                transition.from, transition.event, transition.to
+            ));
         }
 
         code.push_str("    }\n\n");
@@ -418,8 +437,14 @@ where
         code.push_str("    test('should handle valid transitions', () => {\n");
         let transitions = self.get_machine_transitions();
         for transition in transitions {
-            code.push_str(&format!("        const result = machine.transition(StateEvent.{});\n", transition.event));
-            code.push_str(&format!("        expect(result).toBe(State.{});\n", transition.to));
+            code.push_str(&format!(
+                "        const result = machine.transition(StateEvent.{});\n",
+                transition.event
+            ));
+            code.push_str(&format!(
+                "        expect(result).toBe(State.{});\n",
+                transition.to
+            ));
         }
         code.push_str("    });\n");
 
@@ -458,7 +483,12 @@ where
 
     /// Get machine events
     fn get_machine_events(&self) -> Vec<String> {
-        vec!["Start".to_string(), "Stop".to_string(), "Pause".to_string(), "Resume".to_string()]
+        vec![
+            "Start".to_string(),
+            "Stop".to_string(),
+            "Pause".to_string(),
+            "Resume".to_string(),
+        ]
     }
 
     /// Get machine transitions
@@ -491,22 +521,31 @@ where
     fn save_generated_files(&self, files: &[GeneratedFile]) -> StateResult<()> {
         // Create output directory if it doesn't exist
         if let Err(_) = fs::create_dir_all(&self.config.output_directory) {
-            return Err(StateError::custom(format!("Failed to create output directory: {}", self.config.output_directory)));
+            return Err(StateError::custom(format!(
+                "Failed to create output directory: {}",
+                self.config.output_directory
+            )));
         }
 
         // Save each file
         for file in files {
             let full_path = format!("{}/{}", self.config.output_directory, file.file_path);
-            
+
             // Create subdirectories if needed
             if let Some(parent) = std::path::Path::new(&full_path).parent() {
                 if let Err(_) = fs::create_dir_all(parent) {
-                    return Err(StateError::custom(format!("Failed to create directory: {:?}", parent)));
+                    return Err(StateError::custom(format!(
+                        "Failed to create directory: {:?}",
+                        parent
+                    )));
                 }
             }
 
             if let Err(e) = fs::write(&full_path, &file.content) {
-                return Err(StateError::custom(format!("Failed to write file to {}: {}", full_path, e)));
+                return Err(StateError::custom(format!(
+                    "Failed to write file to {}: {}",
+                    full_path, e
+                )));
             }
             println!("Code generated: {}", full_path);
         }
@@ -532,22 +571,34 @@ where
 
         let files = self.get_generated_files();
         for file in files {
-            index.push_str(&format!("- [{}]({})\n", 
-                format!("{:?}", file.language), file.file_path));
+            index.push_str(&format!(
+                "- [{}]({})\n",
+                format!("{:?}", file.language),
+                file.file_path
+            ));
         }
 
         index.push_str("\n## Generation Info\n\n");
-        index.push_str(&format!("- Generated at: {}\n", 
+        index.push_str(&format!(
+            "- Generated at: {}\n",
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
-                .as_secs()));
-        index.push_str(&format!("- Output directory: {}\n", self.config.output_directory));
-        index.push_str(&format!("- Languages: {}\n", 
-            self.config.target_languages.iter()
+                .as_secs()
+        ));
+        index.push_str(&format!(
+            "- Output directory: {}\n",
+            self.config.output_directory
+        ));
+        index.push_str(&format!(
+            "- Languages: {}\n",
+            self.config
+                .target_languages
+                .iter()
                 .map(|l| format!("{:?}", l))
                 .collect::<Vec<_>>()
-                .join(", ")));
+                .join(", ")
+        ));
 
         Ok(index)
     }
@@ -696,9 +747,9 @@ mod tests {
     fn test_rust_code_generation() {
         let machine = MachineBuilder::<TestContext, TestEvent>::new()
             .state("idle")
-                .on(TestEvent::Increment, "counting")
+            .on(TestEvent::Increment, "counting")
             .state("counting")
-                .on(TestEvent::Decrement, "idle")
+            .on(TestEvent::Decrement, "idle")
             .build();
 
         let config = CodeGenConfig {
@@ -711,7 +762,10 @@ mod tests {
         let files = generator.generate_code().unwrap();
 
         assert!(!files.is_empty());
-        let rust_file = files.iter().find(|f| matches!(f.language, ProgrammingLanguage::Rust)).unwrap();
+        let rust_file = files
+            .iter()
+            .find(|f| matches!(f.language, ProgrammingLanguage::Rust))
+            .unwrap();
         assert!(rust_file.content.contains("pub struct StateMachine"));
         assert!(rust_file.content.contains("pub enum State"));
         assert!(rust_file.content.contains("pub enum StateEvent"));
@@ -721,9 +775,9 @@ mod tests {
     fn test_typescript_code_generation() {
         let machine = MachineBuilder::<TestContext, TestEvent>::new()
             .state("idle")
-                .on(TestEvent::Increment, "counting")
+            .on(TestEvent::Increment, "counting")
             .state("counting")
-                .on(TestEvent::Decrement, "idle")
+            .on(TestEvent::Decrement, "idle")
             .build();
 
         let config = CodeGenConfig {
@@ -736,7 +790,10 @@ mod tests {
         let files = generator.generate_code().unwrap();
 
         assert!(!files.is_empty());
-        let ts_file = files.iter().find(|f| matches!(f.language, ProgrammingLanguage::TypeScript)).unwrap();
+        let ts_file = files
+            .iter()
+            .find(|f| matches!(f.language, ProgrammingLanguage::TypeScript))
+            .unwrap();
         assert!(ts_file.content.contains("export class StateMachine"));
         assert!(ts_file.content.contains("export enum State"));
         assert!(ts_file.content.contains("export enum StateEvent"));
@@ -746,13 +803,16 @@ mod tests {
     fn test_codegen_builder() {
         let machine = MachineBuilder::<TestContext, TestEvent>::new()
             .state("idle")
-                .on(TestEvent::Increment, "counting")
+            .on(TestEvent::Increment, "counting")
             .state("counting")
-                .on(TestEvent::Decrement, "idle")
+            .on(TestEvent::Decrement, "idle")
             .build();
 
         let generator = CodeGenBuilder::new(machine)
-            .with_languages(vec![ProgrammingLanguage::Rust, ProgrammingLanguage::TypeScript])
+            .with_languages(vec![
+                ProgrammingLanguage::Rust,
+                ProgrammingLanguage::TypeScript,
+            ])
             .with_output_directory("builder_generated".to_string())
             .with_tests(true)
             .with_documentation(true)

@@ -1,16 +1,16 @@
 //! State Machine Documentation Generator
-//! 
+//!
 //! This module provides comprehensive automatic documentation generation
 //! for state machines, including multiple formats, templates, and diagrams.
 
 use super::*;
-use crate::utils::types::{StateResult, StateError};
 use crate::machine::visualization::ExportFormat;
+use crate::utils::types::{StateError, StateResult};
 use std::collections::HashMap;
 use std::fs;
 
-use std::time::Instant;
 use std::sync::{Arc, RwLock};
+use std::time::Instant;
 
 #[cfg(feature = "serde_json")]
 use serde_json;
@@ -46,10 +46,7 @@ impl Default for DocumentationConfig {
     fn default() -> Self {
         Self {
             enabled: true,
-            output_formats: vec![
-                DocumentationFormat::Markdown,
-                DocumentationFormat::Html,
-            ],
+            output_formats: vec![DocumentationFormat::Markdown, DocumentationFormat::Html],
             output_directory: "docs".to_string(),
             template: DocumentationTemplate::Default,
             include_diagrams: true,
@@ -181,7 +178,10 @@ where
     }
 
     /// Generate documentation for a specific format
-    fn generate_format_documentation(&self, format: &DocumentationFormat) -> StateResult<GeneratedDocument> {
+    fn generate_format_documentation(
+        &self,
+        format: &DocumentationFormat,
+    ) -> StateResult<GeneratedDocument> {
         let content = match format {
             DocumentationFormat::Markdown => self.generate_markdown_documentation()?,
             DocumentationFormat::Html => self.generate_html_documentation()?,
@@ -212,7 +212,9 @@ where
 
         // Overview
         markdown.push_str("## Overview\n\n");
-        markdown.push_str("This document provides comprehensive documentation for the state machine.\n\n");
+        markdown.push_str(
+            "This document provides comprehensive documentation for the state machine.\n\n",
+        );
 
         // States
         markdown.push_str("## States\n\n");
@@ -234,8 +236,10 @@ where
         markdown.push_str("## Transitions\n\n");
         let transitions = self.get_machine_transitions();
         for transition in transitions {
-            markdown.push_str(&format!("- **{}** → **{}** (Event: {})\n", 
-                transition.from, transition.to, transition.event));
+            markdown.push_str(&format!(
+                "- **{}** → **{}** (Event: {})\n",
+                transition.from, transition.to, transition.event
+            ));
         }
         markdown.push_str("\n");
 
@@ -296,24 +300,38 @@ where
         html.push_str("<html lang=\"en\">\n");
         html.push_str("<head>\n");
         html.push_str("    <meta charset=\"UTF-8\">\n");
-        html.push_str("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
+        html.push_str(
+            "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n",
+        );
         html.push_str(&format!("    <title>State Machine Documentation</title>\n"));
         html.push_str(&format!("    <style>\n"));
-        html.push_str(&format!("        body {{ font-family: {}; font-size: {}; }}\n", 
-            self.config.styling.font_family, self.config.styling.font_size));
-        html.push_str(&format!("        .primary {{ color: {}; }}\n", self.config.styling.primary_color));
-        html.push_str(&format!("        .secondary {{ color: {}; }}\n", self.config.styling.secondary_color));
+        html.push_str(&format!(
+            "        body {{ font-family: {}; font-size: {}; }}\n",
+            self.config.styling.font_family, self.config.styling.font_size
+        ));
+        html.push_str(&format!(
+            "        .primary {{ color: {}; }}\n",
+            self.config.styling.primary_color
+        ));
+        html.push_str(&format!(
+            "        .secondary {{ color: {}; }}\n",
+            self.config.styling.secondary_color
+        ));
         html.push_str("        .state { background-color: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 5px; }\n");
         html.push_str("        .event { background-color: #e9ecef; padding: 10px; margin: 10px 0; border-radius: 5px; }\n");
         html.push_str("        .transition { background-color: #dee2e6; padding: 5px; margin: 5px 0; border-radius: 3px; }\n");
         html.push_str("        pre { background-color: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; }\n");
-        html.push_str("        code { background-color: #f1f3f4; padding: 2px 4px; border-radius: 3px; }\n");
+        html.push_str(
+            "        code { background-color: #f1f3f4; padding: 2px 4px; border-radius: 3px; }\n",
+        );
         html.push_str("    </style>\n");
         html.push_str("</head>\n");
         html.push_str("<body>\n");
 
         // Title
-        html.push_str(&format!("    <h1 class=\"primary\">State Machine Documentation</h1>\n"));
+        html.push_str(&format!(
+            "    <h1 class=\"primary\">State Machine Documentation</h1>\n"
+        ));
 
         // Overview
         html.push_str("    <h2>Overview</h2>\n");
@@ -344,8 +362,10 @@ where
         let transitions = self.get_machine_transitions();
         for transition in transitions {
             html.push_str(&format!("    <div class=\"transition\">\n"));
-            html.push_str(&format!("        <strong>{} → {}</strong> (Event: {})\n", 
-                transition.from, transition.to, transition.event));
+            html.push_str(&format!(
+                "        <strong>{} → {}</strong> (Event: {})\n",
+                transition.from, transition.to, transition.event
+            ));
             html.push_str("    </div>\n");
         }
 
@@ -398,7 +418,9 @@ where
 
         // Overview
         asciidoc.push_str("== Overview\n\n");
-        asciidoc.push_str("This document provides comprehensive documentation for the state machine.\n\n");
+        asciidoc.push_str(
+            "This document provides comprehensive documentation for the state machine.\n\n",
+        );
 
         // States
         asciidoc.push_str("== States\n\n");
@@ -420,8 +442,10 @@ where
         asciidoc.push_str("== Transitions\n\n");
         let transitions = self.get_machine_transitions();
         for transition in transitions {
-            asciidoc.push_str(&format!("* **{}** → **{}** (Event: {})\n", 
-                transition.from, transition.to, transition.event));
+            asciidoc.push_str(&format!(
+                "* **{}** → **{}** (Event: {})\n",
+                transition.from, transition.to, transition.event
+            ));
         }
         asciidoc.push_str("\n");
 
@@ -439,7 +463,9 @@ where
         // Overview
         rst.push_str("Overview\n");
         rst.push_str("--------\n\n");
-        rst.push_str("This document provides comprehensive documentation for the state machine.\n\n");
+        rst.push_str(
+            "This document provides comprehensive documentation for the state machine.\n\n",
+        );
 
         // States
         rst.push_str("States\n");
@@ -479,10 +505,11 @@ where
 
         #[cfg(feature = "serde_json")]
         {
-            serde_json::to_string_pretty(&_doc)
-                .map_err(|e| StateError::custom(format!("Failed to serialize documentation: {}", e)))
+            serde_json::to_string_pretty(&_doc).map_err(|e| {
+                StateError::custom(format!("Failed to serialize documentation: {}", e))
+            })
         }
-        
+
         #[cfg(not(feature = "serde_json"))]
         Err(StateError::new("JSON export requires serde_json feature"))
     }
@@ -502,10 +529,11 @@ where
 
         #[cfg(feature = "serde_yaml")]
         {
-            serde_yaml::to_string(&_doc)
-                .map_err(|e| StateError::custom(format!("Failed to serialize documentation: {}", e)))
+            serde_yaml::to_string(&_doc).map_err(|e| {
+                StateError::custom(format!("Failed to serialize documentation: {}", e))
+            })
         }
-        
+
         #[cfg(not(feature = "serde_yaml"))]
         Err(StateError::new("YAML export requires serde_yaml feature"))
     }
@@ -519,7 +547,10 @@ where
             }
         }
 
-        Err(StateError::custom(format!("Unknown custom format: {}", format)))
+        Err(StateError::custom(format!(
+            "Unknown custom format: {}",
+            format
+        )))
     }
 
     /// Render a template with machine data
@@ -584,13 +615,19 @@ where
     fn save_documentation(&self, docs: &[GeneratedDocument]) -> StateResult<()> {
         // Create output directory if it doesn't exist
         if let Err(_) = fs::create_dir_all(&self.config.output_directory) {
-            return Err(StateError::custom(format!("Failed to create output directory: {}", self.config.output_directory)));
+            return Err(StateError::custom(format!(
+                "Failed to create output directory: {}",
+                self.config.output_directory
+            )));
         }
 
         // Save each document
         for doc in docs {
             if let Err(e) = fs::write(&doc.file_path, &doc.content) {
-                return Err(StateError::custom(format!("Failed to write documentation to {}: {}", doc.file_path, e)));
+                return Err(StateError::custom(format!(
+                    "Failed to write documentation to {}: {}",
+                    doc.file_path, e
+                )));
             }
             println!("Documentation saved to: {}", doc.file_path);
         }
@@ -623,22 +660,34 @@ where
 
         let docs = self.get_generated_documentation();
         for doc in docs {
-            index.push_str(&format!("- [{}]({})\n", 
-                format!("{:?}", doc.format), doc.file_path));
+            index.push_str(&format!(
+                "- [{}]({})\n",
+                format!("{:?}", doc.format),
+                doc.file_path
+            ));
         }
 
         index.push_str("\n## Generation Info\n\n");
-        index.push_str(&format!("- Generated at: {}\n", 
+        index.push_str(&format!(
+            "- Generated at: {}\n",
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
-                .as_secs()));
-        index.push_str(&format!("- Output directory: {}\n", self.config.output_directory));
-        index.push_str(&format!("- Formats: {}\n", 
-            self.config.output_formats.iter()
+                .as_secs()
+        ));
+        index.push_str(&format!(
+            "- Output directory: {}\n",
+            self.config.output_directory
+        ));
+        index.push_str(&format!(
+            "- Formats: {}\n",
+            self.config
+                .output_formats
+                .iter()
                 .map(|f| format!("{:?}", f))
                 .collect::<Vec<_>>()
-                .join(", ")));
+                .join(", ")
+        ));
 
         Ok(index)
     }
@@ -819,9 +868,9 @@ mod tests {
     fn test_markdown_documentation_generation() {
         let machine = MachineBuilder::<TestContext, TestEvent>::new()
             .state("idle")
-                .on(TestEvent::Increment, "counting")
+            .on(TestEvent::Increment, "counting")
             .state("counting")
-                .on(TestEvent::Decrement, "idle")
+            .on(TestEvent::Decrement, "idle")
             .build();
 
         let config = DocumentationConfig {
@@ -844,9 +893,9 @@ mod tests {
     fn test_html_documentation_generation() {
         let machine = MachineBuilder::<TestContext, TestEvent>::new()
             .state("idle")
-                .on(TestEvent::Increment, "counting")
+            .on(TestEvent::Increment, "counting")
             .state("counting")
-                .on(TestEvent::Decrement, "idle")
+            .on(TestEvent::Decrement, "idle")
             .build();
 
         let config = DocumentationConfig {
@@ -871,9 +920,9 @@ mod tests {
         {
             let machine = MachineBuilder::<TestContext, TestEvent>::new()
                 .state("idle")
-                    .on(TestEvent::Increment, "counting")
+                .on(TestEvent::Increment, "counting")
                 .state("counting")
-                    .on(TestEvent::Decrement, "idle")
+                .on(TestEvent::Decrement, "idle")
                 .build();
 
             let config = DocumentationConfig {
@@ -891,7 +940,7 @@ mod tests {
             assert!(docs[0].content.contains("\"states\""));
             assert!(docs[0].content.contains("\"events\""));
         }
-        
+
         #[cfg(not(feature = "serde_json"))]
         {
             // Skip test when serde_json feature is not enabled
@@ -903,13 +952,16 @@ mod tests {
     fn test_documentation_builder() {
         let machine = MachineBuilder::<TestContext, TestEvent>::new()
             .state("idle")
-                .on(TestEvent::Increment, "counting")
+            .on(TestEvent::Increment, "counting")
             .state("counting")
-                .on(TestEvent::Decrement, "idle")
+            .on(TestEvent::Decrement, "idle")
             .build();
 
         let generator = DocumentationBuilder::new(machine)
-            .with_formats(vec![DocumentationFormat::Markdown, DocumentationFormat::Html])
+            .with_formats(vec![
+                DocumentationFormat::Markdown,
+                DocumentationFormat::Html,
+            ])
             .with_output_directory("custom_docs".to_string())
             .with_template(DocumentationTemplate::Comprehensive)
             .with_diagrams(true)
@@ -942,9 +994,9 @@ mod tests {
     fn test_custom_template() {
         let machine = MachineBuilder::<TestContext, TestEvent>::new()
             .state("idle")
-                .on(TestEvent::Increment, "counting")
+            .on(TestEvent::Increment, "counting")
             .state("counting")
-                .on(TestEvent::Decrement, "idle")
+            .on(TestEvent::Decrement, "idle")
             .build();
 
         let config = DocumentationConfig {
@@ -954,13 +1006,18 @@ mod tests {
         };
 
         let generator = DocumentationGenerator::new(machine, config);
-        
+
         // Add custom template
-        generator.add_template("custom".to_string(), "Title: {{title}}\nStates: {{states}}\nEvents: {{events}}".to_string());
-        
+        generator.add_template(
+            "custom".to_string(),
+            "Title: {{title}}\nStates: {{states}}\nEvents: {{events}}".to_string(),
+        );
+
         let docs = generator.generate_documentation().unwrap();
         assert_eq!(docs.len(), 1);
-        assert!(docs[0].content.contains("Title: State Machine Documentation"));
+        assert!(docs[0]
+            .content
+            .contains("Title: State Machine Documentation"));
         assert!(docs[0].content.contains("States:"));
         assert!(docs[0].content.contains("Events:"));
     }

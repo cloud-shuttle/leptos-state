@@ -1,7 +1,7 @@
-use leptos::*;
-use leptos_state::*;
-use leptos_state::machine::states::StateValue;
 use leptos::prelude::{ClassAttribute, ElementChild, Get, OnAttribute};
+use leptos::*;
+use leptos_state::machine::states::StateValue;
+use leptos_state::*;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 struct TrafficContext {
@@ -37,19 +37,19 @@ struct TrafficMachineState {
 
 impl MachineState for TrafficMachineState {
     type Context = TrafficContext;
-    
+
     fn value(&self) -> &StateValue {
         &self.current
     }
-    
+
     fn context(&self) -> &Self::Context {
         &self.context
     }
-    
+
     fn matches(&self, pattern: &str) -> bool {
         self.current.matches(pattern)
     }
-    
+
     fn can_transition_to(&self, _target: &str) -> bool {
         true
     }
@@ -62,17 +62,17 @@ impl StateMachine for TrafficMachine {
     type Context = TrafficContext;
     type Event = TrafficEvent;
     type State = TrafficMachineState;
-    
+
     fn initial() -> Self::State {
         TrafficMachineState {
             current: StateValue::simple("red"),
             context: TrafficContext::default(),
         }
     }
-    
+
     fn transition(state: &Self::State, event: Self::Event) -> Self::State {
         let mut new_state = state.clone();
-        
+
         match (&state.current, &event) {
             (current, TrafficEvent::Timer) => {
                 new_state.current = match current {
@@ -93,7 +93,7 @@ impl StateMachine for TrafficMachine {
                 new_state = Self::initial();
             }
         }
-        
+
         new_state
     }
 }
@@ -101,7 +101,7 @@ impl StateMachine for TrafficMachine {
 #[component]
 fn TrafficLight() -> impl IntoView {
     let machine = use_machine::<TrafficMachine>();
-    
+
     let machine_current = machine.clone();
     let current_light = move || {
         let state = machine_current.current();
@@ -110,11 +110,11 @@ fn TrafficLight() -> impl IntoView {
             _ => "unknown".to_string(),
         }
     };
-    
+
     let is_red = machine.create_matcher("red".to_string());
     let is_yellow = machine.create_matcher("yellow".to_string());
     let is_green = machine.create_matcher("green".to_string());
-    
+
     let machine_timer = machine.clone();
     let next_timer = move |_| machine_timer.emit(TrafficEvent::Timer);
     let machine_pedestrian = machine.clone();
@@ -123,33 +123,33 @@ fn TrafficLight() -> impl IntoView {
     let emergency_stop = move |_| machine_emergency.emit(TrafficEvent::EmergencyStop);
     let machine_reset = machine.clone();
     let reset = move |_| machine_reset.emit(TrafficEvent::Reset);
-    
+
     view! {
         <div class="traffic-light">
             <h1>"Traffic Light State Machine"</h1>
-            
+
             <div class="light-display">
-                <div 
+                <div
                     class="light red"
                     class:active=move || is_red.get()
                 ></div>
-                <div 
+                <div
                     class="light yellow"
                     class:active=move || is_yellow.get()
                 ></div>
-                <div 
+                <div
                     class="light green"
                     class:active=move || is_green.get()
                 ></div>
             </div>
-            
+
             <div class="status">
                 <p>"Current State: " <strong>{current_light}</strong></p>
-                <p>"Pedestrian Waiting: " 
+                <p>"Pedestrian Waiting: "
                     <strong>{move || if machine.get_context().pedestrian_waiting { "Yes" } else { "No" }}</strong>
                 </p>
             </div>
-            
+
             <div class="controls">
                 <button on:click=next_timer>"Next (Timer)"</button>
                 <button on:click=request_pedestrian>"Pedestrian Request"</button>

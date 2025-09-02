@@ -1,17 +1,17 @@
 //! State Machine Testing Framework
-//! 
+//!
 //! This module provides comprehensive testing utilities and frameworks
 //! for state machines, including unit testing, integration testing,
 //! property-based testing, and automated test generation.
 
-use crate::{
-    machine::{Machine, MachineState, Transition},
-    machine::states::StateValue,
-};
 use crate::machine::events::Event;
+use crate::{
+    machine::states::StateValue,
+    machine::{Machine, MachineState, Transition},
+};
 use std::collections::{HashMap, HashSet, VecDeque};
-use std::time::{Duration, Instant};
 use std::marker::PhantomData;
+use std::time::{Duration, Instant};
 
 /// Test configuration for state machine testing
 #[derive(Debug, Clone)]
@@ -215,7 +215,7 @@ where
         let result = (|| {
             for step in test_case.steps {
                 let step_start = Instant::now();
-                
+
                 // Record coverage before transition
                 if let Some(ref mut tracker) = self.coverage_tracker {
                     tracker.record_state(&current_state.value());
@@ -224,9 +224,9 @@ where
                 // Perform transition - need to convert String back to E
                 // For now, we'll skip this step since we can't easily convert String to E
                 let new_state = current_state.clone(); // Placeholder
-                
+
                 let step_duration = step_start.elapsed();
-                
+
                 // Record performance
                 if let Some(ref mut tracker) = self.performance_tracker {
                     tracker.record_transition(step_duration);
@@ -264,7 +264,8 @@ where
                 if *current_state.value() != expected_final_state {
                     return Err(format!(
                         "Expected final state {:?}, got {:?}",
-                        expected_final_state, current_state.value()
+                        expected_final_state,
+                        current_state.value()
                     ));
                 }
             }
@@ -274,7 +275,8 @@ where
                 if current_state.context() != &expected_final_context {
                     return Err(format!(
                         "Expected final context {:?}, got {:?}",
-                        expected_final_context, current_state.context()
+                        expected_final_context,
+                        current_state.context()
                     ));
                 }
             }
@@ -312,7 +314,10 @@ where
     }
 
     /// Run property-based tests
-    pub fn run_property_tests(&mut self, properties: Vec<Property<C, E>>) -> Vec<PropertyTestResult> {
+    pub fn run_property_tests(
+        &mut self,
+        properties: Vec<Property<C, E>>,
+    ) -> Vec<PropertyTestResult> {
         let mut results = Vec::new();
 
         for property in properties {
@@ -322,7 +327,7 @@ where
             for iteration in 0..self.config.max_iterations {
                 // Generate test data
                 let test_data = self.test_data_generator.generate_test_data();
-                
+
                 // Create test case
                 let test_case = TestCase::<C, E> {
                     steps: test_data,
@@ -340,7 +345,7 @@ where
 
                 if !property_result.holds {
                     counter_examples.push(test_result.clone());
-                    
+
                     // Stop if we found a counter-example and don't need more
                     if !self.config.verbose {
                         break;
@@ -371,7 +376,10 @@ where
     }
 
     /// Run integration tests
-    pub fn run_integration_tests(&mut self, scenarios: Vec<IntegrationScenario<C, E>>) -> Vec<IntegrationTestResult> {
+    pub fn run_integration_tests(
+        &mut self,
+        scenarios: Vec<IntegrationScenario<C, E>>,
+    ) -> Vec<IntegrationTestResult> {
         let mut results = Vec::new();
 
         for scenario in scenarios {
@@ -432,7 +440,7 @@ where
     fn generate_state_coverage_test(&self, target_state: &str) -> TestCase<C, E> {
         // Find shortest path to target state
         let path = self.find_shortest_path_to_state(target_state);
-        
+
         TestCase::<C, E> {
             steps: path,
             expected_final_state: Some(StateValue::Simple(target_state.to_string())),
@@ -442,7 +450,11 @@ where
     }
 
     /// Generate a test case for transition coverage
-    fn generate_transition_test(&self, from_state: &str, transition: &Transition<C, E>) -> TestCase<C, E> {
+    fn generate_transition_test(
+        &self,
+        from_state: &str,
+        transition: &Transition<C, E>,
+    ) -> TestCase<C, E> {
         // Find path to from_state, then add the transition
         let mut path = self.find_shortest_path_to_state(from_state);
         path.push(TestStep {
@@ -466,7 +478,8 @@ where
 
     /// Generate a test case for path coverage
     fn generate_path_test(&self, path: Vec<E>) -> TestCase<C, E> {
-        let steps: Vec<TestStep> = path.into_iter()
+        let steps: Vec<TestStep> = path
+            .into_iter()
             .map(|event| TestStep {
                 event: event.event_type().to_string(),
                 from_state: String::new(),
@@ -508,7 +521,10 @@ where
                     let next_state = &transition.target;
                     if !visited.contains(next_state) {
                         visited.insert(next_state.clone());
-                        parent.insert(next_state.clone(), (current_state.clone(), transition.event.clone()));
+                        parent.insert(
+                            next_state.clone(),
+                            (current_state.clone(), transition.event.clone()),
+                        );
                         queue.push_back(next_state.clone());
                     }
                 }
@@ -519,7 +535,11 @@ where
     }
 
     /// Reconstruct path from parent map
-    fn reconstruct_path(&self, parent: &HashMap<String, (String, E)>, target: &str) -> Vec<TestStep> {
+    fn reconstruct_path(
+        &self,
+        parent: &HashMap<String, (String, E)>,
+        target: &str,
+    ) -> Vec<TestStep> {
         let mut path = Vec::new();
         let mut current = target.to_string();
 
@@ -547,13 +567,24 @@ where
         let mut visited = HashSet::new();
         let mut current_path = Vec::new();
 
-        self.dfs_find_paths(self.machine.initial_state_id(), &mut visited, &mut current_path, &mut paths);
+        self.dfs_find_paths(
+            self.machine.initial_state_id(),
+            &mut visited,
+            &mut current_path,
+            &mut paths,
+        );
 
         paths
     }
 
     /// DFS to find all paths
-    fn dfs_find_paths(&self, state: &str, visited: &mut HashSet<String>, current_path: &mut Vec<E>, paths: &mut Vec<Vec<E>>) {
+    fn dfs_find_paths(
+        &self,
+        state: &str,
+        visited: &mut HashSet<String>,
+        current_path: &mut Vec<E>,
+        paths: &mut Vec<Vec<E>>,
+    ) {
         if current_path.len() >= self.config.max_transitions {
             paths.push(current_path.clone());
             return;
@@ -563,13 +594,13 @@ where
             for transition in &state_node.transitions {
                 current_path.push(transition.event.clone());
                 paths.push(current_path.clone());
-                
+
                 if !visited.contains(&transition.target) {
                     visited.insert(transition.target.clone());
                     self.dfs_find_paths(&transition.target, visited, current_path, paths);
                     visited.remove(&transition.target);
                 }
-                
+
                 current_path.pop();
             }
         }
@@ -578,7 +609,7 @@ where
 
 /// Test case for state machine testing
 #[derive(Debug, Clone)]
-pub struct TestCase<C, E> 
+pub struct TestCase<C, E>
 where
     C: Clone,
 {
@@ -604,7 +635,10 @@ pub struct Property<C, E> {
 }
 
 impl<C, E> Property<C, E> {
-    pub fn new(name: impl Into<String>, check: impl Fn(&TestResult) -> PropertyResult + Send + Sync + 'static) -> Self {
+    pub fn new(
+        name: impl Into<String>,
+        check: impl Fn(&TestResult) -> PropertyResult + Send + Sync + 'static,
+    ) -> Self {
         Self {
             name: name.into(),
             check: Box::new(check),
@@ -634,7 +668,7 @@ pub struct PropertyTestResult {
 
 /// Integration test scenario
 #[derive(Debug, Clone)]
-pub struct IntegrationScenario<C, E> 
+pub struct IntegrationScenario<C, E>
 where
     C: Clone,
 {
@@ -708,7 +742,8 @@ impl CoverageTracker {
     }
 
     pub fn record_transition(&mut self, from: &str, to: &str) {
-        self.transitions_visited.insert((from.to_string(), to.to_string()));
+        self.transitions_visited
+            .insert((from.to_string(), to.to_string()));
     }
 
     pub fn record_event(&mut self, event: &str) {
@@ -723,9 +758,14 @@ impl CoverageTracker {
         self.actions_executed.insert(action.to_string());
     }
 
-    pub fn calculate_coverage<C: Send + Sync + Clone, E: Clone>(&self, machine: &Machine<C, E>) -> TestCoverage {
+    pub fn calculate_coverage<C: Send + Sync + Clone, E: Clone>(
+        &self,
+        machine: &Machine<C, E>,
+    ) -> TestCoverage {
         let total_states = machine.states_map().len();
-        let total_transitions: usize = machine.states_map().values()
+        let total_transitions: usize = machine
+            .states_map()
+            .values()
             .map(|state| state.transitions.len())
             .sum();
 
@@ -738,7 +778,9 @@ impl CoverageTracker {
 
         TestCoverage {
             states_covered: self.states_visited.clone(),
-            transitions_covered: self.transitions_visited.iter()
+            transitions_covered: self
+                .transitions_visited
+                .iter()
                 .map(|(from, to)| (from.clone(), to.clone()))
                 .collect(),
             events_covered: self.events_used.clone(),
@@ -813,7 +855,14 @@ pub trait MachineTestingExt<C: Send + Sync, E> {
 impl<C, E> MachineTestingExt<C, E> for Machine<C, E>
 where
     C: Clone + std::fmt::Debug + PartialEq + std::default::Default + Send + Sync + 'static,
-    E: Clone + std::fmt::Debug + Event + std::cmp::PartialEq + std::default::Default + Send + Sync + 'static,
+    E: Clone
+        + std::fmt::Debug
+        + Event
+        + std::cmp::PartialEq
+        + std::default::Default
+        + Send
+        + Sync
+        + 'static,
 {
     fn with_testing(self, config: TestConfig) -> MachineTestRunner<C, E> {
         MachineTestRunner::new(self, config)
@@ -829,7 +878,14 @@ pub struct TestBuilder<C: Send + Sync, E> {
 impl<C, E> TestBuilder<C, E>
 where
     C: Clone + std::fmt::Debug + PartialEq + std::default::Default + Send + Sync + 'static,
-    E: Clone + std::fmt::Debug + Event + std::cmp::PartialEq + std::default::Default + Send + Sync + 'static,
+    E: Clone
+        + std::fmt::Debug
+        + Event
+        + std::cmp::PartialEq
+        + std::default::Default
+        + Send
+        + Sync
+        + 'static,
 {
     pub fn new(machine: Machine<C, E>) -> Self {
         Self {
@@ -960,9 +1016,9 @@ mod tests {
     fn test_test_builder() {
         let machine = MachineBuilder::<TestContext, TestEvent>::new()
             .state("idle")
-                .on(TestEvent::Increment, "counting")
+            .on(TestEvent::Increment, "counting")
             .state("counting")
-                .on(TestEvent::Decrement, "idle")
+            .on(TestEvent::Decrement, "idle")
             .build();
 
         let test_runner = TestBuilder::new(machine)
@@ -987,7 +1043,7 @@ mod tests {
     #[test]
     fn test_coverage_tracker() {
         let mut tracker = CoverageTracker::new();
-        
+
         tracker.record_state(&StateValue::Simple("idle".to_string()));
         tracker.record_state(&StateValue::Simple("counting".to_string()));
         tracker.record_transition("idle", "counting");
@@ -997,13 +1053,13 @@ mod tests {
 
         let machine = MachineBuilder::<TestContext, TestEvent>::new()
             .state("idle")
-                .on(TestEvent::Increment, "counting")
+            .on(TestEvent::Increment, "counting")
             .state("counting")
-                .on(TestEvent::Decrement, "idle")
+            .on(TestEvent::Decrement, "idle")
             .build();
 
         let coverage = tracker.calculate_coverage(&machine);
-        
+
         assert_eq!(coverage.states_covered.len(), 2);
         assert_eq!(coverage.transitions_covered.len(), 1);
         assert_eq!(coverage.events_covered.len(), 1);
@@ -1015,13 +1071,13 @@ mod tests {
     #[test]
     fn test_performance_tracker() {
         let mut tracker = PerformanceTracker::new();
-        
+
         tracker.record_transition(Duration::from_millis(10));
         tracker.record_transition(Duration::from_millis(20));
         tracker.record_transition(Duration::from_millis(15));
 
         let metrics = tracker.calculate_metrics();
-        
+
         assert_eq!(metrics.avg_transition_time, Duration::from_millis(15));
         assert_eq!(metrics.max_transition_time, Duration::from_millis(20));
         assert_eq!(metrics.min_transition_time, Duration::from_millis(10));
@@ -1032,9 +1088,9 @@ mod tests {
         let machine = MachineBuilder::<TestContext, TestEvent>::new()
             .initial("idle")
             .state("idle")
-                .on(TestEvent::Increment, "counting")
+            .on(TestEvent::Increment, "counting")
             .state("counting")
-                .on(TestEvent::Decrement, "idle")
+            .on(TestEvent::Decrement, "idle")
             .build();
 
         let config = TestConfig {
@@ -1049,21 +1105,19 @@ mod tests {
         };
 
         let mut test_runner = MachineTestRunner::new(machine, config);
-        
+
         // Test basic test case
         let test_case = TestCase {
-            steps: vec![
-                TestStep {
-                    event: TestEvent::Increment.event_type().to_string(),
-                    from_state: "idle".to_string(),
-                    to_state: "counting".to_string(),
-                    context_before: "TestContext { count: 0, name: \"test\" }".to_string(),
-                    context_after: "TestContext { count: 0, name: \"test\" }".to_string(),
-                    guards_evaluated: Vec::new(),
-                    actions_executed: Vec::new(),
-                    duration: Duration::from_millis(1),
-                }
-            ],
+            steps: vec![TestStep {
+                event: TestEvent::Increment.event_type().to_string(),
+                from_state: "idle".to_string(),
+                to_state: "counting".to_string(),
+                context_before: "TestContext { count: 0, name: \"test\" }".to_string(),
+                context_after: "TestContext { count: 0, name: \"test\" }".to_string(),
+                guards_evaluated: Vec::new(),
+                actions_executed: Vec::new(),
+                duration: Duration::from_millis(1),
+            }],
             expected_final_state: Some(StateValue::Simple("counting".to_string())),
             expected_final_context: None,
             _phantom: PhantomData,
@@ -1082,9 +1136,9 @@ mod tests {
         let machine = MachineBuilder::<TestContext, TestEvent>::new()
             .initial("idle")
             .state("idle")
-                .on(TestEvent::Increment, "counting")
+            .on(TestEvent::Increment, "counting")
             .state("counting")
-                .on(TestEvent::Decrement, "idle")
+            .on(TestEvent::Decrement, "idle")
             .build();
 
         let config = TestConfig {
@@ -1122,6 +1176,6 @@ mod tests {
 
         assert_eq!(results.len(), 2);
         assert!(results[0].passed); // always_holds should pass
-        // sometimes_fails might pass or fail depending on the generated test data
+                                    // sometimes_fails might pass or fail depending on the generated test data
     }
 }

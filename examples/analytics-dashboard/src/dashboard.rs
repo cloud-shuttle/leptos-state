@@ -1,7 +1,7 @@
-use leptos::*;
-use leptos::prelude::{ElementChild, StyleAttribute, OnAttribute, signal, set_timeout, Get, Set};
-use leptos::either::Either;
 use chrono::{DateTime, Utc};
+use leptos::either::Either;
+use leptos::prelude::{set_timeout, signal, ElementChild, Get, OnAttribute, Set, StyleAttribute};
+use leptos::*;
 use uuid::Uuid;
 
 // Data Models
@@ -35,7 +35,7 @@ pub enum MetricCategory {
 // Mock Data Generator
 fn generate_mock_data() -> Vec<Metric> {
     let now = Utc::now();
-    
+
     vec![
         Metric {
             id: Uuid::new_v4(),
@@ -76,8 +76,6 @@ fn generate_mock_data() -> Vec<Metric> {
     ]
 }
 
-
-
 // Main Dashboard Component
 #[component]
 pub fn AnalyticsDashboard() -> impl IntoView {
@@ -88,19 +86,22 @@ pub fn AnalyticsDashboard() -> impl IntoView {
     // Refresh data function
     let refresh_data = move |_| {
         set_is_loading.set(true);
-        set_timeout(move || {
-            set_metrics.set(generate_mock_data());
-            set_is_loading.set(false);
-        }, std::time::Duration::from_millis(1000));
+        set_timeout(
+            move || {
+                set_metrics.set(generate_mock_data());
+                set_is_loading.set(false);
+            },
+            std::time::Duration::from_millis(1000),
+        );
     };
 
     view! {
         <div style="min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 2rem;">
-            
+
             <div style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);">
                 <h1 style="font-size: 2.5rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">Analytics Dashboard</h1>
                 <p style="color: #64748b; font-size: 1.1rem;">Real-time business metrics and insights</p>
-                
+
                 <div style="display: flex; gap: 1rem; margin-top: 1rem; align-items: center;">
                     <div style="display: flex; background: #f1f5f9; border-radius: 0.5rem; padding: 0.25rem;">
                         <button
@@ -122,16 +123,16 @@ pub fn AnalyticsDashboard() -> impl IntoView {
                             "30D"
                         </button>
                     </div>
-                    
-                    <button 
-                        style="padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; cursor: pointer; transition: background 0.2s;" 
+
+                    <button
+                        style="padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; cursor: pointer; transition: background 0.2s;"
                         on:click=refresh_data
                     >
                         {move || if is_loading.get() { "Refreshing..." } else { "Refresh" }}
                     </button>
                 </div>
             </div>
-            
+
             {move || {
                 let loading = is_loading.get();
                 if loading {
@@ -152,25 +153,25 @@ pub fn AnalyticsDashboard() -> impl IntoView {
                                     MetricCategory::Performance => "background: #fef3c7; color: #d97706;",
                                     MetricCategory::Engagement => "background: #f3e8ff; color: #7c3aed;",
                                 };
-                                
+
                                 let change_color = match metric.trend {
                                     Trend::Up => "#10b981",
                                     Trend::Down => "#ef4444",
                                     Trend::Stable => "#6b7280",
                                 };
-                                
+
                                 let change_icon = match metric.trend {
                                     Trend::Up => "↗",
                                     Trend::Down => "↘",
                                     Trend::Stable => "→",
                                 };
-                                
+
                                 let formatted_value = if metric.value >= 1000.0 {
                                     format!("${:.1}K", metric.value / 1000.0)
                                 } else {
                                     format!("{:.1}", metric.value)
                                 };
-                                
+
                                 view! {
                                     <div style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 1rem; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); transition: transform 0.2s;">
                                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">

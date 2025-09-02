@@ -1,5 +1,5 @@
-use leptos::prelude::*;
 use crate::store::*;
+use leptos::prelude::*;
 
 /// Hook to access a store's state and setter
 pub fn use_store<S: Store>() -> (ReadSignal<S::State>, WriteSignal<S::State>) {
@@ -33,22 +33,22 @@ impl<T: Clone + Send + Sync> StoreActions<T> {
     pub fn new(setter: WriteSignal<T>) -> Self {
         Self { setter }
     }
-    
+
     /// Set the entire state
     pub fn set(&self, new_state: T) {
         self.setter.set(new_state);
     }
-    
+
     /// Update state with a function
     pub fn update(&self, f: impl FnOnce(&mut T)) {
         self.setter.update(f);
     }
-    
+
     /// Update state with a mapping function
     pub fn map(&self, f: impl FnOnce(T) -> T) {
         self.setter.update(|state| *state = f(state.clone()));
     }
-    
+
     /// Reset to initial state
     pub fn reset<S: Store<State = T>>(&self) {
         self.setter.set(S::create());
@@ -74,12 +74,12 @@ impl<T: Clone + Send + Sync> StoreBatch<T> {
             pending_updates: std::cell::RefCell::new(Vec::new()),
         }
     }
-    
+
     /// Add an update to the batch
     pub fn update(&self, f: impl FnOnce(&mut T) + 'static) {
         self.pending_updates.borrow_mut().push(Box::new(f));
     }
-    
+
     /// Apply all pending updates in a single batch
     pub fn commit(self) {
         let updates = self.pending_updates.into_inner();
@@ -94,18 +94,18 @@ impl<T: Clone + Send + Sync> StoreBatch<T> {
 }
 
 /// Hook for store history/undo functionality
-pub fn use_store_history<S: Store>() -> StoreHistory<S::State> 
+pub fn use_store_history<S: Store>() -> StoreHistory<S::State>
 where
     S::State: Clone + PartialEq,
 {
     let (state, set_state) = use_store::<S>();
     let history = RwSignal::new(Vec::<S::State>::new());
     let current_index = RwSignal::new(0);
-    
+
     // Track state changes and add to history
     Effect::new(move |prev_state: Option<Option<S::State>>| {
         let current_state = state.get();
-        
+
         if let Some(Some(prev)) = prev_state {
             if prev != current_state {
                 history.update(|h| {
@@ -119,10 +119,10 @@ where
             // Initial state
             history.update(|h| h.push(current_state.clone()));
         }
-        
+
         Some(current_state)
     });
-    
+
     StoreHistory {
         set_state,
         history: history.read_only(),
@@ -144,39 +144,39 @@ impl<T: Clone + Send + Sync> StoreHistory<T> {
     pub fn can_undo(&self) -> bool {
         self.current_index.get() > 0
     }
-    
+
     /// Check if redo is possible
     pub fn can_redo(&self) -> bool {
         let history = self.history.get();
         self.current_index.get() < history.len().saturating_sub(1)
     }
-    
+
     /// Undo to previous state
     pub fn undo(&self) {
         if self.can_undo() {
             let new_index = self.current_index.get() - 1;
             self.set_index.set(new_index);
-            
+
             let history = self.history.get();
             if let Some(state) = history.get(new_index) {
                 self.set_state.set(state.clone());
             }
         }
     }
-    
+
     /// Redo to next state
     pub fn redo(&self) {
         if self.can_redo() {
             let new_index = self.current_index.get() + 1;
             self.set_index.set(new_index);
-            
+
             let history = self.history.get();
             if let Some(state) = history.get(new_index) {
                 self.set_state.set(state.clone());
             }
         }
     }
-    
+
     /// Jump to specific history index
     pub fn jump_to(&self, index: usize) {
         let history = self.history.get();
@@ -187,17 +187,17 @@ impl<T: Clone + Send + Sync> StoreHistory<T> {
             }
         }
     }
-    
+
     /// Get current history length
     pub fn len(&self) -> usize {
         self.history.get().len()
     }
-    
+
     /// Get current index in history
     pub fn current(&self) -> usize {
         self.current_index.get()
     }
-    
+
     /// Clear history
     pub fn clear(&self) {
         // This would require a WriteSignal<Vec<T>> instead of ReadSignal
@@ -217,10 +217,14 @@ mod tests {
         name: String,
     }
 
-    create_store!(TestStore, TestState, TestState {
-        count: 0,
-        name: "test".to_string()
-    });
+    create_store!(
+        TestStore,
+        TestState,
+        TestState {
+            count: 0,
+            name: "test".to_string()
+        }
+    );
 
     #[test]
     fn store_actions_work() {

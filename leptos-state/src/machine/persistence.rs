@@ -1,15 +1,15 @@
 //! State Machine Persistence & Serialization
-//! 
+//!
 //! This module provides comprehensive persistence capabilities for state machines,
 //! including serialization, storage, and restoration of machine states and contexts.
 
 use super::*;
-use crate::utils::types::{StateResult, StateError};
 use crate::machine::states::StateValue;
+use crate::utils::types::{StateError, StateResult};
 use std::collections::HashMap;
+use std::marker::PhantomData;
 use std::sync::Arc;
 use std::sync::Mutex;
-use std::marker::PhantomData;
 
 #[cfg(feature = "serde_json")]
 use serde_json;
@@ -20,7 +20,7 @@ use serde_yaml;
 pub trait MachineSerialize {
     /// Serialize the machine state to a string
     fn serialize(&self) -> StateResult<String>;
-    
+
     /// Get a version identifier for the serialized format
     fn version(&self) -> &str {
         "1.0"
@@ -31,7 +31,7 @@ pub trait MachineSerialize {
 pub trait MachineDeserialize<T> {
     /// Deserialize machine state from a string
     fn deserialize(data: &str) -> StateResult<T>;
-    
+
     /// Get the expected version for deserialization
     fn expected_version(&self) -> &str {
         "1.0"
@@ -155,7 +155,7 @@ impl MachineMetadata {
             custom_data: HashMap::new(),
         }
     }
-    
+
     pub fn with_custom_data(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
         self.custom_data.insert(key.into(), value.into());
         self
@@ -185,130 +185,135 @@ where
             _phantom: PhantomData::<(C, E)>,
         }
     }
-    
+
     pub fn with_storage(mut self, storage: Arc<dyn MachineStorage>) -> Self {
         self.storage = storage;
         self
     }
-    
+
     /// Save the current machine state
     pub fn save(&self, machine: &Machine<C, E>, state: &MachineStateImpl<C>) -> StateResult<()> {
         if !self.config.enabled {
             return Ok(());
         }
-        
+
         let _serialized = self.serialize_machine(machine, state)?;
-        
+
         #[cfg(feature = "serde_json")]
         {
             let data = serde_json::to_string(&serialized)?;
-            
+
             // Check size limit
             if data.len() > self.config.max_size {
                 return Err(StateError::new("Serialized data exceeds maximum size"));
             }
-            
+
             // Compress if enabled
             let final_data = if self.config.compression_level > 0 {
                 self.compress_data(&data)?
             } else {
                 data
             };
-            
+
             // Encrypt if enabled
             let final_data = if self.config.encrypt {
                 self.encrypt_data(&final_data)?
             } else {
                 final_data
             };
-            
+
             // Save to storage
             self.storage.save(&self.config.storage_key, &final_data)?;
-            
+
             // Update last save time
             if let Ok(mut last_save) = self.last_save.lock() {
                 *last_save = Some(
                     std::time::SystemTime::now()
                         .duration_since(std::time::UNIX_EPOCH)
                         .unwrap()
-                        .as_secs()
+                        .as_secs(),
                 );
             }
-            
+
             // Create backup if needed
             if self.config.backup_config.auto_backup {
                 self.create_backup(&final_data)?;
             }
         }
-        
+
         #[cfg(not(feature = "serde_json"))]
         {
             return Err(StateError::new("Serialization requires serde_json feature"));
         }
     }
-    
+
     /// Load and restore machine state
     pub fn load(&self, _machine: &Machine<C, E>) -> StateResult<MachineStateImpl<C>> {
         if !self.config.enabled || !self.config.auto_restore {
-            return Err(StateError::new("Persistence not enabled or auto-restore disabled"));
+            return Err(StateError::new(
+                "Persistence not enabled or auto-restore disabled",
+            ));
         }
-        
+
         // Load from storage
         let _data = self.storage.load(&self.config.storage_key)?;
-        
+
         // Decrypt if needed
         let _data = if self.config.encrypt {
             self.decrypt_data(&_data)?
         } else {
             _data
         };
-        
+
         // Decompress if needed
         let _data = if self.config.compression_level > 0 {
             self.decompress_data(&_data)?
         } else {
             _data
         };
-        
+
         // Deserialize
         #[cfg(feature = "serde_json")]
         {
             let serialized: SerializedMachine<C, E> = serde_json::from_str(&_data)?;
-            
+
             // Validate checksum
             self.validate_checksum(&serialized)?;
-            
+
             // Create machine state
             let state = MachineStateImpl {
                 value: serialized.state_value,
                 context: serialized.context,
             };
-            
+
             Ok(state)
         }
-        
+
         #[cfg(not(feature = "serde_json"))]
-        Err(StateError::new("Deserialization requires serde_json feature"))
+        Err(StateError::new(
+            "Deserialization requires serde_json feature",
+        ))
     }
-    
+
     /// Create a backup of the current state
     pub fn create_backup(&self, data: &str) -> StateResult<()> {
-        let backup_key = format!("{}_backup_{}", 
-            self.config.storage_key, 
+        let backup_key = format!(
+            "{}_backup_{}",
+            self.config.storage_key,
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
                 .as_secs()
         );
-        
+
         let backup_data = if self.config.backup_config.compress_backups {
             self.compress_data(data)?
         } else {
             data.to_string()
         };
-        
+
         self.storage.save(&backup_key, &backup_data)?;
-        
+
         // Update backup list
         if let Ok(mut backups) = self.backups.lock() {
             backups.push(BackupEntry {
@@ -318,7 +323,7 @@ where
                     .unwrap()
                     .as_secs(),
             });
-            
+
             // Remove old backups if we exceed the limit
             if backups.len() > self.config.backup_config.max_backups {
                 if let Some(oldest) = backups.iter().min_by_key(|b| b.timestamp) {
@@ -328,51 +333,51 @@ where
                 }
             }
         }
-        
+
         Ok(())
     }
-    
+
     /// Restore from a specific backup
     pub fn restore_from_backup(&self, backup_timestamp: u64) -> StateResult<String> {
         let backup_key = format!("{}_backup_{}", self.config.storage_key, backup_timestamp);
         let data = self.storage.load(&backup_key)?;
-        
+
         if self.config.backup_config.compress_backups {
             self.decompress_data(&data)
         } else {
             Ok(data)
         }
     }
-    
+
     /// List available backups
     pub fn list_backups(&self) -> Vec<BackupEntry> {
         self.backups.lock().unwrap().clone()
     }
-    
+
     /// Clear all persisted data
     pub fn clear(&self) -> StateResult<()> {
         self.storage.delete(&self.config.storage_key)?;
-        
+
         // Clear backups
         if let Ok(backups) = self.backups.lock() {
             for backup in backups.iter() {
                 let _ = self.storage.delete(&backup.key);
             }
         }
-        
+
         if let Ok(mut backups) = self.backups.lock() {
             backups.clear();
         }
-        
+
         Ok(())
     }
-    
+
     /// Check if auto-save should be triggered
     pub fn should_auto_save(&self) -> bool {
         if !self.config.enabled || !self.config.auto_save {
             return false;
         }
-        
+
         if let Ok(last_save) = self.last_save.lock() {
             if let Some(last) = *last_save {
                 let now = std::time::SystemTime::now()
@@ -382,22 +387,26 @@ where
                 return now - last >= self.config.backup_config.backup_interval;
             }
         }
-        
+
         true
     }
-    
+
     /// Serialize machine state
-    fn serialize_machine(&self, _machine: &Machine<C, E>, state: &MachineStateImpl<C>) -> StateResult<SerializedMachine<C, E>> {
+    fn serialize_machine(
+        &self,
+        _machine: &Machine<C, E>,
+        state: &MachineStateImpl<C>,
+    ) -> StateResult<SerializedMachine<C, E>> {
         let timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_secs();
-        
+
         let metadata = MachineMetadata::new("machine")
             .with_custom_data("machine_type", "state_machine")
             .with_custom_data("context_type", std::any::type_name::<C>())
             .with_custom_data("event_type", std::any::type_name::<E>());
-        
+
         #[allow(unused_variables)]
         let serialized = SerializedMachine {
             version: "1.0".to_string(),
@@ -408,78 +417,82 @@ where
             checksum: String::new(), // Will be calculated below
             _phantom: PhantomData::<E>,
         };
-        
+
         // Calculate checksum
         #[cfg(feature = "serde_json")]
         {
             let data = serde_json::to_string(&serialized)?;
             let checksum = self.calculate_checksum(&data);
-            
+
             Ok(SerializedMachine {
                 checksum,
                 _phantom: PhantomData::<(C, E)>,
                 ..serialized
             })
         }
-        
+
         #[cfg(not(feature = "serde_json"))]
         {
-            Err(StateError::new("Checksum calculation requires serde_json feature"))
+            Err(StateError::new(
+                "Checksum calculation requires serde_json feature",
+            ))
         }
     }
-    
+
     /// Calculate checksum for data integrity
     #[allow(dead_code)]
     fn calculate_checksum(&self, data: &str) -> String {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};
-        
+
         let mut hasher = DefaultHasher::new();
         data.hash(&mut hasher);
         format!("{:x}", hasher.finish())
     }
-    
+
     /// Validate checksum
     #[allow(dead_code)]
     fn validate_checksum(&self, serialized: &SerializedMachine<C, E>) -> StateResult<()> {
         let mut temp_serialized = serialized.clone();
         temp_serialized.checksum = String::new();
-        
+
         #[cfg(feature = "serde_json")]
         {
             let data = serde_json::to_string(&temp_serialized)?;
             let expected_checksum = self.calculate_checksum(&data);
-            
+
             if serialized.checksum != expected_checksum {
                 return Err(StateError::new("Checksum validation failed"));
             }
-            
+
             Ok(())
         }
-        
+
         #[cfg(not(feature = "serde_json"))]
-        Err(StateError::new("Checksum validation requires serde_json feature"))
+        Err(StateError::new(
+            "Checksum validation requires serde_json feature",
+        ))
     }
-    
+
     /// Compress data
     fn compress_data(&self, data: &str) -> StateResult<String> {
         // Simple compression - in a real implementation, you'd use a proper compression library
         Ok(data.to_string())
     }
-    
+
     /// Decompress data
     fn decompress_data(&self, data: &str) -> StateResult<String> {
         // Simple decompression - in a real implementation, you'd use a proper compression library
         Ok(data.to_string())
     }
-    
+
     /// Encrypt data
     #[allow(dead_code)]
     fn encrypt_data(&self, data: &str) -> StateResult<String> {
         // Simple encryption - in a real implementation, you'd use a proper encryption library
         Ok(data.to_string())
     }
-    
+
     /// Decrypt data
     fn decrypt_data(&self, data: &str) -> StateResult<String> {
         // Simple decryption - in a real implementation, you'd use a proper decryption library
@@ -498,13 +511,13 @@ pub struct BackupEntry {
 pub trait MachineStorage: Send + Sync {
     /// Save data with the given key
     fn save(&self, key: &str, data: &str) -> StateResult<()>;
-    
+
     /// Load data with the given key
     fn load(&self, key: &str) -> StateResult<String>;
-    
+
     /// Delete data with the given key
     fn delete(&self, key: &str) -> StateResult<()>;
-    
+
     /// Check if data exists for the given key
     fn exists(&self, key: &str) -> bool;
 }
@@ -524,17 +537,17 @@ impl MachineStorage for LocalStorage {
         tracing::warn!("LocalStorage not yet implemented - web-sys features need configuration");
         Ok(())
     }
-    
+
     fn load(&self, _key: &str) -> StateResult<String> {
         // TODO: Implement localStorage when web-sys features are properly configured
         Err(StateError::new("LocalStorage not yet implemented"))
     }
-    
+
     fn delete(&self, _key: &str) -> StateResult<()> {
         // TODO: Implement localStorage when web-sys features are properly configured
         Ok(())
     }
-    
+
     fn exists(&self, _key: &str) -> bool {
         // TODO: Implement localStorage when web-sys features are properly configured
         false
@@ -563,17 +576,18 @@ impl MachineStorage for MemoryStorage {
             Err(StateError::new("Failed to acquire storage lock"))
         }
     }
-    
+
     fn load(&self, key: &str) -> StateResult<String> {
         if let Ok(storage) = self.data.lock() {
-            storage.get(key)
+            storage
+                .get(key)
                 .cloned()
                 .ok_or_else(|| StateError::new("Data not found"))
         } else {
             Err(StateError::new("Failed to acquire storage lock"))
         }
     }
-    
+
     fn delete(&self, key: &str) -> StateResult<()> {
         if let Ok(mut storage) = self.data.lock() {
             storage.remove(key);
@@ -582,7 +596,7 @@ impl MachineStorage for MemoryStorage {
             Err(StateError::new("Failed to acquire storage lock"))
         }
     }
-    
+
     fn exists(&self, key: &str) -> bool {
         if let Ok(storage) = self.data.lock() {
             storage.contains_key(key)
@@ -623,14 +637,14 @@ where
     pub fn new(machine: Machine<C, E>, config: PersistenceConfig) -> Self {
         let persistence = MachinePersistence::new(config);
         let current_state = None;
-        
+
         Self {
             machine,
             persistence,
             current_state,
         }
     }
-    
+
     /// Initialize the machine, optionally restoring from persistence
     pub fn initialize(mut self) -> StateResult<Self> {
         if self.persistence.config.auto_restore {
@@ -647,53 +661,57 @@ where
         } else {
             self.current_state = Some(self.machine.initial_state());
         }
-        
+
         Ok(self)
     }
-    
+
     /// Get the current state
     pub fn current_state(&self) -> Option<&MachineStateImpl<C>> {
         self.current_state.as_ref()
     }
-    
+
     /// Transition the machine and persist if enabled
     pub fn transition(&mut self, event: E) -> StateResult<MachineStateImpl<C>> {
-        let current = self.current_state.as_ref()
+        let current = self
+            .current_state
+            .as_ref()
             .ok_or_else(|| StateError::new("Machine not initialized"))?;
-        
+
         let new_state = Machine::transition(&self.machine, current, event);
-        
+
         // Auto-save if enabled
         if self.persistence.should_auto_save() {
             if let Err(e) = self.persistence.save(&self.machine, &new_state) {
                 tracing::warn!("Failed to auto-save machine state: {:?}", e);
             }
         }
-        
+
         self.current_state = Some(new_state.clone());
         Ok(new_state)
     }
-    
+
     /// Manually save the current state
     pub fn save(&self) -> StateResult<()> {
-        let current = self.current_state.as_ref()
+        let current = self
+            .current_state
+            .as_ref()
             .ok_or_else(|| StateError::new("Machine not initialized"))?;
-        
+
         self.persistence.save(&self.machine, current)
     }
-    
+
     /// Manually restore from persistence
     pub fn restore(&mut self) -> StateResult<()> {
         let state = self.persistence.load(&self.machine)?;
         self.current_state = Some(state);
         Ok(())
     }
-    
+
     /// Clear all persisted data
     pub fn clear_persistence(&self) -> StateResult<()> {
         self.persistence.clear()
     }
-    
+
     /// Get persistence information
     pub fn persistence_info(&self) -> PersistenceInfo {
         PersistenceInfo {
@@ -758,14 +776,14 @@ mod tests {
     #[test]
     fn test_memory_storage() {
         let storage = MemoryStorage::new();
-        
+
         // Test save and load
         storage.save("test_key", "test_data").unwrap();
         assert!(storage.exists("test_key"));
-        
+
         let data = storage.load("test_key").unwrap();
         assert_eq!(data, "test_data");
-        
+
         // Test delete
         storage.delete("test_key").unwrap();
         assert!(!storage.exists("test_key"));
@@ -778,12 +796,12 @@ mod tests {
             let machine = MachineBuilder::<TestContext, TestEvent>::new()
                 .initial("idle")
                 .state("idle")
-                    .on(TestEvent::Increment, "counting")
-                    .on(TestEvent::SetName("test".to_string()), "idle")
+                .on(TestEvent::Increment, "counting")
+                .on(TestEvent::SetName("test".to_string()), "idle")
                 .state("counting")
-                    .on(TestEvent::Decrement, "idle")
+                .on(TestEvent::Decrement, "idle")
                 .build();
-            
+
             let config = PersistenceConfig {
                 enabled: true,
                 storage_key: "test_machine".to_string(),
@@ -791,41 +809,50 @@ mod tests {
                 auto_restore: false,
                 ..Default::default()
             };
-            
-            let mut persistent_machine = machine.with_persistence(config.clone())
+
+            let mut persistent_machine = machine
+                .with_persistence(config.clone())
                 .initialize()
                 .unwrap();
-            
+
             // Test initial state
             let initial_state = persistent_machine.current_state().unwrap();
-            assert_eq!(*initial_state.value(), StateValue::Simple("idle".to_string()));
-            
+            assert_eq!(
+                *initial_state.value(),
+                StateValue::Simple("idle".to_string())
+            );
+
             // Test transition
             let new_state = persistent_machine.transition(TestEvent::Increment).unwrap();
-            assert_eq!(*new_state.value(), StateValue::Simple("counting".to_string()));
-            
+            assert_eq!(
+                *new_state.value(),
+                StateValue::Simple("counting".to_string())
+            );
+
             // Test manual save and restore
             persistent_machine.save().unwrap();
-            
+
             // Create a new machine and restore
             let new_machine = MachineBuilder::<TestContext, TestEvent>::new()
                 .initial("idle")
                 .state("idle")
-                    .on(TestEvent::Increment, "counting")
-                    .on(TestEvent::SetName("test".to_string()), "idle")
+                .on(TestEvent::Increment, "counting")
+                .on(TestEvent::SetName("test".to_string()), "idle")
                 .state("counting")
-                    .on(TestEvent::Decrement, "idle")
+                .on(TestEvent::Decrement, "idle")
                 .build();
-            
-            let mut new_persistent_machine = new_machine.with_persistence(config)
-                .initialize()
-                .unwrap();
-            
+
+            let mut new_persistent_machine =
+                new_machine.with_persistence(config).initialize().unwrap();
+
             new_persistent_machine.restore().unwrap();
             let restored_state = new_persistent_machine.current_state().unwrap();
-            assert_eq!(*restored_state.value(), StateValue::Simple("counting".to_string()));
+            assert_eq!(
+                *restored_state.value(),
+                StateValue::Simple("counting".to_string())
+            );
         }
-        
+
         #[cfg(not(feature = "serde_json"))]
         {
             // Skip test when serde_json feature is not enabled
@@ -841,22 +868,19 @@ mod tests {
                 count: 42,
                 name: "test".to_string(),
             };
-            
-            let state = MachineStateImpl::new(
-                StateValue::Simple("idle".to_string()),
-                context,
-            );
-            
+
+            let state = MachineStateImpl::new(StateValue::Simple("idle".to_string()), context);
+
             let machine = MachineBuilder::<TestContext, TestEvent>::new()
                 .initial("idle")
                 .state("idle")
                 .build();
-            
+
             let persistence = MachinePersistence::new(PersistenceConfig {
                 enabled: true,
                 ..Default::default()
             });
-            
+
             // Test serialization
             let serialized = persistence.serialize_machine(&machine, &state).unwrap();
             assert_eq!(serialized.version, "1.0");
@@ -864,7 +888,7 @@ mod tests {
             assert_eq!(serialized.context.name, "test");
             assert!(!serialized.checksum.is_empty());
         }
-        
+
         #[cfg(not(feature = "serde_json"))]
         {
             // Skip test when serde_json feature is not enabled

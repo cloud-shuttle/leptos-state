@@ -1,24 +1,24 @@
 //! Advanced action system for state machine effects
-//! 
+//!
 //! This module provides a comprehensive action system that allows side effects
 //! during state transitions, including context updates, logging, async operations,
 //! and complex action compositions.
 
 use std::collections::HashMap;
+use std::fmt;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use std::fmt;
 
 /// Action trait for side effects during transitions
 pub trait Action<C, E> {
     /// Execute the action, potentially modifying the context
     fn execute(&self, context: &mut C, event: &E);
-    
+
     /// Get a description of what this action does
     fn description(&self) -> &str {
         "Unknown action"
     }
-    
+
     /// Check if this action can be executed (optional validation)
     fn can_execute(&self, _context: &C, _event: &E) -> bool {
         true
@@ -43,7 +43,7 @@ where
             _phantom: std::marker::PhantomData,
         }
     }
-    
+
     pub fn with_description(mut self, description: impl Into<String>) -> Self {
         self.description = description.into();
         self
@@ -57,7 +57,7 @@ where
     fn execute(&self, context: &mut C, event: &E) {
         (self.func)(context, event);
     }
-    
+
     fn description(&self) -> &str {
         &self.description
     }
@@ -81,7 +81,7 @@ where
             _phantom: std::marker::PhantomData,
         }
     }
-    
+
     pub fn with_description(mut self, description: impl Into<String>) -> Self {
         self.description = description.into();
         self
@@ -96,7 +96,7 @@ where
     fn execute(&self, context: &mut C, event: &E) {
         (self.field_updater)(context, event, T::default());
     }
-    
+
     fn description(&self) -> &str {
         &self.description
     }
@@ -123,26 +123,26 @@ impl LogAction {
             level: LogLevel::Info,
         }
     }
-    
+
     pub fn with_level(mut self, level: LogLevel) -> Self {
         self.level = level;
         self
     }
-    
+
     pub fn debug(message: impl Into<String>) -> Self {
         Self {
             message: message.into(),
             level: LogLevel::Debug,
         }
     }
-    
+
     pub fn warn(message: impl Into<String>) -> Self {
         Self {
             message: message.into(),
             level: LogLevel::Warn,
         }
     }
-    
+
     pub fn error(message: impl Into<String>) -> Self {
         Self {
             message: message.into(),
@@ -192,7 +192,7 @@ where
             }
         }
     }
-    
+
     fn description(&self) -> &str {
         &self.message
     }
@@ -214,7 +214,7 @@ where
             description: "Pure action".to_string(),
         }
     }
-    
+
     pub fn with_description(mut self, description: impl Into<String>) -> Self {
         self.description = description.into();
         self
@@ -228,7 +228,7 @@ where
     fn execute(&self, _context: &mut C, _event: &E) {
         (self.func)();
     }
-    
+
     fn description(&self) -> &str {
         &self.description
     }
@@ -252,7 +252,7 @@ where
             description: "Conditional action".to_string(),
         }
     }
-    
+
     pub fn with_description(mut self, description: impl Into<String>) -> Self {
         self.description = description.into();
         self
@@ -268,11 +268,11 @@ where
             self.action.execute(context, event);
         }
     }
-    
+
     fn can_execute(&self, context: &C, event: &E) -> bool {
         (self.condition)(context, event)
     }
-    
+
     fn description(&self) -> &str {
         &self.description
     }
@@ -291,12 +291,12 @@ impl<C, E> SequentialAction<C, E> {
             description: "Sequential action".to_string(),
         }
     }
-    
+
     pub fn add_action(mut self, action: Box<dyn Action<C, E>>) -> Self {
         self.actions.push(action);
         self
     }
-    
+
     pub fn with_description(mut self, description: impl Into<String>) -> Self {
         self.description = description.into();
         self
@@ -309,7 +309,7 @@ impl<C, E> Action<C, E> for SequentialAction<C, E> {
             action.execute(context, event);
         }
     }
-    
+
     fn description(&self) -> &str {
         &self.description
     }
@@ -328,12 +328,12 @@ impl<C, E> ParallelAction<C, E> {
             description: "Parallel action".to_string(),
         }
     }
-    
+
     pub fn add_action(mut self, action: Box<dyn Action<C, E>>) -> Self {
         self.actions.push(action);
         self
     }
-    
+
     pub fn with_description(mut self, description: impl Into<String>) -> Self {
         self.description = description.into();
         self
@@ -348,7 +348,7 @@ impl<C, E> Action<C, E> for ParallelAction<C, E> {
             action.execute(context, event);
         }
     }
-    
+
     fn description(&self) -> &str {
         &self.description
     }
@@ -371,12 +371,12 @@ impl<C, E> RetryAction<C, E> {
             description: "Retry action".to_string(),
         }
     }
-    
+
     pub fn with_backoff(mut self, duration: Duration) -> Self {
         self.backoff_duration = duration;
         self
     }
-    
+
     pub fn with_description(mut self, description: impl Into<String>) -> Self {
         self.description = description.into();
         self
@@ -390,13 +390,13 @@ impl<C, E> Action<C, E> for RetryAction<C, E> {
                 self.action.execute(context, event);
                 return;
             }
-            
+
             if attempt < self.max_attempts {
                 std::thread::sleep(self.backoff_duration);
             }
         }
     }
-    
+
     fn description(&self) -> &str {
         &self.description
     }
@@ -415,7 +415,7 @@ impl<C, E> TimerAction<C, E> {
             description: "Timer action".to_string(),
         }
     }
-    
+
     pub fn with_description(mut self, description: impl Into<String>) -> Self {
         self.description = description.into();
         self
@@ -427,14 +427,14 @@ impl<C, E> Action<C, E> for TimerAction<C, E> {
         let start = Instant::now();
         self.action.execute(context, event);
         let duration = start.elapsed();
-        
+
         tracing::debug!(
             "Action '{}' executed in {:?}",
             self.action.description(),
             duration
         );
     }
-    
+
     fn description(&self) -> &str {
         &self.description
     }
@@ -455,7 +455,7 @@ impl<C, E> MetricsAction<C, E> {
             metric_name: metric_name.into(),
         }
     }
-    
+
     pub fn get_metrics(&self) -> HashMap<String, usize> {
         self.metrics.lock().unwrap().clone()
     }
@@ -464,12 +464,12 @@ impl<C, E> MetricsAction<C, E> {
 impl<C, E> Action<C, E> for MetricsAction<C, E> {
     fn execute(&self, context: &mut C, event: &E) {
         self.action.execute(context, event);
-        
+
         if let Ok(mut metrics) = self.metrics.lock() {
             *metrics.entry(self.metric_name.clone()).or_insert(0) += 1;
         }
     }
-    
+
     fn description(&self) -> &str {
         self.action.description()
     }
@@ -484,9 +484,9 @@ pub struct CompositeAction<C, E> {
 
 #[derive(Debug, Clone, Copy)]
 pub enum CompositeLogic {
-    All,        // Execute all actions
-    First,      // Execute first successful action
-    Any,        // Execute any action that can execute
+    All,                // Execute all actions
+    First,              // Execute first successful action
+    Any,                // Execute any action that can execute
     Conditional(usize), // Execute if at least N actions can execute
 }
 
@@ -498,12 +498,12 @@ impl<C, E> CompositeAction<C, E> {
             description: "Composite action".to_string(),
         }
     }
-    
+
     pub fn add_action(mut self, action: Box<dyn Action<C, E>>) -> Self {
         self.actions.push(action);
         self
     }
-    
+
     pub fn with_description(mut self, description: impl Into<String>) -> Self {
         self.description = description.into();
         self
@@ -534,10 +534,12 @@ impl<C, E> Action<C, E> for CompositeAction<C, E> {
                 }
             }
             CompositeLogic::Conditional(n) => {
-                let executable_count = self.actions.iter()
+                let executable_count = self
+                    .actions
+                    .iter()
                     .filter(|action| action.can_execute(context, event))
                     .count();
-                
+
                 if executable_count >= n {
                     for action in &self.actions {
                         if action.can_execute(context, event) {
@@ -548,7 +550,7 @@ impl<C, E> Action<C, E> for CompositeAction<C, E> {
             }
         }
     }
-    
+
     fn description(&self) -> &str {
         &self.description
     }
@@ -559,27 +561,32 @@ pub struct ActionBuilder<C, E> {
     _phantom: std::marker::PhantomData<(C, E)>,
 }
 
-impl<C: 'static + std::fmt::Debug + Clone, E: 'static + std::fmt::Debug + Clone> ActionBuilder<C, E> {
+impl<C: 'static + std::fmt::Debug + Clone, E: 'static + std::fmt::Debug + Clone>
+    ActionBuilder<C, E>
+{
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
-    
+
     pub fn function<F>(func: F) -> Box<dyn Action<C, E>>
     where
         F: Fn(&mut C, &E) + 'static,
     {
         Box::new(FunctionAction::new(func))
     }
-    
-    pub fn function_with_description<F>(func: F, description: impl Into<String>) -> Box<dyn Action<C, E>>
+
+    pub fn function_with_description<F>(
+        func: F,
+        description: impl Into<String>,
+    ) -> Box<dyn Action<C, E>>
     where
         F: Fn(&mut C, &E) + 'static,
     {
         Box::new(FunctionAction::new(func).with_description(description))
     }
-    
+
     pub fn assign<T, F>(field_updater: F) -> Box<dyn Action<C, E>>
     where
         F: Fn(&mut C, &E, T) + 'static,
@@ -587,63 +594,68 @@ impl<C: 'static + std::fmt::Debug + Clone, E: 'static + std::fmt::Debug + Clone>
     {
         Box::new(AssignAction::new(field_updater))
     }
-    
+
     pub fn log(message: impl Into<String>) -> Box<dyn Action<C, E>> {
         Box::new(LogAction::new(message))
     }
-    
+
     pub fn log_debug(message: impl Into<String>) -> Box<dyn Action<C, E>> {
         Box::new(LogAction::debug(message))
     }
-    
+
     pub fn log_warn(message: impl Into<String>) -> Box<dyn Action<C, E>> {
         Box::new(LogAction::warn(message))
     }
-    
+
     pub fn log_error(message: impl Into<String>) -> Box<dyn Action<C, E>> {
         Box::new(LogAction::error(message))
     }
-    
+
     pub fn pure<F>(func: F) -> Box<dyn Action<C, E>>
     where
         F: Fn() + 'static,
     {
         Box::new(PureAction::new(func))
     }
-    
+
     pub fn conditional<F>(condition: F, action: Box<dyn Action<C, E>>) -> Box<dyn Action<C, E>>
     where
         F: Fn(&C, &E) -> bool + 'static,
     {
         Box::new(ConditionalAction::new(condition, action))
     }
-    
+
     pub fn sequential(actions: Vec<Box<dyn Action<C, E>>>) -> Box<dyn Action<C, E>> {
         Box::new(SequentialAction::new(actions))
     }
-    
+
     pub fn parallel(actions: Vec<Box<dyn Action<C, E>>>) -> Box<dyn Action<C, E>> {
         Box::new(ParallelAction::new(actions))
     }
-    
+
     pub fn retry(action: Box<dyn Action<C, E>>, max_attempts: usize) -> Box<dyn Action<C, E>> {
         Box::new(RetryAction::new(action, max_attempts))
     }
-    
+
     pub fn timer(action: Box<dyn Action<C, E>>) -> Box<dyn Action<C, E>> {
         Box::new(TimerAction::new(action))
     }
-    
-    pub fn metrics(action: Box<dyn Action<C, E>>, metric_name: impl Into<String>) -> Box<dyn Action<C, E>> {
+
+    pub fn metrics(
+        action: Box<dyn Action<C, E>>,
+        metric_name: impl Into<String>,
+    ) -> Box<dyn Action<C, E>> {
         Box::new(MetricsAction::new(action, metric_name))
     }
-    
+
     pub fn composite(logic: CompositeLogic) -> CompositeAction<C, E> {
         CompositeAction::new(logic)
     }
 }
 
-impl<C: 'static + std::fmt::Debug + Clone, E: 'static + std::fmt::Debug + Clone> Default for ActionBuilder<C, E> {
+impl<C: 'static + std::fmt::Debug + Clone, E: 'static + std::fmt::Debug + Clone> Default
+    for ActionBuilder<C, E>
+{
     fn default() -> Self {
         Self::new()
     }
@@ -667,18 +679,18 @@ impl ActionExecution {
             errors: Vec::new(),
         }
     }
-    
+
     pub fn add_action(&mut self, description: String, executed: bool) {
         self.action_descriptions.push(description);
         if !executed {
             self.executed = false;
         }
     }
-    
+
     pub fn set_execution_time(&mut self, duration: Duration) {
         self.execution_time = Some(duration);
     }
-    
+
     pub fn add_error(&mut self, error: String) {
         self.errors.push(error);
         self.executed = false;
@@ -694,16 +706,16 @@ impl<C, E> ActionExecutor<C, E> for Vec<Box<dyn Action<C, E>>> {
     fn execute_actions(&self, context: &mut C, event: &E) -> ActionExecution {
         let mut execution = ActionExecution::new();
         let start = Instant::now();
-        
+
         for action in self {
             let can_execute = action.can_execute(context, event);
             execution.add_action(action.description().to_string(), can_execute);
-            
+
             if can_execute {
                 action.execute(context, event);
             }
         }
-        
+
         execution.set_execution_time(start.elapsed());
         execution
     }
@@ -732,11 +744,16 @@ mod tests {
     fn function_action_works() {
         let action = FunctionAction::new(|ctx: &mut TestContext, _| {
             ctx.count += 1;
-        }).with_description("Increment count");
-        
-        let mut context = TestContext { count: 0, flag: false, name: "test".to_string() };
+        })
+        .with_description("Increment count");
+
+        let mut context = TestContext {
+            count: 0,
+            flag: false,
+            name: "test".to_string(),
+        };
         let event = TestEvent::Increment;
-        
+
         action.execute(&mut context, &event);
         assert_eq!(context.count, 1);
         assert_eq!(action.description(), "Increment count");
@@ -745,9 +762,13 @@ mod tests {
     #[test]
     fn log_action_works() {
         let action = LogAction::new("Test log message");
-        let mut context = TestContext { count: 0, flag: false, name: "test".to_string() };
+        let mut context = TestContext {
+            count: 0,
+            flag: false,
+            name: "test".to_string(),
+        };
         let event = TestEvent::Increment;
-        
+
         // Should not panic
         action.execute(&mut context, &event);
     }
@@ -757,19 +778,21 @@ mod tests {
         let inner_action = FunctionAction::new(|ctx: &mut TestContext, _| {
             ctx.flag = true;
         });
-        
-        let action = ConditionalAction::new(
-            |ctx: &TestContext, _| ctx.count > 0,
-            Box::new(inner_action)
-        );
-        
-        let mut context = TestContext { count: 0, flag: false, name: "test".to_string() };
+
+        let action =
+            ConditionalAction::new(|ctx: &TestContext, _| ctx.count > 0, Box::new(inner_action));
+
+        let mut context = TestContext {
+            count: 0,
+            flag: false,
+            name: "test".to_string(),
+        };
         let event = TestEvent::Increment;
-        
+
         // Should not execute when count is 0
         action.execute(&mut context, &event);
         assert_eq!(context.flag, false);
-        
+
         // Should execute when count is > 0
         context.count = 5;
         action.execute(&mut context, &event);
@@ -781,19 +804,20 @@ mod tests {
         let action1 = FunctionAction::new(|ctx: &mut TestContext, _| {
             ctx.count += 1;
         });
-        
+
         let action2 = FunctionAction::new(|ctx: &mut TestContext, _| {
             ctx.flag = true;
         });
-        
-        let sequential = SequentialAction::new(vec![
-            Box::new(action1),
-            Box::new(action2),
-        ]);
-        
-        let mut context = TestContext { count: 0, flag: false, name: "test".to_string() };
+
+        let sequential = SequentialAction::new(vec![Box::new(action1), Box::new(action2)]);
+
+        let mut context = TestContext {
+            count: 0,
+            flag: false,
+            name: "test".to_string(),
+        };
         let event = TestEvent::Increment;
-        
+
         sequential.execute(&mut context, &event);
         assert_eq!(context.count, 1);
         assert_eq!(context.flag, true);
@@ -804,11 +828,15 @@ mod tests {
         let inner_action = FunctionAction::new(|ctx: &mut TestContext, _| {
             ctx.count += 1;
         });
-        
+
         let timer_action = TimerAction::new(Box::new(inner_action));
-        let mut context = TestContext { count: 0, flag: false, name: "test".to_string() };
+        let mut context = TestContext {
+            count: 0,
+            flag: false,
+            name: "test".to_string(),
+        };
         let event = TestEvent::Increment;
-        
+
         timer_action.execute(&mut context, &event);
         assert_eq!(context.count, 1);
     }
@@ -818,14 +846,18 @@ mod tests {
         let inner_action = FunctionAction::new(|ctx: &mut TestContext, _| {
             ctx.count += 1;
         });
-        
+
         let metrics_action = MetricsAction::new(Box::new(inner_action), "test_metric");
-        let mut context = TestContext { count: 0, flag: false, name: "test".to_string() };
+        let mut context = TestContext {
+            count: 0,
+            flag: false,
+            name: "test".to_string(),
+        };
         let event = TestEvent::Increment;
-        
+
         metrics_action.execute(&mut context, &event);
         assert_eq!(context.count, 1);
-        
+
         let metrics = metrics_action.get_metrics();
         assert_eq!(metrics.get("test_metric"), Some(&1));
     }
@@ -835,18 +867,22 @@ mod tests {
         let action1 = FunctionAction::new(|ctx: &mut TestContext, _| {
             ctx.count += 1;
         });
-        
+
         let action2 = FunctionAction::new(|ctx: &mut TestContext, _| {
             ctx.flag = true;
         });
-        
+
         let composite = CompositeAction::new(CompositeLogic::All)
             .add_action(Box::new(action1))
             .add_action(Box::new(action2));
-        
-        let mut context = TestContext { count: 0, flag: false, name: "test".to_string() };
+
+        let mut context = TestContext {
+            count: 0,
+            flag: false,
+            name: "test".to_string(),
+        };
         let event = TestEvent::Increment;
-        
+
         composite.execute(&mut context, &event);
         assert_eq!(context.count, 1);
         assert_eq!(context.flag, true);
@@ -857,26 +893,37 @@ mod tests {
         let _function = ActionBuilder::<TestContext, TestEvent>::function(|ctx, _| {
             ctx.count += 1;
         });
-        
+
         let _log: Box<dyn Action<TestContext, TestEvent>> = ActionBuilder::log("Test message");
-        let _pure: Box<dyn Action<TestContext, TestEvent>> = ActionBuilder::pure(|| println!("Pure action"));
-        let _timer = ActionBuilder::timer(Box::new(FunctionAction::new(|ctx: &mut TestContext, _: &TestEvent| {
-            ctx.count += 1;
-        })));
+        let _pure: Box<dyn Action<TestContext, TestEvent>> =
+            ActionBuilder::pure(|| println!("Pure action"));
+        let _timer = ActionBuilder::timer(Box::new(FunctionAction::new(
+            |ctx: &mut TestContext, _: &TestEvent| {
+                ctx.count += 1;
+            },
+        )));
     }
 
     #[test]
     fn action_execution_works() {
         let actions: Vec<Box<dyn Action<TestContext, TestEvent>>> = vec![
-            Box::new(FunctionAction::new(|ctx: &mut TestContext, _: &TestEvent| ctx.count += 1)),
-            Box::new(FunctionAction::new(|ctx: &mut TestContext, _| ctx.flag = true)),
+            Box::new(FunctionAction::new(
+                |ctx: &mut TestContext, _: &TestEvent| ctx.count += 1,
+            )),
+            Box::new(FunctionAction::new(|ctx: &mut TestContext, _| {
+                ctx.flag = true
+            })),
         ];
-        
-        let mut context = TestContext { count: 0, flag: false, name: "test".to_string() };
+
+        let mut context = TestContext {
+            count: 0,
+            flag: false,
+            name: "test".to_string(),
+        };
         let event = TestEvent::Increment;
-        
+
         let execution = actions.execute_actions(&mut context, &event);
-        
+
         assert!(execution.executed);
         assert_eq!(context.count, 1);
         assert_eq!(context.flag, true);

@@ -7,26 +7,34 @@
 
 // Re-export the most commonly used Leptos functions directly
 pub use leptos::prelude::{
+    memo,
+    // View and mounting
+    mount_to_body,
+    // Context
+    provide_context,
     // Signals
-    signal, memo, Effect,
-    
+    signal,
+    use_context,
+
+    view,
     // Callbacks
     Callback,
-    
-    // Context
-    provide_context, use_context,
-    
-    // View and mounting
-    mount_to_body, view, View,
-    
+
+    Effect,
+
+    Memo,
     // Types
-    ReadSignal, WriteSignal, RwSignal, Memo,
+    ReadSignal,
+    RwSignal,
+    View,
+
+    WriteSignal,
 };
 
 // Re-export our own types
 pub use super::{
-    machine::{Machine, MachineBuilder, MachineState, Transition, Event, Action, Guard},
-    store::{Store, StoreSlice, StoreContext, use_store_slice},
     hooks::{use_machine, use_store as use_store_hook},
-    utils::types::{StateResult, StateError},
+    machine::{Action, Event, Guard, Machine, MachineBuilder, MachineState, Transition},
+    store::{use_store_slice, Store, StoreContext, StoreSlice},
+    utils::types::{StateError, StateResult},
 };

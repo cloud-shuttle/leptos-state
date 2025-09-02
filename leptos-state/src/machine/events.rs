@@ -42,7 +42,7 @@ impl<T> DataEvent<T> {
             data: None,
         }
     }
-    
+
     pub fn with_data(event_type: impl Into<String>, data: T) -> Self {
         Self {
             event_type: event_type.into(),
@@ -176,7 +176,9 @@ pub struct SpawnAction<F> {
 
 impl<F> SpawnAction<F> {
     pub fn new(future_factory: F) -> Self {
-        Self { _future_factory: future_factory }
+        Self {
+            _future_factory: future_factory,
+        }
     }
 }
 
@@ -228,7 +230,7 @@ mod tests {
         let event: DataEvent<String> = DataEvent::new("test");
         assert_eq!(event.event_type(), "test");
         assert!(event.data.is_none());
-        
+
         let event_with_data = DataEvent::with_data("test", 42);
         assert_eq!(event_with_data.event_type(), "test");
         assert_eq!(event_with_data.data, Some(42));
@@ -239,12 +241,12 @@ mod tests {
         let action = FunctionAction::new(|ctx: &mut TestContext, _event: &TestEvent| {
             ctx.count += 1;
         });
-        
+
         let mut context = TestContext {
             count: 0,
             message: "test".to_string(),
         };
-        
+
         action.execute(&mut context, &TestEvent::Increment);
         assert_eq!(context.count, 1);
     }
@@ -256,7 +258,7 @@ mod tests {
             count: 0,
             message: "test".to_string(),
         };
-        
+
         // This should not panic
         action.execute(&mut context, &TestEvent::Increment);
     }
@@ -267,12 +269,12 @@ mod tests {
         let action = PureAction::new(|| {
             *called.borrow_mut() = true;
         });
-        
+
         let mut context = TestContext {
             count: 0,
             message: "test".to_string(),
         };
-        
+
         action.execute(&mut context, &TestEvent::Increment);
         assert!(*called.borrow());
     }

@@ -1,17 +1,17 @@
 //! State Machine Visualization & DevTools
-//! 
+//!
 //! This module provides comprehensive visualization and debugging capabilities
 //! for state machines, including visual state diagrams, real-time monitoring,
 //! and advanced debugging tools.
 
 use super::*;
-use crate::utils::types::{StateResult, StateError};
 use crate::machine::states::StateValue;
+use crate::utils::types::{StateError, StateResult};
 use std::collections::VecDeque;
+use std::marker::PhantomData;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
-use std::marker::PhantomData;
 
 #[cfg(feature = "serde_json")]
 use serde_json;
@@ -61,11 +61,11 @@ impl Default for VisualizationConfig {
 /// Export formats for state diagrams
 #[derive(Debug, Clone, PartialEq)]
 pub enum ExportFormat {
-    Dot,        // Graphviz DOT format
-    Mermaid,    // Mermaid diagram format
-    Json,       // JSON representation
-    Svg,        // SVG image
-    Png,        // PNG image
+    Dot,     // Graphviz DOT format
+    Mermaid, // Mermaid diagram format
+    Json,    // JSON representation
+    Svg,     // SVG image
+    Png,     // PNG image
 }
 
 /// State transition event for visualization
@@ -140,7 +140,7 @@ where
             start_time: Instant::now(),
         }
     }
-    
+
     /// Record a state transition
     pub fn record_transition(
         &self,
@@ -154,7 +154,7 @@ where
         if !self.config.enabled {
             return;
         }
-        
+
         let transition = TransitionEvent {
             event,
             from_state: from_state.value().clone(),
@@ -169,27 +169,27 @@ where
                 .as_secs(),
             duration,
         };
-        
+
         if let Ok(mut transitions) = self.transitions.lock() {
             transitions.push_back(transition);
-            
+
             // Keep only the most recent transitions
             while transitions.len() > self.config.max_history {
                 transitions.pop_front();
             }
         }
-        
+
         // Update current state
         if let Ok(mut current) = self.current_state.lock() {
             *current = Some(to_state.clone());
         }
-        
+
         // Capture snapshot if enabled
         if self.config.capture_snapshots {
             self.capture_snapshot(&to_state);
         }
     }
-    
+
     /// Capture a state snapshot
     pub fn capture_snapshot(&self, state: &MachineStateImpl<C>) {
         let snapshot = MachineSnapshot {
@@ -201,48 +201,40 @@ where
             uptime: self.start_time.elapsed(),
             _phantom: PhantomData,
         };
-        
+
         if let Ok(mut snapshots) = self.snapshots.lock() {
             snapshots.push_back(snapshot);
-            
+
             // Keep only the most recent snapshots
             while snapshots.len() > self.config.max_history {
                 snapshots.pop_front();
             }
         }
     }
-    
+
     /// Get the current state
     pub fn current_state(&self) -> Option<MachineStateImpl<C>> {
         self.current_state.lock().unwrap().clone()
     }
-    
+
     /// Get recent transitions
     pub fn recent_transitions(&self, count: usize) -> Vec<TransitionEvent<C, E>> {
         if let Ok(transitions) = self.transitions.lock() {
-            transitions.iter()
-                .rev()
-                .take(count)
-                .cloned()
-                .collect()
+            transitions.iter().rev().take(count).cloned().collect()
         } else {
             Vec::new()
         }
     }
-    
+
     /// Get recent snapshots
     pub fn recent_snapshots(&self, count: usize) -> Vec<MachineSnapshot<C, E>> {
         if let Ok(snapshots) = self.snapshots.lock() {
-            snapshots.iter()
-                .rev()
-                .take(count)
-                .cloned()
-                .collect()
+            snapshots.iter().rev().take(count).cloned().collect()
         } else {
             Vec::new()
         }
     }
-    
+
     /// Export state diagram in the specified format
     pub fn export_diagram(&self, format: ExportFormat) -> StateResult<String> {
         match format {
@@ -253,14 +245,14 @@ where
             ExportFormat::Png => self.export_png(),
         }
     }
-    
+
     /// Export as Graphviz DOT format
     fn export_dot(&self) -> StateResult<String> {
         let mut dot = String::new();
         dot.push_str("digraph StateMachine {\n");
         dot.push_str("  rankdir=LR;\n");
         dot.push_str("  node [shape=circle];\n\n");
-        
+
         // Add states
         for (state_id, _state_node) in self.machine.states_map() {
             let style = if state_id == self.machine.initial_state_id() {
@@ -270,9 +262,9 @@ where
             };
             dot.push_str(&format!("  \"{}\"{};\n", state_id, style));
         }
-        
+
         dot.push_str("\n");
-        
+
         // Add transitions
         for (state_id, state_node) in self.machine.states_map() {
             for transition in &state_node.transitions {
@@ -283,19 +275,19 @@ where
                 ));
             }
         }
-        
+
         dot.push_str("}\n");
         Ok(dot)
     }
-    
+
     /// Export as Mermaid format
     fn export_mermaid(&self) -> StateResult<String> {
         let mut mermaid = String::new();
         mermaid.push_str("stateDiagram-v2\n");
-        
+
         // Add initial state
         mermaid.push_str(&format!("  [*] --> {}\n", self.machine.initial_state_id()));
-        
+
         // Add transitions
         for (state_id, state_node) in self.machine.states_map() {
             for transition in &state_node.transitions {
@@ -306,10 +298,10 @@ where
                 ));
             }
         }
-        
+
         Ok(mermaid)
     }
-    
+
     /// Export as JSON format
     fn export_json(&self) -> StateResult<String> {
         let _diagram = StateDiagram {
@@ -319,50 +311,48 @@ where
             recent_snapshots: self.recent_snapshots(10),
             uptime: self.start_time.elapsed(),
         };
-        
+
         #[cfg(feature = "serde_json")]
         {
             serde_json::to_string_pretty(&diagram)
                 .map_err(|e| StateError::new(&format!("Failed to serialize diagram: {}", e)))
         }
-        
+
         #[cfg(not(feature = "serde_json"))]
         Err(StateError::new("JSON export requires serde_json feature"))
     }
-    
+
     /// Export as SVG format (placeholder)
     fn export_svg(&self) -> StateResult<String> {
         // In a real implementation, this would generate SVG using a graph rendering library
         Ok("<svg>State diagram would be rendered here</svg>".to_string())
     }
-    
+
     /// Export as PNG format (placeholder)
     fn export_png(&self) -> StateResult<String> {
         // In a real implementation, this would generate PNG using a graph rendering library
         Ok("PNG data would be generated here".to_string())
     }
-    
+
     /// Get visualization statistics
     pub fn get_stats(&self) -> VisualizationStats {
         let transitions = self.transitions.lock().unwrap();
         let snapshots = self.snapshots.lock().unwrap();
-        
+
         VisualizationStats {
             total_transitions: transitions.len(),
             total_snapshots: snapshots.len(),
             uptime: self.start_time.elapsed(),
             current_state: self.current_state().map(|s| s.value().clone()),
             average_transition_time: if !transitions.is_empty() {
-                let total_duration: Duration = transitions.iter()
-                    .map(|t| t.duration)
-                    .sum();
+                let total_duration: Duration = transitions.iter().map(|t| t.duration).sum();
                 total_duration / transitions.len() as u32
             } else {
                 Duration::ZERO
             },
         }
     }
-    
+
     /// Clear visualization history
     pub fn clear_history(&self) {
         if let Ok(mut transitions) = self.transitions.lock() {
@@ -424,24 +414,24 @@ where
             _phantom: PhantomData,
         }
     }
-    
+
     /// Add a snapshot
     pub fn add_snapshot(&mut self, snapshot: MachineSnapshot<C, E>) {
         // Remove any snapshots after the current index
         while self.snapshots.len() > (self.current_index + 1) as usize {
             self.snapshots.pop_back();
         }
-        
+
         self.snapshots.push_back(snapshot);
         self.current_index += 1;
-        
+
         // Keep only the most recent snapshots
         while self.snapshots.len() > self.max_snapshots {
             self.snapshots.pop_front();
             self.current_index -= 1;
         }
     }
-    
+
     /// Go to the previous snapshot
     pub fn go_back(&mut self) -> Option<&MachineSnapshot<C, E>> {
         if self.current_index > 0 {
@@ -451,7 +441,7 @@ where
             None
         }
     }
-    
+
     /// Go to the next snapshot
     pub fn go_forward(&mut self) -> Option<&MachineSnapshot<C, E>> {
         if self.current_index < (self.snapshots.len() - 1) as isize {
@@ -461,7 +451,7 @@ where
             None
         }
     }
-    
+
     /// Go to the first snapshot
     pub fn go_to_start(&mut self) -> Option<&MachineSnapshot<C, E>> {
         if !self.snapshots.is_empty() {
@@ -471,7 +461,7 @@ where
             None
         }
     }
-    
+
     /// Go to the latest snapshot
     pub fn go_to_end(&mut self) -> Option<&MachineSnapshot<C, E>> {
         if !self.snapshots.is_empty() {
@@ -481,7 +471,7 @@ where
             None
         }
     }
-    
+
     /// Get the current snapshot
     pub fn current_snapshot(&self) -> Option<&MachineSnapshot<C, E>> {
         if self.current_index >= 0 && self.current_index < self.snapshots.len() as isize {
@@ -490,12 +480,12 @@ where
             None
         }
     }
-    
+
     /// Get all snapshots
     pub fn all_snapshots(&self) -> &VecDeque<MachineSnapshot<C, E>> {
         &self.snapshots
     }
-    
+
     /// Get current position information
     pub fn position_info(&self) -> TimeTravelPosition {
         TimeTravelPosition {
@@ -535,7 +525,7 @@ where
             _config: config,
         }
     }
-    
+
     /// Get real-time state information
     pub fn get_state_info(&self) -> StateInfo<C, E> {
         StateInfo {
@@ -545,29 +535,29 @@ where
             time_travel_position: self.time_travel.lock().unwrap().position_info(),
         }
     }
-    
+
     /// Export current state diagram
     pub fn export_diagram(&self, format: ExportFormat) -> StateResult<String> {
         self.visualizer.export_diagram(format)
     }
-    
+
     /// Time travel operations
     pub fn go_back(&self) -> Option<MachineSnapshot<C, E>> {
         self.time_travel.lock().unwrap().go_back().cloned()
     }
-    
+
     pub fn go_forward(&self) -> Option<MachineSnapshot<C, E>> {
         self.time_travel.lock().unwrap().go_forward().cloned()
     }
-    
+
     pub fn go_to_start(&self) -> Option<MachineSnapshot<C, E>> {
         self.time_travel.lock().unwrap().go_to_start().cloned()
     }
-    
+
     pub fn go_to_end(&self) -> Option<MachineSnapshot<C, E>> {
         self.time_travel.lock().unwrap().go_to_end().cloned()
     }
-    
+
     /// Get current time travel snapshot
     pub fn current_snapshot(&self) -> Option<MachineSnapshot<C, E>> {
         self.time_travel.lock().unwrap().current_snapshot().cloned()
@@ -620,7 +610,7 @@ where
     pub fn new(machine: Machine<C, E>, config: VisualizationConfig) -> Self {
         let visualizer = Arc::new(MachineVisualizer::new(machine.clone(), config.clone()));
         let monitor = Arc::new(StateMonitor::new(visualizer.clone(), config.clone()));
-        
+
         Self {
             machine,
             visualizer,
@@ -629,31 +619,31 @@ where
         }
     }
     */
-    
+
     /// Get the underlying machine
     pub fn machine(&self) -> &Machine<C, E> {
         &self.machine
     }
-    
+
     /// Get the visualizer
     pub fn visualizer(&self) -> Arc<MachineVisualizer<C, E>> {
         self.visualizer.clone()
     }
-    
+
     /// Get the monitor
     pub fn monitor(&self) -> Arc<StateMonitor<C, E>> {
         self.monitor.clone()
     }
-    
+
     /// Transition with visualization
     pub fn transition(&self, current: &MachineStateImpl<C>, event: E) -> MachineStateImpl<C> {
         let start_time = Instant::now();
-        
+
         // Perform the transition
         let new_state = Machine::transition(&self.machine, current, event.clone());
-        
+
         let duration = start_time.elapsed();
-        
+
         // Record the transition for visualization
         self.visualizer.record_transition(
             event,
@@ -663,20 +653,20 @@ where
             Vec::new(), // Actions executed (would be captured in real implementation)
             duration,
         );
-        
+
         new_state
     }
-    
+
     /// Get real-time state information
     pub fn get_state_info(&self) -> StateInfo<C, E> {
         self.monitor.get_state_info()
     }
-    
+
     /// Export state diagram
     pub fn export_diagram(&self, format: ExportFormat) -> StateResult<String> {
         self.monitor.export_diagram(format)
     }
-    
+
     /// Get visualization configuration
     pub fn config(&self) -> &VisualizationConfig {
         &self.config
@@ -727,25 +717,25 @@ mod tests {
     fn test_machine_visualizer() {
         let machine = MachineBuilder::<TestContext, TestEvent>::new()
             .state("idle")
-                .on(TestEvent::Increment, "counting")
+            .on(TestEvent::Increment, "counting")
             .state("counting")
-                .on(TestEvent::Decrement, "idle")
+            .on(TestEvent::Decrement, "idle")
             .build();
-        
+
         let config = VisualizationConfig {
             enabled: true,
             max_history: 10,
             ..Default::default()
         };
-        
+
         let visualizer = MachineVisualizer::new(machine, config);
-        
+
         // Test diagram export
         let dot_diagram = visualizer.export_diagram(ExportFormat::Dot).unwrap();
         assert!(dot_diagram.contains("digraph StateMachine"));
         assert!(dot_diagram.contains("idle"));
         assert!(dot_diagram.contains("counting"));
-        
+
         let mermaid_diagram = visualizer.export_diagram(ExportFormat::Mermaid).unwrap();
         assert!(mermaid_diagram.contains("stateDiagram-v2"));
         assert!(mermaid_diagram.contains("idle"));
@@ -755,40 +745,52 @@ mod tests {
     #[test]
     fn test_time_travel_debugger() {
         let mut debugger = TimeTravelDebugger::<TestContext, TestEvent>::new(5);
-        
+
         // Add some snapshots
         let snapshot1 = MachineSnapshot {
-                    state: MachineStateImpl::new(
-            StateValue::Simple("idle".to_string()),
-            TestContext { count: 0, name: "test".to_string() },
-        ),
+            state: MachineStateImpl::new(
+                StateValue::Simple("idle".to_string()),
+                TestContext {
+                    count: 0,
+                    name: "test".to_string(),
+                },
+            ),
             timestamp: 1000,
             uptime: Duration::from_secs(1),
             _phantom: PhantomData,
         };
-        
+
         let snapshot2 = MachineSnapshot {
-                    state: MachineStateImpl::new(
-            StateValue::Simple("counting".to_string()),
-            TestContext { count: 1, name: "test".to_string() },
-        ),
+            state: MachineStateImpl::new(
+                StateValue::Simple("counting".to_string()),
+                TestContext {
+                    count: 1,
+                    name: "test".to_string(),
+                },
+            ),
             timestamp: 2000,
             uptime: Duration::from_secs(2),
             _phantom: PhantomData,
         };
-        
+
         debugger.add_snapshot(snapshot1.clone());
         debugger.add_snapshot(snapshot2.clone());
-        
+
         // Test time travel
         assert_eq!(debugger.position_info().current_index, 1);
         assert_eq!(debugger.position_info().total_snapshots, 2);
-        
+
         let back_snapshot = debugger.go_back().unwrap();
-        assert_eq!(back_snapshot.state.value(), &StateValue::Simple("idle".to_string()));
-        
+        assert_eq!(
+            back_snapshot.state.value(),
+            &StateValue::Simple("idle".to_string())
+        );
+
         let forward_snapshot = debugger.go_forward().unwrap();
-        assert_eq!(forward_snapshot.state.value(), &StateValue::Simple("counting".to_string()));
+        assert_eq!(
+            forward_snapshot.state.value(),
+            &StateValue::Simple("counting".to_string())
+        );
     }
 
     #[test]

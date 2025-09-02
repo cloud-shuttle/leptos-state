@@ -1,10 +1,10 @@
 //! State Machine Integration Patterns
-//! 
+//!
 //! This module provides integration capabilities for state machines
 //! with external systems, APIs, databases, and message queues.
 
 use super::*;
-use crate::utils::types::{StateResult, StateError};
+use crate::utils::types::{StateError, StateResult};
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
@@ -199,7 +199,11 @@ where
     }
 
     /// Register an integration adapter
-    pub fn register_adapter(&self, name: String, adapter: Box<dyn IntegrationAdapterTrait + Send + Sync>) {
+    pub fn register_adapter(
+        &self,
+        name: String,
+        adapter: Box<dyn IntegrationAdapterTrait + Send + Sync>,
+    ) {
         if let Ok(mut adapters) = self.adapters.write() {
             adapters.insert(name, adapter);
         }
@@ -246,7 +250,7 @@ where
     /// Route an event based on configuration
     fn route_event(&self, event: &IntegrationEvent) -> StateResult<String> {
         let rules = &self.config.event_routing.rules;
-        
+
         for rule in rules {
             if rule.enabled && self.matches_pattern(event, &rule.pattern) {
                 return Ok(rule.target.clone());
@@ -286,7 +290,10 @@ where
             }
         }
 
-        Err(StateError::custom(format!("No adapter found for route: {}", route)))
+        Err(StateError::custom(format!(
+            "No adapter found for route: {}",
+            route
+        )))
     }
 
     /// Get integration metrics
@@ -303,13 +310,13 @@ where
 pub trait IntegrationAdapterTrait: Send + Sync {
     /// Send an event
     fn send_event(&self, event: &IntegrationEvent) -> StateResult<()>;
-    
+
     /// Receive events
     fn receive_events(&self) -> StateResult<Vec<IntegrationEvent>>;
-    
+
     /// Get adapter name
     fn name(&self) -> &str;
-    
+
     /// Check if adapter is healthy
     fn is_healthy(&self) -> bool;
 }
@@ -385,7 +392,10 @@ impl DatabaseAdapter {
 
 impl IntegrationAdapterTrait for DatabaseAdapter {
     fn send_event(&self, event: &IntegrationEvent) -> StateResult<()> {
-        println!("Storing event {} in database table: {}", event.id, self.table_name);
+        println!(
+            "Storing event {} in database table: {}",
+            event.id, self.table_name
+        );
         Ok(())
     }
 
@@ -423,7 +433,10 @@ impl MessageQueueAdapter {
 
 impl IntegrationAdapterTrait for MessageQueueAdapter {
     fn send_event(&self, event: &IntegrationEvent) -> StateResult<()> {
-        println!("Publishing event {} to queue: {}", event.id, self.queue_name);
+        println!(
+            "Publishing event {} to queue: {}",
+            event.id, self.queue_name
+        );
         Ok(())
     }
 
@@ -565,9 +578,12 @@ mod tests {
 
     #[test]
     fn test_http_api_adapter() {
-        let adapter = HttpApiAdapter::new("test_api".to_string(), "https://api.example.com".to_string())
-            .with_header("Authorization".to_string(), "Bearer token".to_string())
-            .with_timeout(Duration::from_secs(60));
+        let adapter = HttpApiAdapter::new(
+            "test_api".to_string(),
+            "https://api.example.com".to_string(),
+        )
+        .with_header("Authorization".to_string(), "Bearer token".to_string())
+        .with_timeout(Duration::from_secs(60));
 
         assert_eq!(adapter.name(), "test_api");
         assert!(adapter.is_healthy());
@@ -640,9 +656,9 @@ mod tests {
     fn test_integration_builder() {
         let machine = MachineBuilder::<TestContext, TestEvent>::new()
             .state("idle")
-                .on(TestEvent::Increment, "counting")
+            .on(TestEvent::Increment, "counting")
             .state("counting")
-                .on(TestEvent::Decrement, "idle")
+            .on(TestEvent::Decrement, "idle")
             .build();
 
         let integration_manager = IntegrationBuilder::new(machine)

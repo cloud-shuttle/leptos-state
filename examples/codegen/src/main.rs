@@ -1,11 +1,11 @@
 //! Code Generation Example
-//! 
+//!
 //! This example demonstrates the code generation capabilities
 //! of the state machine library.
 
-use std::collections::HashMap;
-use leptos_state::machine::*;
 use leptos_state::machine::codegen::*;
+use leptos_state::machine::*;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
 struct GameContext {
@@ -47,34 +47,34 @@ fn main() {
     // Create a state machine with code generation capabilities
     let machine = MachineBuilder::<GameContext, GameEvent>::new()
         .state("idle")
-            .on_entry_fn(|ctx, _| {
-                println!("Entering idle state");
-                ctx.score = 0;
-                ctx.level = 1;
-                ctx.lives = 3;
-            })
-            .on(GameEvent::Start, "playing")
+        .on_entry_fn(|ctx, _| {
+            println!("Entering idle state");
+            ctx.score = 0;
+            ctx.level = 1;
+            ctx.lives = 3;
+        })
+        .on(GameEvent::Start, "playing")
         .state("playing")
-            .on_entry_fn(|ctx, _| {
-                println!("Starting game for player: {}", ctx.player_name);
-            })
-            .on(GameEvent::Pause, "paused")
-            .on(GameEvent::Stop, "idle")
-            .on(GameEvent::GameOver, "game_over")
-            .on_exit_fn(|ctx, _| {
-                println!("Exiting playing state with score: {}", ctx.score);
-            })
+        .on_entry_fn(|ctx, _| {
+            println!("Starting game for player: {}", ctx.player_name);
+        })
+        .on(GameEvent::Pause, "paused")
+        .on(GameEvent::Stop, "idle")
+        .on(GameEvent::GameOver, "game_over")
+        .on_exit_fn(|ctx, _| {
+            println!("Exiting playing state with score: {}", ctx.score);
+        })
         .state("paused")
-            .on_entry_fn(|ctx, _| {
-                println!("Game paused at level {}", ctx.level);
-            })
-            .on(GameEvent::Resume, "playing")
-            .on(GameEvent::Stop, "idle")
+        .on_entry_fn(|ctx, _| {
+            println!("Game paused at level {}", ctx.level);
+        })
+        .on(GameEvent::Resume, "playing")
+        .on(GameEvent::Stop, "idle")
         .state("game_over")
-            .on_entry_fn(|ctx, _| {
-                println!("Game over! Final score: {}", ctx.score);
-            })
-            .on(GameEvent::Start, "idle")
+        .on_entry_fn(|ctx, _| {
+            println!("Game over! Final score: {}", ctx.score);
+        })
+        .on(GameEvent::Start, "idle")
         .initial("idle")
         .build_codegen();
 
@@ -86,7 +86,7 @@ fn main() {
 
     // Generate code with custom configuration
     println!("\n=== Custom Code Generation ===");
-    
+
     let custom_config = CodeGenConfig {
         enabled: true,
         target_languages: vec![
@@ -107,9 +107,9 @@ fn main() {
 
     let custom_generator = MachineBuilder::<GameContext, GameEvent>::new()
         .state("idle")
-            .on(GameEvent::Start, "playing")
+        .on(GameEvent::Start, "playing")
         .state("playing")
-            .on(GameEvent::Stop, "idle")
+        .on(GameEvent::Stop, "idle")
         .initial("idle")
         .build_with_code_generation(custom_config);
 
@@ -121,15 +121,15 @@ fn main() {
 
     // Demonstrate builder pattern
     println!("\n=== Builder Pattern Example ===");
-    
+
     let builder_generator = CodeGenBuilder::new(
         MachineBuilder::<GameContext, GameEvent>::new()
             .state("idle")
-                .on(GameEvent::Start, "playing")
+            .on(GameEvent::Start, "playing")
             .state("playing")
-                .on(GameEvent::Stop, "idle")
+            .on(GameEvent::Stop, "idle")
             .initial("idle")
-            .build()
+            .build(),
     )
     .with_language(ProgrammingLanguage::Rust)
     .with_language(ProgrammingLanguage::TypeScript)
@@ -162,19 +162,17 @@ mod tests {
     fn test_basic_code_generation() {
         let machine = MachineBuilder::<GameContext, GameEvent>::new()
             .state("idle")
-                .on(GameEvent::Start, "playing")
+            .on(GameEvent::Start, "playing")
             .state("playing")
-                .on(GameEvent::Stop, "idle")
+            .on(GameEvent::Stop, "idle")
             .initial("idle")
             .build_codegen();
 
         let files = machine.generate_code().unwrap();
         assert!(!files.is_empty());
-        
+
         // Check that we have files for different languages
-        let languages: Vec<_> = files.iter()
-            .map(|f| &f.language)
-            .collect();
+        let languages: Vec<_> = files.iter().map(|f| &f.language).collect();
         assert!(languages.contains(&&ProgrammingLanguage::Rust));
         assert!(languages.contains(&&ProgrammingLanguage::TypeScript));
     }
@@ -192,23 +190,25 @@ mod tests {
 
         let generator = MachineBuilder::<GameContext, GameEvent>::new()
             .state("idle")
-                .on(GameEvent::Start, "playing")
+            .on(GameEvent::Start, "playing")
             .state("playing")
-                .on(GameEvent::Stop, "idle")
+            .on(GameEvent::Stop, "idle")
             .initial("idle")
             .build_with_code_generation(config);
 
         let files = generator.generate_code().unwrap();
         assert!(!files.is_empty());
-        
+
         // Should have Rust files
-        let rust_files: Vec<_> = files.iter()
+        let rust_files: Vec<_> = files
+            .iter()
             .filter(|f| matches!(f.language, ProgrammingLanguage::Rust))
             .collect();
         assert!(!rust_files.is_empty());
-        
+
         // Should have test files
-        let test_files: Vec<_> = files.iter()
+        let test_files: Vec<_> = files
+            .iter()
             .filter(|f| f.file_path.contains("test"))
             .collect();
         assert!(!test_files.is_empty());
@@ -219,11 +219,11 @@ mod tests {
         let generator = CodeGenBuilder::new(
             MachineBuilder::<GameContext, GameEvent>::new()
                 .state("idle")
-                    .on(GameEvent::Start, "playing")
+                .on(GameEvent::Start, "playing")
                 .state("playing")
-                    .on(GameEvent::Stop, "idle")
+                .on(GameEvent::Stop, "idle")
                 .initial("idle")
-                .build()
+                .build(),
         )
         .with_language(ProgrammingLanguage::TypeScript)
         .with_output_directory("builder_test".to_string())
@@ -257,25 +257,28 @@ mod tests {
 
         let generator = MachineBuilder::<GameContext, GameEvent>::new()
             .state("idle")
-                .on(GameEvent::Start, "playing")
+            .on(GameEvent::Start, "playing")
             .state("playing")
-                .on(GameEvent::Stop, "idle")
+            .on(GameEvent::Stop, "idle")
             .initial("idle")
             .build_with_code_generation(config);
 
         let files = generator.generate_code().unwrap();
-        
+
         // Should have files for all three languages
-        let rust_files: Vec<_> = files.iter()
+        let rust_files: Vec<_> = files
+            .iter()
             .filter(|f| matches!(f.language, ProgrammingLanguage::Rust))
             .collect();
-        let ts_files: Vec<_> = files.iter()
+        let ts_files: Vec<_> = files
+            .iter()
             .filter(|f| matches!(f.language, ProgrammingLanguage::TypeScript))
             .collect();
-        let py_files: Vec<_> = files.iter()
+        let py_files: Vec<_> = files
+            .iter()
             .filter(|f| matches!(f.language, ProgrammingLanguage::Python))
             .collect();
-        
+
         assert!(!rust_files.is_empty());
         assert!(!ts_files.is_empty());
         assert!(!py_files.is_empty());
@@ -285,19 +288,23 @@ mod tests {
     fn test_generated_content() {
         let generator = MachineBuilder::<GameContext, GameEvent>::new()
             .state("idle")
-                .on(GameEvent::Start, "playing")
+            .on(GameEvent::Start, "playing")
             .state("playing")
-                .on(GameEvent::Stop, "idle")
+            .on(GameEvent::Stop, "idle")
             .initial("idle")
             .build_codegen();
 
         let files = generator.generate_code().unwrap();
-        
+
         // Check Rust file content
-        let rust_file = files.iter()
-            .find(|f| matches!(f.language, ProgrammingLanguage::Rust) && f.file_path.contains("state_machine.rs"))
+        let rust_file = files
+            .iter()
+            .find(|f| {
+                matches!(f.language, ProgrammingLanguage::Rust)
+                    && f.file_path.contains("state_machine.rs")
+            })
             .unwrap();
-        
+
         assert!(rust_file.content.contains("pub struct StateMachine"));
         assert!(rust_file.content.contains("pub enum State"));
         assert!(rust_file.content.contains("pub enum StateEvent"));
@@ -305,12 +312,16 @@ mod tests {
         assert!(rust_file.content.contains("State::running"));
         assert!(rust_file.content.contains("StateEvent::Start"));
         assert!(rust_file.content.contains("StateEvent::Stop"));
-        
+
         // Check TypeScript file content
-        let ts_file = files.iter()
-            .find(|f| matches!(f.language, ProgrammingLanguage::TypeScript) && f.file_path.contains("StateMachine.ts"))
+        let ts_file = files
+            .iter()
+            .find(|f| {
+                matches!(f.language, ProgrammingLanguage::TypeScript)
+                    && f.file_path.contains("StateMachine.ts")
+            })
             .unwrap();
-        
+
         assert!(ts_file.content.contains("export class StateMachine"));
         assert!(ts_file.content.contains("export enum State"));
         assert!(ts_file.content.contains("export enum StateEvent"));
@@ -324,14 +335,14 @@ mod tests {
     fn test_index_generation() {
         let generator = MachineBuilder::<GameContext, GameEvent>::new()
             .state("idle")
-                .on(GameEvent::Start, "playing")
+            .on(GameEvent::Start, "playing")
             .state("playing")
-                .on(GameEvent::Stop, "idle")
+            .on(GameEvent::Stop, "idle")
             .initial("idle")
             .build_codegen();
 
         let index = generator.generate_index().unwrap();
-        
+
         assert!(index.contains("# Generated Code Index"));
         assert!(index.contains("Generated code files:"));
         assert!(index.contains("Generation Info"));

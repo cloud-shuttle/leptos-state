@@ -20,7 +20,7 @@ impl StateValue {
     pub fn simple(name: impl Into<String>) -> Self {
         Self::Simple(name.into())
     }
-    
+
     /// Create a compound state value
     pub fn compound(parent: impl Into<String>, child: StateValue) -> Self {
         Self::Compound {
@@ -28,12 +28,12 @@ impl StateValue {
             child: Box::new(child),
         }
     }
-    
+
     /// Create parallel state values
     pub fn parallel(states: Vec<StateValue>) -> Self {
         Self::Parallel(states)
     }
-    
+
     /// Check if this state matches a pattern
     pub fn matches(&self, pattern: &str) -> bool {
         match self {
@@ -42,11 +42,11 @@ impl StateValue {
                 if pattern == "*" {
                     return true;
                 }
-                
+
                 if pattern == parent {
                     return true;
                 }
-                
+
                 // Check for exact compound match (e.g., "power.on")
                 if pattern.contains('.') {
                     let parts: Vec<&str> = pattern.split('.').collect();
@@ -54,7 +54,7 @@ impl StateValue {
                         return child.matches(parts[1]);
                     }
                 }
-                
+
                 // Check child recursively
                 child.matches(pattern)
             }
@@ -62,13 +62,13 @@ impl StateValue {
                 if pattern == "*" {
                     return true;
                 }
-                
+
                 // Match if any parallel state matches
                 states.iter().any(|state| state.matches(pattern))
             }
         }
     }
-    
+
     /// Get the top-level state name
     pub fn top_level(&self) -> &str {
         match self {
@@ -83,17 +83,17 @@ impl StateValue {
             }
         }
     }
-    
+
     /// Check if this is a compound state
     pub fn is_compound(&self) -> bool {
         matches!(self, StateValue::Compound { .. })
     }
-    
+
     /// Check if this is a parallel state
     pub fn is_parallel(&self) -> bool {
         matches!(self, StateValue::Parallel(_))
     }
-    
+
     /// Get all leaf states (final nested states)
     pub fn leaf_states(&self) -> Vec<String> {
         match self {
@@ -105,12 +105,10 @@ impl StateValue {
                     .map(|leaf| format!("{}.{}", parent, leaf))
                     .collect()
             }
-            StateValue::Parallel(states) => {
-                states.iter().flat_map(|s| s.leaf_states()).collect()
-            }
+            StateValue::Parallel(states) => states.iter().flat_map(|s| s.leaf_states()).collect(),
         }
     }
-    
+
     /// Convert to a dot-notation string
     pub fn to_string(&self) -> String {
         match self {
@@ -187,7 +185,7 @@ impl HistoryState {
             target,
         }
     }
-    
+
     pub fn deep(target: Option<StateValue>) -> Self {
         Self {
             history_type: HistoryType::Deep,
@@ -211,7 +209,7 @@ mod tests {
     #[test]
     fn compound_state_matches_patterns() {
         let state = StateValue::compound("power", StateValue::simple("on"));
-        
+
         assert!(state.matches("power"));
         assert!(state.matches("power.on"));
         assert!(state.matches("on"));
@@ -225,7 +223,7 @@ mod tests {
             StateValue::simple("heating"),
             StateValue::simple("cooling"),
         ]);
-        
+
         assert!(state.matches("heating"));
         assert!(state.matches("cooling"));
         assert!(state.matches("*"));
@@ -236,7 +234,7 @@ mod tests {
     fn state_conversion_from_string() {
         let simple: StateValue = "idle".into();
         assert_eq!(simple, StateValue::simple("idle"));
-        
+
         let compound: StateValue = "power.on".into();
         assert_eq!(
             compound,
@@ -248,28 +246,25 @@ mod tests {
     fn leaf_states_collection() {
         let simple = StateValue::simple("idle");
         assert_eq!(simple.leaf_states(), vec!["idle"]);
-        
+
         let compound = StateValue::compound("power", StateValue::simple("on"));
         assert_eq!(compound.leaf_states(), vec!["power.on"]);
-        
+
         let parallel = StateValue::parallel(vec![
             StateValue::simple("heating"),
             StateValue::compound("cooling", StateValue::simple("active")),
         ]);
-        assert_eq!(
-            parallel.leaf_states(),
-            vec!["heating", "cooling.active"]
-        );
+        assert_eq!(parallel.leaf_states(), vec!["heating", "cooling.active"]);
     }
 
     #[test]
     fn state_display_formatting() {
         let simple = StateValue::simple("idle");
         assert_eq!(simple.to_string(), "idle");
-        
+
         let compound = StateValue::compound("power", StateValue::simple("on"));
         assert_eq!(compound.to_string(), "power.on");
-        
+
         let parallel = StateValue::parallel(vec![
             StateValue::simple("heating"),
             StateValue::simple("cooling"),

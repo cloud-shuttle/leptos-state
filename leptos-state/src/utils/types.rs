@@ -1,7 +1,7 @@
-use std::fmt;
-use thiserror::Error;
 #[cfg(feature = "serde")]
 use leptos::server_fn::serde;
+use std::fmt;
+use thiserror::Error;
 
 /// Result type for leptos-state operations
 pub type StateResult<T> = Result<T, StateError>;
@@ -12,25 +12,25 @@ pub type StateResult<T> = Result<T, StateError>;
 pub enum StateError {
     #[error("Store not found: {name}")]
     StoreNotFound { name: String },
-    
+
     #[error("Invalid state transition from {from} to {to}")]
     InvalidTransition { from: String, to: String },
-    
+
     #[error("Guard condition failed: {reason}")]
     GuardFailed { reason: String },
-    
+
     #[error("Serialization error: {message}")]
     SerializationError { message: String },
-    
+
     #[error("Validation error: {field} - {message}")]
     ValidationError { field: String, message: String },
-    
+
     #[error("Machine not initialized")]
     MachineNotInitialized,
-    
+
     #[error("Context error: {message}")]
     ContextError { message: String },
-    
+
     #[error("Unknown error: {message}")]
     Unknown { message: String },
 }
@@ -39,51 +39,51 @@ impl StateError {
     pub fn store_not_found(name: impl Into<String>) -> Self {
         Self::StoreNotFound { name: name.into() }
     }
-    
+
     pub fn invalid_transition(from: impl Into<String>, to: impl Into<String>) -> Self {
         Self::InvalidTransition {
             from: from.into(),
             to: to.into(),
         }
     }
-    
+
     pub fn guard_failed(reason: impl Into<String>) -> Self {
         Self::GuardFailed {
             reason: reason.into(),
         }
     }
-    
+
     pub fn serialization_error(message: impl Into<String>) -> Self {
         Self::SerializationError {
             message: message.into(),
         }
     }
-    
+
     pub fn validation_error(field: impl Into<String>, message: impl Into<String>) -> Self {
         Self::ValidationError {
             field: field.into(),
             message: message.into(),
         }
     }
-    
+
     pub fn context_error(message: impl Into<String>) -> Self {
         Self::ContextError {
             message: message.into(),
         }
     }
-    
+
     pub fn unknown(message: impl Into<String>) -> Self {
         Self::Unknown {
             message: message.into(),
         }
     }
-    
+
     pub fn new(message: impl Into<String>) -> Self {
         Self::Unknown {
             message: message.into(),
         }
     }
-    
+
     pub fn custom(message: impl Into<String>) -> Self {
         Self::Unknown {
             message: message.into(),
@@ -151,11 +151,11 @@ impl SubscriptionHandle {
             cleanup: Some(Box::new(cleanup)),
         }
     }
-    
+
     pub fn id(&self) -> &str {
         &self.id
     }
-    
+
     pub fn cancel(mut self) {
         if let Some(cleanup) = self.cleanup.take() {
             cleanup();
@@ -241,13 +241,13 @@ pub trait Deserialize<T> {
 /// Time utilities for delayed transitions and timeouts
 pub mod time {
     use std::time::{Duration, Instant};
-    
+
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub struct Timeout {
         duration: Duration,
         start: Instant,
     }
-    
+
     impl Timeout {
         pub fn new(duration: Duration) -> Self {
             Self {
@@ -255,15 +255,15 @@ pub mod time {
                 start: Instant::now(),
             }
         }
-        
+
         pub fn is_expired(&self) -> bool {
             self.start.elapsed() >= self.duration
         }
-        
+
         pub fn remaining(&self) -> Duration {
             self.duration.saturating_sub(self.start.elapsed())
         }
-        
+
         pub fn reset(&mut self) {
             self.start = Instant::now();
         }
@@ -272,57 +272,57 @@ pub mod time {
 
 /// Collection utilities for managing multiple stores/machines
 pub mod collections {
-    use std::collections::HashMap;
     use super::StoreId;
-    
+    use std::collections::HashMap;
+
     /// Registry for multiple stores
     #[derive(Debug, Clone)]
     pub struct StoreRegistry<T> {
         stores: HashMap<StoreId, T>,
     }
-    
+
     impl<T> StoreRegistry<T> {
         pub fn new() -> Self {
             Self {
                 stores: HashMap::new(),
             }
         }
-        
+
         pub fn register(&mut self, id: StoreId, store: T) {
             self.stores.insert(id, store);
         }
-        
+
         pub fn get(&self, id: &StoreId) -> Option<&T> {
             self.stores.get(id)
         }
-        
+
         pub fn get_mut(&mut self, id: &StoreId) -> Option<&mut T> {
             self.stores.get_mut(id)
         }
-        
+
         pub fn remove(&mut self, id: &StoreId) -> Option<T> {
             self.stores.remove(id)
         }
-        
+
         pub fn list(&self) -> impl Iterator<Item = &StoreId> {
             self.stores.keys()
         }
-        
+
         pub fn len(&self) -> usize {
             self.stores.len()
         }
-        
+
         pub fn is_empty(&self) -> bool {
             self.stores.is_empty()
         }
     }
-    
+
     impl<T> Default for StoreRegistry<T> {
         fn default() -> Self {
             Self::new()
         }
     }
-    
+
     /// Registry for multiple machines
     pub type MachineRegistry<T> = StoreRegistry<T>;
 }
@@ -330,25 +330,23 @@ pub mod collections {
 #[cfg(feature = "serde")]
 mod serde_support {
     use super::StateError;
-    use serde::{Serialize, Deserialize};
-    
+    use serde::{Deserialize, Serialize};
+
     impl<T> super::Serialize for T
     where
         T: Serialize,
     {
         fn serialize(&self) -> super::StateResult<String> {
-            serde_json::to_string(self)
-                .map_err(|e| StateError::serialization_error(e.to_string()))
+            serde_json::to_string(self).map_err(|e| StateError::serialization_error(e.to_string()))
         }
     }
-    
+
     impl<T> super::Deserialize<T> for T
     where
         T: for<'de> Deserialize<'de>,
     {
         fn deserialize(data: &str) -> super::StateResult<T> {
-            serde_json::from_str(data)
-                .map_err(|e| StateError::serialization_error(e.to_string()))
+            serde_json::from_str(data).map_err(|e| StateError::serialization_error(e.to_string()))
         }
     }
 }
@@ -357,53 +355,53 @@ mod serde_support {
 mod tests {
     use super::*;
     use std::time::Duration;
-    
+
     #[test]
     fn state_error_creation() {
         let error = StateError::store_not_found("test_store");
         assert!(matches!(error, StateError::StoreNotFound { .. }));
-        
+
         let error = StateError::invalid_transition("idle", "running");
         assert!(matches!(error, StateError::InvalidTransition { .. }));
     }
-    
+
     #[test]
     fn config_default() {
         let config = Config::default();
         assert_eq!(config.enable_devtools, cfg!(debug_assertions));
         assert!(!config.enable_persistence);
     }
-    
+
     #[test]
     fn subscription_handle_cleanup() {
         // Skip this test since it requires WASM-specific functionality
         // The SubscriptionHandle is designed for WASM environments
         println!("Skipping subscription handle cleanup test - requires WASM environment");
     }
-    
+
     #[test]
     fn timeout_functionality() {
         let mut timeout = time::Timeout::new(Duration::from_millis(100));
         assert!(!timeout.is_expired());
-        
+
         std::thread::sleep(Duration::from_millis(150));
         assert!(timeout.is_expired());
-        
+
         timeout.reset();
         assert!(!timeout.is_expired());
     }
-    
+
     #[test]
     fn store_registry() {
         let mut registry = collections::StoreRegistry::new();
         assert!(registry.is_empty());
-        
+
         registry.register("store1".to_string(), "value1");
         assert_eq!(registry.len(), 1);
-        
+
         assert_eq!(registry.get(&"store1".to_string()), Some(&"value1"));
         assert_eq!(registry.get(&"store2".to_string()), None);
-        
+
         let removed = registry.remove(&"store1".to_string());
         assert_eq!(removed, Some("value1"));
         assert!(registry.is_empty());
