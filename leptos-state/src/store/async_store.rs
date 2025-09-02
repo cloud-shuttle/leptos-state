@@ -178,6 +178,7 @@ where
 }
 
 /// Hook for infinite loading stores
+#[cfg(feature = "serialization")]
 pub fn use_infinite_store<I: InfiniteStore>(
     _initial_input: I::PageInput,
 ) -> (ReadSignal<I::State>, WriteSignal<I::State>, Box<dyn Fn()>)
