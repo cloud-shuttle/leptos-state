@@ -307,7 +307,7 @@ where
 
     /// Export as JSON format
     fn export_json(&self) -> StateResult<String> {
-        let _diagram = StateDiagram {
+        let diagram = StateDiagram {
             machine: self.machine.as_ref(),
             current_state: self.current_state(),
             recent_transitions: self.recent_transitions(10),

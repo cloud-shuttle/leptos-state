@@ -102,10 +102,9 @@ pub fn AsyncStoreProvider<A: AsyncStore>(
     children: Children,
 ) -> impl IntoView
 where
-    A::LoaderInput: Clone,
-    A::LoaderOutput:
-        leptos::server_fn::serde::Serialize + for<'de> leptos::server_fn::serde::Deserialize<'de>,
     A: 'static,
+    A::LoaderInput: Clone + 'static,
+    A::LoaderOutput: 'static + leptos::server_fn::serde::Serialize + for<'de> leptos::server_fn::serde::Deserialize<'de>,
 {
     // Note: create_resource API has changed in Leptos 0.8+
     // For now, we'll provide a placeholder implementation

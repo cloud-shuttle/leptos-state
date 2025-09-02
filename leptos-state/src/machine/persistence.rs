@@ -196,7 +196,7 @@ where
             return Ok(());
         }
 
-        let _serialized = self.serialize_machine(machine, state)?;
+        let serialized = self.serialize_machine(machine, state)?;
 
         #[cfg(feature = "serde_json")]
         {
@@ -255,26 +255,26 @@ where
         }
 
         // Load from storage
-        let _data = self.storage.load(&self.config.storage_key)?;
+        let data = self.storage.load(&self.config.storage_key)?;
 
         // Decrypt if needed
-        let _data = if self.config.encrypt {
-            self.decrypt_data(&_data)?
+        let data = if self.config.encrypt {
+            self.decrypt_data(&data)?
         } else {
-            _data
+            data
         };
 
         // Decompress if needed
-        let _data = if self.config.compression_level > 0 {
-            self.decompress_data(&_data)?
+        let data = if self.config.compression_level > 0 {
+            self.decompress_data(&data)?
         } else {
-            _data
+            data
         };
 
         // Deserialize
         #[cfg(feature = "serde_json")]
         {
-            let serialized: SerializedMachine<C, E> = serde_json::from_str(&_data)?;
+            let serialized: SerializedMachine<C, E> = serde_json::from_str(&data)?;
 
             // Validate checksum
             self.validate_checksum(&serialized)?;
