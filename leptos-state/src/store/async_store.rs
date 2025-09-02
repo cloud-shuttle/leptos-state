@@ -183,7 +183,7 @@ pub fn use_infinite_store<I: InfiniteStore>(
 ) -> (ReadSignal<I::State>, WriteSignal<I::State>, Box<dyn Fn()>)
 where
     I::Page:
-        leptos::server_fn::serde::Serialize + for<'de> leptos::server_fn::serde::Deserialize<'de>,
+        serde::Serialize + for<'de> serde::Deserialize<'de>,
 {
     let (_state, _set_state) = signal(I::loading_state());
     let (_loading_more, _set_loading_more) = signal(false);
