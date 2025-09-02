@@ -2,6 +2,7 @@ use super::*;
 use crate::machine::states::StateValue;
 use crate::StateResult;
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::marker::PhantomData;
 
 // Extension traits
@@ -709,7 +710,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildTransitionBuilde
 }
 
 /// Transition builder for fluent API
-pub struct TransitionBuilder<C: Clone + Send + Sync + 'static, E: Clone + 'static> {
+pub struct TransitionBuilder<C: Send + Sync, E> {
     state_builder: StateBuilder<C, E>,
     event: E,
     target: String,

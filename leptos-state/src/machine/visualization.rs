@@ -70,6 +70,7 @@ pub enum ExportFormat {
 
 /// State transition event for visualization
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TransitionEvent<C, E> {
     /// Event that triggered the transition
     pub event: E,
@@ -93,6 +94,7 @@ pub struct TransitionEvent<C, E> {
 
 /// Guard evaluation result for visualization
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct GuardEvaluation {
     /// Guard description
     pub description: String,
@@ -104,6 +106,7 @@ pub struct GuardEvaluation {
 
 /// Action execution result for visualization
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ActionExecution {
     /// Action description
     pub description: String,
@@ -304,7 +307,7 @@ where
 
     /// Export as JSON format
     fn export_json(&self) -> StateResult<String> {
-        let diagram = StateDiagram {
+        let _diagram = StateDiagram {
             machine: self.machine.as_ref(),
             current_state: self.current_state(),
             recent_transitions: self.recent_transitions(10),
@@ -376,6 +379,7 @@ pub struct StateDiagram<'a, C: Send + Sync, E> {
 
 /// Machine snapshot for time travel
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct MachineSnapshot<C: Send + Sync, E> {
     pub state: MachineStateImpl<C>,
     pub timestamp: u64,

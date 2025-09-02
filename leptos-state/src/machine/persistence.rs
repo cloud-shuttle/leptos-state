@@ -7,6 +7,7 @@ use super::*;
 use crate::machine::states::StateValue;
 use crate::utils::types::{StateError, StateResult};
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -197,7 +198,7 @@ where
             return Ok(());
         }
 
-        let serialized = self.serialize_machine(machine, state)?;
+        let _serialized = self.serialize_machine(machine, state)?;
 
         #[cfg(feature = "serde_json")]
         {

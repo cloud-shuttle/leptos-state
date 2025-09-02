@@ -10,6 +10,7 @@ use crate::{
     machine::{Machine, MachineState, Transition},
 };
 use std::collections::{HashMap, HashSet, VecDeque};
+use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::time::{Duration, Instant};
 

@@ -11,7 +11,7 @@ use std::marker::PhantomData;
 #[allow(async_fn_in_trait)]
 pub trait AsyncStore: Store
 where
-    Self::LoaderInput: Clone + PartialEq + Send + Sync + 'static,
+    Self::LoaderInput: Clone + PartialEq + Send + Sync + Default + 'static,
     Self::LoaderOutput: Clone + Send + Sync + 'static,
 {
     type LoaderInput: Clone + PartialEq + Send + Sync + 'static;
@@ -63,8 +63,12 @@ where
     let _resource = {
         // Placeholder - this would need to be implemented with the correct Leptos 0.8+ API
         // For now, return a dummy resource
+        // Create a dummy resource with a placeholder input
         Resource::new(
-            || A::LoaderInput::default(),
+            || {
+                // Use a placeholder input since we can't guarantee Default
+                todo!("AsyncStore::LoaderInput needs to implement Default or provide a custom input")
+            },
             |_| async { Ok(A::loading_state()) },
         )
     };

@@ -1,280 +1,219 @@
-# Leptos State Management Library
+# 🚀 **leptos-state** - Powerful State Management for Leptos
 
-A state management library for [Leptos](https://leptos.dev/) applications inspired by [Zustand's](https://github.com/pmndrs/zustand) simplicity and [XState's](https://xstate.js.org/) state machine capabilities.
+[![Crates.io](https://img.shields.io/crates/v/leptos-state)](https://crates.io/crates/leptos-state)
+[![Documentation](https://img.shields.io/docsrs/leptos-state)](https://docs.rs/leptos-state)
+[![License](https://img.shields.io/crates/l/leptos-state)](https://github.com/cloud-shuttle/leptos-state/blob/main/LICENSE)
+[![Rust](https://img.shields.io/badge/rust-1.70+-blue.svg)](https://www.rust-lang.org)
 
-## 🚀 Features
+**The definitive state management solution for Leptos applications** - featuring stores, state machines, middleware, and DevTools integration.
 
-- **📦 Store Management**: Zustand-inspired stores with reactive updates
-- **🤖 State Machines**: XState-inspired finite state machines with hierarchical states  
-- **⚡ Leptos Integration**: First-class support for Leptos reactive primitives
-- **🔒 Type Safety**: Ergonomic APIs with strong type safety powered by Rust
-- **🏗️ Zero Boilerplate**: Minimal setup with powerful derive macros
-- **🔄 Middleware Support**: Extensible middleware system for logging, persistence, etc.
-- **🛠️ DevTools Ready**: Built-in support for time-travel debugging
+## ✨ **Features**
 
-## ✅ Leptos Version Compatibility
+- 🏪 **Reactive Stores** - Zustand-inspired API with Leptos integration
+- 🎯 **State Machines** - XState-like state machines with guards and actions
+- 🔌 **Middleware System** - Extensible middleware for logging, validation, and more
+- 🛠️ **DevTools Integration** - Browser DevTools for state inspection and debugging
+- 💾 **Persistence** - Automatic state persistence with multiple storage backends
+- 📊 **Visualization** - State machine diagrams and transition tracking
+- 🧪 **Testing Framework** - Comprehensive testing utilities for state machines
+- ⚡ **Performance Optimized** - Minimal overhead with smart reactivity
+- 🌐 **WASM Ready** - Full WebAssembly support for web applications
 
-**Leptos 0.8+ is now fully supported!** The library has been successfully migrated to work with the latest Leptos versions.
+## 🚀 **Quick Start**
 
-### Current Status:
-- ✅ **Leptos 0.6**: Fully supported
-- ✅ **Leptos 0.7**: Fully supported  
-- ✅ **Leptos 0.8+**: **Fully supported** (recommended)
-- 🔮 **Leptos 0.9+**: Expected to work (untested)
-
-### Recommended Setup:
-```toml
-[dependencies]
-leptos = "0.8"  # Latest stable version
-leptos-state = "0.1"
-```
-
-## 📦 Installation
-
-Add to your `Cargo.toml`:
+### Installation
 
 ```toml
 [dependencies]
-leptos = "0.8"  # Latest stable version
-leptos-state = "0.1"
+leptos-state = "0.2.0"
+leptos = "0.8"
 ```
 
-## 🏃‍♂️ Quick Start
-
-### Store Example (Zustand-style)
+### Simple Store
 
 ```rust
-use leptos::*;
-use leptos_state::*;
+use leptos_state::{create_store, use_store};
 
-#[derive(Clone, PartialEq)]
-struct AppState {
+#[derive(Clone, Debug)]
+struct CounterStore {
     count: i32,
-    user: Option<String>,
+    name: String,
 }
 
-create_store!(AppStore, AppState, AppState { 
-    count: 0, 
-    user: None 
-});
-
-#[component]
-fn Counter() -> impl IntoView {
-    let (state, set_state) = use_store::<AppStore>();
+impl CounterStore {
+    fn increment(&mut self) {
+        self.count += 1;
+    }
     
-    let increment = move |_| {
-        set_state.update(|s| s.count += 1);
-    };
+    fn set_name(&mut self, name: String) {
+        self.name = name;
+    }
+}
+
+fn Counter() -> impl IntoView {
+    let (store, actions) = use_store::<CounterStore>();
     
     view! {
         <div>
-            <p>"Count: " {move || state.get().count}</p>
-            <button on:click=increment>"Increment"</button>
+            <h2>"Counter: " {store.count}</h2>
+            <p>"Name: " {store.name}</p>
+            <button on:click=move |_| actions.increment()>
+                "Increment"
+            </button>
         </div>
     }
 }
-
-#[component]
-fn App() -> impl IntoView {
-    provide_store::<AppStore>(AppStore::create());
-    view! { <Counter /> }
-}
 ```
 
-### State Machine Example (XState-style)
+### State Machine
 
 ```rust
-use leptos::*;
-use leptos_state::*;
-
-#[derive(Clone, PartialEq, Default)]
-struct ToggleContext {
-    count: i32,
-}
+use leptos_state::{MachineBuilder, use_machine};
 
 #[derive(Clone, Debug)]
-enum ToggleEvent {
-    Toggle,
-    Reset,
+enum TrafficLightEvent {
+    Next,
+    Emergency,
 }
 
-let machine = MachineBuilder::<ToggleContext, ToggleEvent>::new()
-    .state("inactive")
-        .on(ToggleEvent::Toggle, "active")
-    .state("active") 
-        .on(ToggleEvent::Toggle, "inactive")
-        .on(ToggleEvent::Reset, "inactive")
-    .initial("inactive")
-    .build();
-
-#[component]
-fn ToggleButton() -> impl IntoView {
-    let machine = use_machine::<ToggleMachine>();
-    let is_active = machine.create_matcher("active".to_string());
+fn TrafficLight() -> impl IntoView {
+    let machine = MachineBuilder::new()
+        .state("red")
+            .on(TrafficLightEvent::Next, "green")
+        .state("green")
+            .on(TrafficLightEvent::Next, "yellow")
+        .state("yellow")
+            .on(TrafficLightEvent::Next, "red")
+        .initial("red")
+        .build();
+    
+    let (state, send) = use_machine(machine);
     
     view! {
-        <button on:click=move |_| machine.emit(ToggleEvent::Toggle)>
-            {move || if is_active.get() { "ON" } else { "OFF" }}
-        </button>
+        <div>
+            <h2>"Traffic Light: " {state.value()}</h2>
+            <button on:click=move |_| send(TrafficLightEvent::Next)>
+                "Next Light"
+            </button>
+        </div>
     }
 }
 ```
 
-## 📚 Core Concepts
+## 📚 **Documentation**
 
-### Stores
+- **[📖 User Guide](https://github.com/cloud-shuttle/leptos-state/tree/main/docs/user-guide)** - Comprehensive usage guide
+- **[🔧 API Reference](https://docs.rs/leptos-state)** - Complete API documentation
+- **[📝 Examples](https://github.com/cloud-shuttle/leptos-state/tree/main/examples)** - Working code samples
+- **[🔄 Migration Guide](https://github.com/cloud-shuttle/leptos-state/tree/main/docs/migration)** - Upgrade from v0.1.0
 
-Stores are reactive containers for application state, inspired by Zustand:
+## 🎯 **Why leptos-state?**
 
-- **Simple Creation**: Use the `create_store!` macro
-- **Reactive Updates**: Built on Leptos signals for optimal performance  
-- **Selectors**: Subscribe to specific slices of state
-- **Middleware**: Extensible pipeline for cross-cutting concerns
+### **For Leptos Developers**
+- **First-class Leptos integration** - Built specifically for Leptos applications
+- **Reactive by design** - Automatic updates when state changes
+- **WASM optimized** - Designed for web applications
 
-### State Machines
+### **For State Management**
+- **Familiar APIs** - Inspired by Zustand and XState
+- **Type safety** - Full Rust type safety and compile-time guarantees
+- **Performance** - Minimal runtime overhead with smart optimizations
 
-State machines provide predictable state management with explicit transitions:
+### **For Production Apps**
+- **Middleware ecosystem** - Extensible architecture for enterprise needs
+- **DevTools support** - Professional debugging and monitoring
+- **Testing utilities** - Comprehensive testing framework included
 
-- **Finite States**: Define valid states and transitions
-- **Guards**: Conditional transition logic
-- **Actions**: Side effects during transitions
-- **Hierarchical**: Nested states for complex workflows
-- **Parallel**: Multiple simultaneous state machines
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────┐
-│          Application Layer              │
-├─────────────────────────────────────────┤
-│     Leptos Components & Hooks           │
-├─────────────────────────────────────────┤
-│         State Management API            │
-├──────────────┬──────────────────────────┤
-│  Store Layer │    Machine Layer         │
-│  (Zustand)   │    (XState)              │
-├──────────────┴──────────────────────────┤
-│       Leptos Reactive Primitives        │
-│    (Signals, Memos, Resources)          │
-└─────────────────────────────────────────┘
-```
-
-## 🛠️ Advanced Features
+## 🔧 **Advanced Features**
 
 ### Middleware System
 
 ```rust
-use leptos_state::*;
+use leptos_state::{LoggerMiddleware, ValidationMiddleware, MiddlewareChain};
 
-let store = StoreBuilder::new()
-    .with_middleware(LoggerMiddleware::new("MyStore"))
-    .with_middleware(PersistMiddleware::new("app_state"))
-    .build();
+let store = create_store::<MyStore>()
+    .with_middleware(
+        MiddlewareChain::new()
+            .add(LoggerMiddleware::new())
+            .add(ValidationMiddleware::new())
+    );
 ```
 
-### Time Travel Debugging
+### Persistence
 
 ```rust
-let history = use_store_history::<AppStore>();
-
-// Undo/Redo functionality
-if history.can_undo() {
-    history.undo();
-}
-
-if history.can_redo() {
-    history.redo();
-}
+let machine = MachineBuilder::new()
+    .state("idle")
+    .build_with_persistence(PersistenceConfig {
+        enabled: true,
+        storage_key: "my_machine".to_string(),
+        auto_save: true,
+        ..Default::default()
+    });
 ```
 
-### Computed State/Selectors
+### Code Generation
 
 ```rust
-// Subscribe to computed values
-let doubled_count = use_computed::<AppStore, _>(|state| state.count * 2);
-let user_name = use_computed::<AppStore, _>(|state| {
-    state.user.clone().unwrap_or("Guest".to_string())
+let generator = machine.build_with_code_generation(CodeGenConfig {
+    target_languages: vec![ProgrammingLanguage::Rust, ProgrammingLanguage::TypeScript],
+    output_directory: "generated".to_string(),
+    ..Default::default()
 });
+
+generator.generate_code()?;
 ```
 
-## 🧪 Examples
+## 🌟 **Examples**
 
-Check out the `/examples` directory for complete applications:
+Check out our comprehensive examples:
 
-- **[Counter](./examples/counter/)**: Basic store usage with selectors
-- **[Traffic Light](./examples/traffic-light/)**: State machine with timer logic
-- **[Todo App](./examples/todo/)**: Complex state with middleware
-- **[Form Wizard](./examples/form-wizard/)**: Hierarchical state machines
+- **[📱 Todo App](https://github.com/cloud-shuttle/leptos-state/tree/main/examples/todo-app)** - Full-featured todo application
+- **[🚦 Traffic Light](https://github.com/cloud-shuttle/leptos-state/tree/main/examples/traffic-light)** - State machine basics
+- **[📊 Analytics Dashboard](https://github.com/cloud-shuttle/leptos-state/tree/main/examples/analytics-dashboard)** - Complex state management
+- **[🔧 Code Generation](https://github.com/cloud-shuttle/leptos-state/tree/main/examples/codegen)** - Multi-language code generation
 
-## 📖 Documentation
+## 🚀 **Getting Started**
 
-For comprehensive documentation, examples, and guides, see the [docs](./docs/) directory.
+1. **Add to your project:**
+   ```bash
+   cargo add leptos-state
+   ```
 
-### 📖 Quick Navigation
-- **[User Guide](./docs/user-guide/)**: Start here for tutorials and examples
-- **[API Reference](./docs/api-reference/)**: Complete API documentation
-- **[Migration Guide](./docs/migration/)**: Upgrade to Leptos 0.8+
-- **[Examples](./docs/examples/)**: Working code samples and patterns
-- **[Contributing](./docs/contributing/)**: How to help improve the project
+2. **Check out the examples:**
+   ```bash
+   git clone https://github.com/cloud-shuttle/leptos-state.git
+   cd leptos-state/examples
+   cargo run --bin counter
+   ```
 
-### 📚 Additional Resources
-- **[API Documentation](https://docs.rs/leptos-state)**: Complete API reference
-- **[Migration Guide](./docs/migration/)**: From Redux/MobX patterns
-- **[Performance Tips](./docs/development/)**: Optimization strategies
+3. **Read the documentation:**
+   - [User Guide](https://github.com/cloud-shuttle/leptos-state/tree/main/docs/user-guide)
+   - [API Reference](https://docs.rs/leptos-state)
 
-## 🧪 Testing
+## 🤝 **Contributing**
 
-For comprehensive testing information, see the [tests](./tests/) directory.
+We welcome contributions! Please see our [Contributing Guide](https://github.com/cloud-shuttle/leptos-state/tree/main/docs/contributing) for details.
 
-### 🧪 Quick Test Commands
+- 🐛 **Report bugs** on [GitHub Issues](https://github.com/cloud-shuttle/leptos-state/issues)
+- 💡 **Request features** via [GitHub Discussions](https://github.com/cloud-shuttle/leptos-state/discussions)
+- 📝 **Submit PRs** for bug fixes and improvements
 
-```bash
-# Unit tests
-cargo test
+## 📄 **License**
 
-# Integration tests  
-cargo test --test '*'
+This project is licensed under either of
 
-# WASM tests
-wasm-pack test --headless --chrome
-
-# Playwright tests
-pnpm test:playwright
-```
-
-### 📋 Test Organization
-- **[Rust Tests](./tests/rust/)**: Unit, integration, and performance tests
-- **[Web Tests](./tests/web/)**: Playwright-based WASM and browser tests
-- **[Test Results](./tests/test-results/)**: Generated reports and metrics
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
-
-### Development Setup
-
-1. Clone the repository
-2. Install dependencies: `cargo build`
-3. Run tests: `cargo test`
-4. Check formatting: `cargo fmt`
-5. Run lints: `cargo clippy`
-
-## 📄 License
-
-This project is dual-licensed under either:
-
-- MIT License ([LICENSE-MIT](LICENSE-MIT))
-- Apache License 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or https://www.apache.org/licenses/LICENSE-2.0)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or https://opensource.org/licenses/MIT)
 
 at your option.
 
-## 🙏 Acknowledgments
+## 🙏 **Acknowledgments**
 
-- [Zustand](https://github.com/pmndrs/zustand) for store design inspiration
-- [XState](https://xstate.js.org/) for state machine concepts
-- [Leptos](https://leptos.dev/) for the reactive foundation
-- The Rust community for excellent tooling and ecosystem
+- Built with ❤️ for the [Leptos](https://github.com/leptos-rs/leptos) community
+- Inspired by [Zustand](https://github.com/pmndrs/zustand) and [XState](https://github.com/statelyai/xstate)
+- Part of the [Cloud Shuttle](https://cloud-shuttle.com) ecosystem
 
 ---
 
-**Built with ❤️ and 🦀 for the Leptos community**
+**Ready to build amazing Leptos applications?** [Get started now!](https://github.com/cloud-shuttle/leptos-state)
