@@ -527,15 +527,15 @@ where
                 .as_secs(),
         };
 
-        #[cfg(feature = "serde_yaml")]
+        #[cfg(feature = "serialization")]
         {
             serde_yaml::to_string(&_doc).map_err(|e| {
                 StateError::custom(format!("Failed to serialize documentation: {}", e))
             })
         }
 
-        #[cfg(not(feature = "serde_yaml"))]
-        Err(StateError::new("YAML export requires serde_yaml feature"))
+        #[cfg(not(feature = "serialization"))]
+        Err(StateError::new("YAML export requires serialization feature"))
     }
 
     /// Generate custom format documentation
@@ -708,7 +708,7 @@ pub struct GeneratedDocument {
 
 /// Transition information for documentation
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serialization", derive(serde::Serialize, serde::Deserialize))]
 pub struct TransitionInfo {
     /// Source state
     pub from: String,
@@ -720,7 +720,7 @@ pub struct TransitionInfo {
 
 /// Documentation data structure
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serialization", derive(serde::Serialize, serde::Deserialize))]
 pub struct DocumentationData {
     /// Documentation title
     pub title: String,

@@ -162,7 +162,7 @@ where
     where
         D: serde::Deserializer<'de>,
     {
-        use serde::de::{self, Deserializer, MapAccess, Visitor};
+        use serde::de::{self, MapAccess, Visitor};
         use std::fmt;
 
         #[derive(Debug)]

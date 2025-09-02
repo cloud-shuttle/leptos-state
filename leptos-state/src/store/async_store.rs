@@ -55,7 +55,7 @@ pub fn use_async_store<A: AsyncStore>(
 )
 where
     A::LoaderOutput:
-        leptos::server_fn::serde::Serialize + for<'de> leptos::server_fn::serde::Deserialize<'de>,
+        serde::Serialize + for<'de> serde::Deserialize<'de>,
 {
     // Create store signals with loading state
     let (state, set_state) = signal(A::loading_state());
@@ -103,7 +103,7 @@ pub fn AsyncStoreProvider<A>(
 where
     A: AsyncStore + 'static,
     A::LoaderInput: Clone + 'static,
-    A::LoaderOutput: 'static + leptos::server_fn::serde::Serialize + for<'de> leptos::server_fn::serde::Deserialize<'de>,
+    A::LoaderOutput: 'static + serde::Serialize + for<'de> serde::Deserialize<'de>,
 {
     // Note: create_resource API has changed in Leptos 0.8+
     // For now, we'll provide a placeholder implementation
