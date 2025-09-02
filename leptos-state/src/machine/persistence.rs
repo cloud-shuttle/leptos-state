@@ -427,7 +427,7 @@ where
 
             Ok(SerializedMachine {
                 checksum,
-                _phantom: PhantomData::<(C, E)>,
+                _phantom: PhantomData::<E>,
                 ..serialized
             })
         }

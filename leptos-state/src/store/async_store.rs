@@ -51,26 +51,19 @@ pub fn use_async_store<A: AsyncStore>(
 ) -> (
     ReadSignal<A::State>,
     WriteSignal<A::State>,
-    Resource<A::LoaderInput, StateResult<A::LoaderOutput>>,
+    Option<Resource<A::LoaderInput, StateResult<A::LoaderOutput>>>,
 )
 where
     A::LoaderOutput:
         leptos::server_fn::serde::Serialize + for<'de> leptos::server_fn::serde::Deserialize<'de>,
 {
     // Create the resource for async loading
-    // Note: create_resource API has changed in Leptos 0.7
+    // Note: create_resource API has changed in Leptos 0.8+
     // For now, we'll provide a placeholder implementation
     let _resource = {
         // Placeholder - this would need to be implemented with the correct Leptos 0.8+ API
         // For now, return a dummy resource
-        // Create a dummy resource with a placeholder input
-        Resource::new(
-            || {
-                // Use a placeholder input since we can't guarantee Default
-                todo!("AsyncStore::LoaderInput needs to implement Default or provide a custom input")
-            },
-            |_| async { Ok(A::loading_state()) },
-        )
+        todo!("AsyncStore::LoaderInput needs to implement Default or provide a custom input")
     };
 
     // Create store signals with loading state
@@ -80,20 +73,20 @@ where
     Effect::new(move |_| {
         // Note: This is a placeholder implementation
         // The actual resource handling would need to be implemented
-        // with the correct Leptos 0.7+ API
+        // with the correct Leptos 0.8+ API
     });
 
-    (state, set_state, _resource)
+    (state, set_state, None::<Resource<A::LoaderInput, StateResult<A::LoaderOutput>>>)
 }
 
 /// Hook for refetching async store data
 pub fn use_async_store_actions<A: AsyncStore>(
-    _resource: Resource<A::LoaderInput, StateResult<A::LoaderOutput>>,
+    _resource: Option<Resource<A::LoaderInput, StateResult<A::LoaderOutput>>>,
 ) -> AsyncStoreActions {
     AsyncStoreActions {
         refetch: Box::new(move || {
-            // Note: refetch functionality may need to be implemented differently in Leptos 0.7
-            // For now, we'll provide a placeholder
+                    // Note: refetch functionality may need to be implemented differently in Leptos 0.8+
+        // For now, we'll provide a placeholder
         }),
     }
 }
@@ -122,7 +115,7 @@ where
         leptos::server_fn::serde::Serialize + for<'de> leptos::server_fn::serde::Deserialize<'de>,
     A: 'static,
 {
-    // Note: create_resource API has changed in Leptos 0.7
+    // Note: create_resource API has changed in Leptos 0.8+
     // For now, we'll provide a placeholder implementation
     let initial_state = A::loading_state();
     provide_context(crate::StoreContext::new(initial_state));
