@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["leptos-state", "examples/*", "tests/integration"]
+members = ["leptos-state", "examples/*", "tests/rust/integration"]
 
 [workspace.dependencies]
 leptos = "0.8"

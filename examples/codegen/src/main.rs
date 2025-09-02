@@ -168,7 +168,7 @@ mod tests {
             .initial("idle")
             .build_codegen();
 
-        let files = machine.get_generated_files();
+        let files = machine.generate_code().unwrap();
         assert!(!files.is_empty());
         
         // Check that we have files for different languages
@@ -302,7 +302,7 @@ mod tests {
         assert!(rust_file.content.contains("pub enum State"));
         assert!(rust_file.content.contains("pub enum StateEvent"));
         assert!(rust_file.content.contains("State::idle"));
-        assert!(rust_file.content.contains("State::playing"));
+        assert!(rust_file.content.contains("State::running"));
         assert!(rust_file.content.contains("StateEvent::Start"));
         assert!(rust_file.content.contains("StateEvent::Stop"));
         
@@ -315,7 +315,7 @@ mod tests {
         assert!(ts_file.content.contains("export enum State"));
         assert!(ts_file.content.contains("export enum StateEvent"));
         assert!(ts_file.content.contains("State.idle"));
-        assert!(ts_file.content.contains("State.playing"));
+        assert!(ts_file.content.contains("State.running"));
         assert!(ts_file.content.contains("StateEvent.Start"));
         assert!(ts_file.content.contains("StateEvent.Stop"));
     }

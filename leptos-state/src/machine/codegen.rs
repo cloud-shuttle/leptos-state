@@ -622,7 +622,7 @@ where
     }
 
     pub fn with_language(mut self, language: ProgrammingLanguage) -> Self {
-        self.config.target_languages.push(language);
+        self.config.target_languages = vec![language];
         self
     }
 

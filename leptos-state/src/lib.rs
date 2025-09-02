@@ -45,11 +45,11 @@ pub mod compat;
 
 // Re-export commonly used items
 // Store types
-pub use store::{Store, StoreSlice, use_store_slice, StoreContext};
+pub use store::{Store, StoreSlice, use_store_slice, StoreContext, provide_store, create_computed, LoggerMiddleware, ValidationMiddleware, MiddlewareChain};
 // Machine types
 pub use machine::{StateMachine, MachineState, MachineBuilder, Machine};
 // Hook types
-pub use hooks::{use_machine, use_machine_history};
+pub use hooks::{use_machine, use_machine_history, use_store};
 // Utility types
 pub use utils::{StateResult, StateError, LogLevel};
 // Compatibility layer
