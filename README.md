@@ -208,14 +208,25 @@ Check out the `/examples` directory for complete applications:
 
 ## 📖 Documentation
 
+For comprehensive documentation, examples, and guides, see the [docs](./docs/) directory.
+
+### 📖 Quick Navigation
+- **[User Guide](./docs/user-guide/)**: Start here for tutorials and examples
+- **[API Reference](./docs/api-reference/)**: Complete API documentation
+- **[Migration Guide](./docs/migration/)**: Upgrade to Leptos 0.8+
+- **[Examples](./docs/examples/)**: Working code samples and patterns
+- **[Contributing](./docs/contributing/)**: How to help improve the project
+
+### 📚 Additional Resources
 - **[API Documentation](https://docs.rs/leptos-state)**: Complete API reference
-- **[Guide Book](./docs/)**: Comprehensive usage guide
-- **[Migration Guide](./docs/migration.md)**: From Redux/MobX patterns
-- **[Performance Tips](./docs/performance.md)**: Optimization strategies
+- **[Migration Guide](./docs/migration/)**: From Redux/MobX patterns
+- **[Performance Tips](./docs/development/)**: Optimization strategies
 
 ## 🧪 Testing
 
-Run the test suite:
+For comprehensive testing information, see the [tests](./tests/) directory.
+
+### 🧪 Quick Test Commands
 
 ```bash
 # Unit tests
@@ -226,7 +237,15 @@ cargo test --test '*'
 
 # WASM tests
 wasm-pack test --headless --chrome
+
+# Playwright tests
+pnpm test:playwright
 ```
+
+### 📋 Test Organization
+- **[Rust Tests](./tests/rust/)**: Unit, integration, and performance tests
+- **[Web Tests](./tests/web/)**: Playwright-based WASM and browser tests
+- **[Test Results](./tests/test-results/)**: Generated reports and metrics
 
 ## 🤝 Contributing
 
