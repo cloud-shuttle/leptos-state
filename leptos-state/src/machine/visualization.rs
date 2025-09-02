@@ -315,14 +315,14 @@ where
             uptime: self.start_time.elapsed(),
         };
 
-        #[cfg(feature = "serde_json")]
+        #[cfg(feature = "serialization")]
         {
             serde_json::to_string_pretty(&diagram)
                 .map_err(|e| StateError::new(&format!("Failed to serialize diagram: {}", e)))
         }
 
-        #[cfg(not(feature = "serde_json"))]
-        Err(StateError::new("JSON export requires serde_json feature"))
+        #[cfg(not(feature = "serialization"))]
+        Err(StateError::new("JSON export requires serialization feature"))
     }
 
     /// Export as SVG format (placeholder)

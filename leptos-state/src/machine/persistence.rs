@@ -321,8 +321,9 @@ where
 
         let serialized = self.serialize_machine(machine, state)?;
 
-        #[cfg(feature = "serde_json")]
+        #[cfg(feature = "serialization")]
         {
+            // Only enable actual serialization when the serialization feature is enabled
             let data = serde_json::to_string(&serialized)?;
 
             // Check size limit
@@ -363,9 +364,9 @@ where
             }
         }
 
-        #[cfg(not(feature = "serde_json"))]
+        #[cfg(not(feature = "serialization"))]
         {
-            return Err(StateError::new("Serialization requires serde_json feature"));
+            return Err(StateError::new("Serialization requires serialization feature"));
         }
     }
 
@@ -395,7 +396,7 @@ where
         };
 
         // Deserialize
-        #[cfg(feature = "serde_json")]
+        #[cfg(feature = "serialization")]
         {
             let serialized: SerializedMachine<C, E> = serde_json::from_str(&data)?;
 
@@ -411,9 +412,9 @@ where
             Ok(state)
         }
 
-        #[cfg(not(feature = "serde_json"))]
+        #[cfg(not(feature = "serialization"))]
         Err(StateError::new(
-            "Deserialization requires serde_json feature",
+            "Deserialization requires serialization feature",
         ))
     }
 
@@ -541,7 +542,7 @@ where
         };
 
         // Calculate checksum
-        #[cfg(feature = "serde_json")]
+        #[cfg(feature = "serialization")]
         {
             let data = serde_json::to_string(&serialized)?;
             let checksum = self.calculate_checksum(&data);
@@ -553,10 +554,10 @@ where
             })
         }
 
-        #[cfg(not(feature = "serde_json"))]
+        #[cfg(not(feature = "serialization"))]
         {
             Err(StateError::new(
-                "Checksum calculation requires serde_json feature",
+                "Checksum calculation requires serialization feature",
             ))
         }
     }
@@ -578,7 +579,7 @@ where
         let mut temp_serialized = serialized.clone();
         temp_serialized.checksum = String::new();
 
-        #[cfg(feature = "serde_json")]
+        #[cfg(feature = "serialization")]
         {
             let data = serde_json::to_string(&temp_serialized)?;
             let expected_checksum = self.calculate_checksum(&data);
@@ -590,9 +591,9 @@ where
             Ok(())
         }
 
-        #[cfg(not(feature = "serde_json"))]
+        #[cfg(not(feature = "serialization"))]
         Err(StateError::new(
-            "Checksum validation requires serde_json feature",
+            "Checksum validation requires serialization feature",
         ))
     }
 
