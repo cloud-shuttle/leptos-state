@@ -47,7 +47,7 @@ impl<A: AsyncStore> ResourceStore<A> {
 /// Hook for using async stores with Resources
 #[cfg(feature = "serde")]
 pub fn use_async_store<A: AsyncStore>(
-    input: impl Fn() -> A::LoaderInput + 'static,
+    _input: impl Fn() -> A::LoaderInput + 'static,
 ) -> (
     ReadSignal<A::State>,
     WriteSignal<A::State>,
@@ -57,24 +57,12 @@ where
     A::LoaderOutput:
         leptos::server_fn::serde::Serialize + for<'de> leptos::server_fn::serde::Deserialize<'de>,
 {
-    // Create the resource for async loading
-    // Note: create_resource API has changed in Leptos 0.8+
-    // For now, we'll provide a placeholder implementation
-    let _resource = {
-        // Placeholder - this would need to be implemented with the correct Leptos 0.8+ API
-        // For now, return a dummy resource
-        todo!("AsyncStore::LoaderInput needs to implement Default or provide a custom input")
-    };
-
     // Create store signals with loading state
     let (state, set_state) = signal(A::loading_state());
 
-    // Update state based on resource status
-    Effect::new(move |_| {
-        // Note: This is a placeholder implementation
-        // The actual resource handling would need to be implemented
-        // with the correct Leptos 0.8+ API
-    });
+    // Note: This is a placeholder implementation
+    // The actual resource handling would need to be implemented
+    // with the correct Leptos 0.8+ API
 
     (
         state,

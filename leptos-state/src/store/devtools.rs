@@ -1,7 +1,7 @@
 //! DevTools integration for debugging and time travel
 
 use super::Store;
-use crate::utils::{StateError, StateResult};
+use crate::utils::StateResult;
 use serde_json::Value;
 use std::collections::VecDeque;
 use std::marker::PhantomData;

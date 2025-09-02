@@ -6,8 +6,8 @@ This state machine was automatically generated.
 
 ## States
 
-- **idle**: State description
 - **counting**: State description
+- **idle**: State description
 
 ## Events
 

@@ -6,11 +6,11 @@ This document provides comprehensive documentation for the state machine.
 
 ## States
 
-### idle
+### counting
 
 State description and behavior.
 
-### counting
+### idle
 
 State description and behavior.
 

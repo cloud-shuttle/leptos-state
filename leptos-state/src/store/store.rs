@@ -65,7 +65,7 @@ where
 
 /// Save state to localStorage
 #[cfg(feature = "persist")]
-pub fn save_to_storage<T>(key: &str, state: &T) -> Result<(), crate::utils::StateError>
+pub fn save_to_storage<T>(_key: &str, _state: &T) -> Result<(), crate::utils::StateError>
 where
     T: serde::Serialize,
 {
