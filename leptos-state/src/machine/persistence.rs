@@ -197,7 +197,7 @@ where
             return Ok(());
         }
 
-        let _serialized = self.serialize_machine(machine, state)?;
+        let serialized = self.serialize_machine(machine, state)?;
 
         #[cfg(feature = "serde_json")]
         {

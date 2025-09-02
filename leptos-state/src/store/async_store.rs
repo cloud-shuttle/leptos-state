@@ -61,9 +61,12 @@ where
     // Note: create_resource API has changed in Leptos 0.7
     // For now, we'll provide a placeholder implementation
     let _resource = {
-        // Placeholder - this would need to be implemented with the correct Leptos 0.7 API
+        // Placeholder - this would need to be implemented with the correct Leptos 0.8+ API
         // For now, return a dummy resource
-        Resource::new(|| A::LoaderInput::default())
+        Resource::new(
+            || A::LoaderInput::default(),
+            |_| async { Ok(A::loading_state()) },
+        )
     };
 
     // Create store signals with loading state
