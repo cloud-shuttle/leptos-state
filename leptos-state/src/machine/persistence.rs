@@ -15,7 +15,7 @@ use std::sync::Mutex;
 #[cfg(feature = "serde_json")]
 use serde_json;
 #[cfg(feature = "serde_yaml")]
-use serde_yaml;
+
 
 /// Trait for serializing state machine data
 pub trait MachineSerialize {
