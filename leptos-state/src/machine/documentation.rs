@@ -535,7 +535,9 @@ where
         }
 
         #[cfg(not(feature = "serialization"))]
-        Err(StateError::new("YAML export requires serialization feature"))
+        Err(StateError::new(
+            "YAML export requires serialization feature",
+        ))
     }
 
     /// Generate custom format documentation
@@ -708,7 +710,10 @@ pub struct GeneratedDocument {
 
 /// Transition information for documentation
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "serialization", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serialization",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct TransitionInfo {
     /// Source state
     pub from: String,
@@ -720,7 +725,10 @@ pub struct TransitionInfo {
 
 /// Documentation data structure
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "serialization", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serialization",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct DocumentationData {
     /// Documentation title
     pub title: String,

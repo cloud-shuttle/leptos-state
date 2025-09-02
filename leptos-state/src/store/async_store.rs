@@ -54,8 +54,7 @@ pub fn use_async_store<A: AsyncStore>(
     Option<Resource<A::LoaderInput, StateResult<A::LoaderOutput>>>,
 )
 where
-    A::LoaderOutput:
-        serde::Serialize + for<'de> serde::Deserialize<'de>,
+    A::LoaderOutput: serde::Serialize + for<'de> serde::Deserialize<'de>,
 {
     // Create store signals with loading state
     let (state, set_state) = signal(A::loading_state());
@@ -96,10 +95,7 @@ impl AsyncStoreActions {
 
 /// Suspense wrapper for async stores
 #[cfg(feature = "serialization")]
-pub fn AsyncStoreProvider<A>(
-    _input: A::LoaderInput,
-    _children: Children,
-) -> impl IntoView
+pub fn AsyncStoreProvider<A>(_input: A::LoaderInput, _children: Children) -> impl IntoView
 where
     A: AsyncStore + 'static,
     A::LoaderInput: Clone + 'static,

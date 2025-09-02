@@ -15,7 +15,7 @@ use crate::machine::documentation::{
 };
 #[cfg(feature = "integration")]
 use crate::machine::integration::{
-    ErrorHandlingStrategy, EventRoutingConfig, IntegrationConfig, IntegrationManager, 
+    ErrorHandlingStrategy, EventRoutingConfig, IntegrationConfig, IntegrationManager,
     MachineIntegrationExt, RetryConfig,
 };
 #[cfg(feature = "performance")]

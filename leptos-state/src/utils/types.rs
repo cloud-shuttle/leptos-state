@@ -1,4 +1,3 @@
-
 use std::fmt;
 use thiserror::Error;
 
@@ -7,7 +6,10 @@ pub type StateResult<T> = Result<T, StateError>;
 
 /// Error types for leptos-state operations
 #[derive(Error, Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serialization", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serialization",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub enum StateError {
     #[error("Store not found: {name}")]
     StoreNotFound { name: String },

@@ -322,7 +322,9 @@ where
         }
 
         #[cfg(not(feature = "serialization"))]
-        Err(StateError::new("JSON export requires serialization feature"))
+        Err(StateError::new(
+            "JSON export requires serialization feature",
+        ))
     }
 
     /// Export as SVG format (placeholder)
@@ -400,7 +402,10 @@ where
         let mut state = serializer.serialize_struct("StateDiagram", 5)?;
         // Note: We can't serialize the machine directly, so we serialize a simplified representation
         state.serialize_field("machine_id", &"machine")?;
-        state.serialize_field("current_state", &self.current_state.as_ref().map(|s| s.value().clone()))?;
+        state.serialize_field(
+            "current_state",
+            &self.current_state.as_ref().map(|s| s.value().clone()),
+        )?;
         state.serialize_field("recent_transitions", &self.recent_transitions)?;
         state.serialize_field("recent_snapshots", &self.recent_snapshots)?;
         state.serialize_field("uptime", &self.uptime)?;
@@ -483,7 +488,8 @@ where
                     }
                 }
 
-                let state_value = state_value.ok_or_else(|| de::Error::missing_field("state_value"))?;
+                let state_value =
+                    state_value.ok_or_else(|| de::Error::missing_field("state_value"))?;
                 let context = context.ok_or_else(|| de::Error::missing_field("context"))?;
                 let timestamp = timestamp.ok_or_else(|| de::Error::missing_field("timestamp"))?;
                 let uptime = uptime.ok_or_else(|| de::Error::missing_field("uptime"))?;

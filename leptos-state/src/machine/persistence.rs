@@ -216,7 +216,8 @@ where
 
                 let version = version.ok_or_else(|| de::Error::missing_field("version"))?;
                 let timestamp = timestamp.ok_or_else(|| de::Error::missing_field("timestamp"))?;
-                let state_value = state_value.ok_or_else(|| de::Error::missing_field("state_value"))?;
+                let state_value =
+                    state_value.ok_or_else(|| de::Error::missing_field("state_value"))?;
                 let context = context.ok_or_else(|| de::Error::missing_field("context"))?;
                 let metadata = metadata.ok_or_else(|| de::Error::missing_field("metadata"))?;
                 let checksum = checksum.ok_or_else(|| de::Error::missing_field("checksum"))?;
@@ -236,7 +237,15 @@ where
 
         deserializer.deserialize_struct(
             "SerializedMachine",
-            &["version", "timestamp", "state_value", "context", "metadata", "checksum", "_phantom"],
+            &[
+                "version",
+                "timestamp",
+                "state_value",
+                "context",
+                "metadata",
+                "checksum",
+                "_phantom",
+            ],
             SerializedMachineVisitor::new(),
         )
     }
@@ -366,7 +375,9 @@ where
 
         #[cfg(not(feature = "serialization"))]
         {
-            return Err(StateError::new("Serialization requires serialization feature"));
+            return Err(StateError::new(
+                "Serialization requires serialization feature",
+            ));
         }
     }
 
