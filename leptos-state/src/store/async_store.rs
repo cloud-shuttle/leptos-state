@@ -1,5 +1,6 @@
 //! Async store integration with Leptos Resources
 
+use leptos::prelude::Resource;
 use leptos::prelude::*;
 
 use crate::store::Store;
@@ -61,7 +62,8 @@ where
     // For now, we'll provide a placeholder implementation
     let _resource = {
         // Placeholder - this would need to be implemented with the correct Leptos 0.7 API
-        todo!("create_resource API needs to be updated for Leptos 0.7")
+        // For now, return a dummy resource
+        Resource::new(|| A::LoaderInput::default())
     };
 
     // Create store signals with loading state
@@ -115,28 +117,13 @@ where
 {
     // Note: create_resource API has changed in Leptos 0.7
     // For now, we'll provide a placeholder implementation
-    let _resource = {
-        // Placeholder - this would need to be implemented with the correct Leptos 0.7 API
-        todo!("create_resource API needs to be updated for Leptos 0.7")
-    };
-
-    let children_clone = children.clone();
+    let initial_state = A::loading_state();
+    provide_context(crate::StoreContext::new(initial_state));
 
     view! {
-        <Suspense fallback=move || view! { <div>"Loading..."</div> }>
-            {move || {
-                _resource.get().map(|result| match result {
-                    Ok(_data) => {
-                        let initial_state = A::loading_state();
-                        provide_context(crate::StoreContext::new(initial_state));
-                        children_clone().into_view()
-                    }
-                    Err(_error) => {
-                        view! { <div>"Error loading data"</div> }.into_view()
-                    }
-                })
-            }}
-        </Suspense>
+        <div>
+            {children()}
+        </div>
     }
 }
 
