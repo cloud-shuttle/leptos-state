@@ -368,7 +368,6 @@ where
 }
 
 /// State diagram representation for export
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct StateDiagram<'a, C: Send + Sync, E> {
     pub machine: &'a Machine<C, E>,
     pub current_state: Option<MachineStateImpl<C>>,
@@ -379,12 +378,135 @@ pub struct StateDiagram<'a, C: Send + Sync, E> {
 
 /// Machine snapshot for time travel
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct MachineSnapshot<C: Send + Sync, E> {
     pub state: MachineStateImpl<C>,
     pub timestamp: u64,
     pub uptime: Duration,
     _phantom: PhantomData<E>,
+}
+
+// Conditional serde implementation for StateDiagram
+#[cfg(feature = "serde")]
+impl<'a, C, E> serde::Serialize for StateDiagram<'a, C, E>
+where
+    C: Send + Sync + serde::Serialize + 'static,
+    E: serde::Serialize + 'static,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut state = serializer.serialize_struct("StateDiagram", 5)?;
+        // Note: We can't serialize the machine directly, so we serialize a simplified representation
+        state.serialize_field("machine_id", &"machine")?;
+        state.serialize_field("current_state", &self.current_state.as_ref().map(|s| s.value().clone()))?;
+        state.serialize_field("recent_transitions", &self.recent_transitions)?;
+        state.serialize_field("recent_snapshots", &self.recent_snapshots)?;
+        state.serialize_field("uptime", &self.uptime)?;
+        state.end()
+    }
+}
+
+// Conditional serde implementation for MachineSnapshot
+#[cfg(feature = "serde")]
+impl<C, E> serde::Serialize for MachineSnapshot<C, E>
+where
+    C: Send + Sync + serde::Serialize + 'static,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut state = serializer.serialize_struct("MachineSnapshot", 4)?;
+        // Note: We can't serialize MachineStateImpl directly, so we serialize a simplified representation
+        state.serialize_field("state_value", &self.state.value())?;
+        state.serialize_field("context", &self.state.context())?;
+        state.serialize_field("timestamp", &self.timestamp)?;
+        state.serialize_field("uptime", &self.uptime)?;
+        state.end()
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de, C, E> serde::Deserialize<'de> for MachineSnapshot<C, E>
+where
+    C: Send + Sync + for<'a> serde::Deserialize<'a>,
+    MachineStateImpl<C>: for<'a> serde::Deserialize<'a>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use serde::de::{self, MapAccess, Visitor};
+        use std::fmt;
+
+        #[derive(Debug)]
+        struct MachineSnapshotVisitor<C, E> {
+            _phantom: std::marker::PhantomData<(C, E)>,
+        }
+
+        impl<C, E> MachineSnapshotVisitor<C, E> {
+            fn new() -> Self {
+                Self {
+                    _phantom: std::marker::PhantomData,
+                }
+            }
+        }
+
+        impl<'de, C, E> Visitor<'de> for MachineSnapshotVisitor<C, E>
+        where
+            C: Send + Sync + for<'a> serde::Deserialize<'a>,
+        {
+            type Value = MachineSnapshot<C, E>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("struct MachineSnapshot")
+            }
+
+            fn visit_map<V>(self, mut map: V) -> Result<MachineSnapshot<C, E>, V::Error>
+            where
+                V: MapAccess<'de>,
+            {
+                let mut state_value = None;
+                let mut context = None;
+                let mut timestamp = None;
+                let mut uptime = None;
+
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        "state_value" => state_value = Some(map.next_value()?),
+                        "context" => context = Some(map.next_value()?),
+                        "timestamp" => timestamp = Some(map.next_value()?),
+                        "uptime" => uptime = Some(map.next_value()?),
+                        _ => {}
+                    }
+                }
+
+                let state_value = state_value.ok_or_else(|| de::Error::missing_field("state_value"))?;
+                let context = context.ok_or_else(|| de::Error::missing_field("context"))?;
+                let timestamp = timestamp.ok_or_else(|| de::Error::missing_field("timestamp"))?;
+                let uptime = uptime.ok_or_else(|| de::Error::missing_field("uptime"))?;
+
+                // Create a simplified MachineStateImpl
+                let state = MachineStateImpl::new(state_value, context);
+
+                Ok(MachineSnapshot {
+                    state,
+                    timestamp,
+                    uptime,
+                    _phantom: PhantomData,
+                })
+            }
+        }
+
+        deserializer.deserialize_struct(
+            "MachineSnapshot",
+            &["state_value", "context", "timestamp", "uptime"],
+            MachineSnapshotVisitor::new(),
+        )
+    }
 }
 
 /// Visualization statistics

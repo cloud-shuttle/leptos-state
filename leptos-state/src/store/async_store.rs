@@ -96,13 +96,12 @@ impl AsyncStoreActions {
 
 /// Suspense wrapper for async stores
 #[cfg(feature = "serde")]
-#[component]
-pub fn AsyncStoreProvider<A: AsyncStore>(
+pub fn AsyncStoreProvider<A>(
     _input: A::LoaderInput,
-    children: Children,
+    _children: Children,
 ) -> impl IntoView
 where
-    A: 'static,
+    A: AsyncStore + 'static,
     A::LoaderInput: Clone + 'static,
     A::LoaderOutput: 'static + leptos::server_fn::serde::Serialize + for<'de> leptos::server_fn::serde::Deserialize<'de>,
 {
@@ -113,7 +112,7 @@ where
 
     view! {
         <div>
-            {children()}
+            <span>Async Store Provider</span>
         </div>
     }
 }

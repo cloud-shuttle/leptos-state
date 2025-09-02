@@ -327,7 +327,7 @@ pub mod collections {
     pub type MachineRegistry<T> = StoreRegistry<T>;
 }
 
-#[cfg(feature = "serde")]
+#[cfg(all(feature = "serde", feature = "serde_json"))]
 mod serde_support {
     use super::StateError;
     use serde::{Deserialize, Serialize};

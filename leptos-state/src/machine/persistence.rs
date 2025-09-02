@@ -102,7 +102,6 @@ impl Default for BackupConfig {
 
 /// Serialized state machine data
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SerializedMachine<C, E> {
     /// Version of the serialization format
     pub version: String,
@@ -117,6 +116,130 @@ pub struct SerializedMachine<C, E> {
     /// Checksum for data integrity
     pub checksum: String,
     _phantom: std::marker::PhantomData<E>,
+}
+
+// Conditional serde implementation
+#[cfg(feature = "serde")]
+impl<C, E> SerializedMachine<C, E>
+where
+    C: serde::Serialize + for<'de> serde::Deserialize<'de>,
+    E: serde::Serialize + for<'de> serde::Deserialize<'de>,
+{
+    // This implementation will only be available when serde feature is enabled
+}
+
+// Manual serde implementation for when the feature is enabled
+#[cfg(feature = "serde")]
+impl<C, E> serde::Serialize for SerializedMachine<C, E>
+where
+    C: serde::Serialize,
+    E: serde::Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut state = serializer.serialize_struct("SerializedMachine", 7)?;
+        state.serialize_field("version", &self.version)?;
+        state.serialize_field("timestamp", &self.timestamp)?;
+        state.serialize_field("state_value", &self.state_value)?;
+        state.serialize_field("context", &self.context)?;
+        state.serialize_field("metadata", &self.metadata)?;
+        state.serialize_field("checksum", &self.checksum)?;
+        state.serialize_field("_phantom", &self._phantom)?;
+        state.end()
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de, C, E> serde::Deserialize<'de> for SerializedMachine<C, E>
+where
+    C: for<'a> serde::Deserialize<'a>,
+    E: for<'a> serde::Deserialize<'a>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use serde::de::{self, Deserializer, MapAccess, Visitor};
+        use std::fmt;
+
+        #[derive(Debug)]
+        struct SerializedMachineVisitor<C, E> {
+            _phantom: std::marker::PhantomData<(C, E)>,
+        }
+
+        impl<C, E> SerializedMachineVisitor<C, E> {
+            fn new() -> Self {
+                Self {
+                    _phantom: std::marker::PhantomData,
+                }
+            }
+        }
+
+        impl<'de, C, E> Visitor<'de> for SerializedMachineVisitor<C, E>
+        where
+            C: for<'a> serde::Deserialize<'a>,
+            E: for<'a> serde::Deserialize<'a>,
+        {
+            type Value = SerializedMachine<C, E>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("struct SerializedMachine")
+            }
+
+            fn visit_map<V>(self, mut map: V) -> Result<SerializedMachine<C, E>, V::Error>
+            where
+                V: MapAccess<'de>,
+            {
+                let mut version = None;
+                let mut timestamp = None;
+                let mut state_value = None;
+                let mut context = None;
+                let mut metadata = None;
+                let mut checksum = None;
+                let mut _phantom = None;
+
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        "version" => version = Some(map.next_value()?),
+                        "timestamp" => timestamp = Some(map.next_value()?),
+                        "state_value" => state_value = Some(map.next_value()?),
+                        "context" => context = Some(map.next_value()?),
+                        "metadata" => metadata = Some(map.next_value()?),
+                        "checksum" => checksum = Some(map.next_value()?),
+                        "_phantom" => _phantom = Some(map.next_value()?),
+                        _ => {}
+                    }
+                }
+
+                let version = version.ok_or_else(|| de::Error::missing_field("version"))?;
+                let timestamp = timestamp.ok_or_else(|| de::Error::missing_field("timestamp"))?;
+                let state_value = state_value.ok_or_else(|| de::Error::missing_field("state_value"))?;
+                let context = context.ok_or_else(|| de::Error::missing_field("context"))?;
+                let metadata = metadata.ok_or_else(|| de::Error::missing_field("metadata"))?;
+                let checksum = checksum.ok_or_else(|| de::Error::missing_field("checksum"))?;
+                let _phantom = _phantom.unwrap_or(std::marker::PhantomData);
+
+                Ok(SerializedMachine {
+                    version,
+                    timestamp,
+                    state_value,
+                    context,
+                    metadata,
+                    checksum,
+                    _phantom,
+                })
+            }
+        }
+
+        deserializer.deserialize_struct(
+            "SerializedMachine",
+            &["version", "timestamp", "state_value", "context", "metadata", "checksum", "_phantom"],
+            SerializedMachineVisitor::new(),
+        )
+    }
 }
 
 /// Machine metadata for persistence

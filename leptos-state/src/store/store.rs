@@ -147,7 +147,7 @@ impl PathSelector {
     }
 
     /// Select a nested field using JSON path notation
-    #[cfg(feature = "serde")]
+    #[cfg(all(feature = "serde", feature = "serde_json"))]
     pub fn select<T>(&self, state: &T) -> Option<serde_json::Value>
     where
         T: serde::Serialize,
@@ -156,7 +156,7 @@ impl PathSelector {
         self.select_from_json(&json)
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(all(feature = "serde", feature = "serde_json"))]
     fn select_from_json(&self, json: &serde_json::Value) -> Option<serde_json::Value> {
         let mut current = json;
 
@@ -231,7 +231,7 @@ where
 }
 
 /// Combine multiple selectors into a single result
-#[cfg(feature = "persist")]
+#[cfg(all(feature = "persist", feature = "serde_json"))]
 pub struct CombinedSelector<T> {
     selectors: Vec<Box<dyn Fn(&T) -> serde_json::Value>>,
 }
