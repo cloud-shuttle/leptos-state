@@ -1,6 +1,6 @@
 [package]
 name = "leptos-state"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 authors = ["Cloud Shuttle <team@cloud-shuttle.com>"]
 description = "A powerful state management library for Leptos applications with state machines, persistence, and DevTools"
