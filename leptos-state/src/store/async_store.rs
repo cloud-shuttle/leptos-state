@@ -182,8 +182,7 @@ pub fn use_infinite_store<I: InfiniteStore>(
     _initial_input: I::PageInput,
 ) -> (ReadSignal<I::State>, WriteSignal<I::State>, Box<dyn Fn()>)
 where
-    I::Page:
-        serde::Serialize + for<'de> serde::Deserialize<'de>,
+    I::Page: serde::Serialize + for<'de> serde::Deserialize<'de>,
 {
     let (_state, _set_state) = signal(I::loading_state());
     let (_loading_more, _set_loading_more) = signal(false);
