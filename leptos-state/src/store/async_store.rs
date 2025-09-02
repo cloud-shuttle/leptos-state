@@ -76,7 +76,11 @@ where
         // with the correct Leptos 0.8+ API
     });
 
-    (state, set_state, None::<Resource<A::LoaderInput, StateResult<A::LoaderOutput>>>)
+    (
+        state,
+        set_state,
+        None::<Resource<A::LoaderInput, StateResult<A::LoaderOutput>>>,
+    )
 }
 
 /// Hook for refetching async store data
@@ -85,8 +89,8 @@ pub fn use_async_store_actions<A: AsyncStore>(
 ) -> AsyncStoreActions {
     AsyncStoreActions {
         refetch: Box::new(move || {
-                    // Note: refetch functionality may need to be implemented differently in Leptos 0.8+
-        // For now, we'll provide a placeholder
+            // Note: refetch functionality may need to be implemented differently in Leptos 0.8+
+            // For now, we'll provide a placeholder
         }),
     }
 }
