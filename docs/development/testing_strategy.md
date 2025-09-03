@@ -1,921 +1,884 @@
-# Testing Strategy: Leptos State Management Library
+# 🧪 Testing Strategy v1.0.0
+## **Comprehensive Testing Approach for Architectural Redesign**
 
-## Executive Summary
+> **Status**: 🚧 In Planning  
+> **Target**: 95%+ Test Coverage with Property-Based Testing  
+> **Focus**: Quality, Performance, and Reliability
 
-This document outlines a comprehensive testing strategy for the Leptos state management library, ensuring reliability, performance, and maintainability across both store (Zustand-inspired) and state machine (XState-inspired) implementations.
+---
 
-## Testing Philosophy
+## 📋 **Overview**
 
-### Core Principles
-1. **Test Pyramid Approach** - More unit tests, fewer integration tests, minimal E2E tests
-2. **Behavior-Driven Testing** - Test public APIs and behaviors, not implementation details
-3. **Fast Feedback Loop** - Tests should run quickly and frequently
-4. **Deterministic Tests** - No flaky tests; all tests must be reproducible
-5. **Documentation Through Tests** - Tests serve as usage examples
+This document outlines the comprehensive testing strategy for the `leptos-state` v1.0.0 architectural redesign. Our goal is to achieve 95%+ test coverage with property-based testing, ensuring the new architecture is robust, performant, and reliable.
 
-### Coverage Goals
-- **Unit Tests:** 95% coverage
-- **Integration Tests:** 80% coverage
-- **Critical Path:** 100% coverage
-- **Overall Target:** 90% coverage
+### **Testing Philosophy**
+- **Test-First Development** - Write tests before implementation
+- **Property-Based Testing** - Use proptest for comprehensive coverage
+- **Performance Testing** - Continuous performance regression detection
+- **Integration Testing** - Test features working together
+- **Migration Testing** - Ensure v0.2.x → v1.0.0 compatibility
 
-## Testing Infrastructure
+---
 
-### Required Dependencies
+## 🎯 **Testing Objectives**
 
+### **Quality Goals**
+- **95%+ Test Coverage** - Comprehensive coverage of all code paths
+- **Zero Compilation Errors** - All feature combinations compile successfully
+- **Performance Regression Prevention** - No performance degradation
+- **Memory Safety** - No memory leaks or undefined behavior
+
+### **Reliability Goals**
+- **Property-Based Testing** - Test invariants and edge cases
+- **Fuzz Testing** - Random input testing for robustness
+- **Stress Testing** - High-load and boundary condition testing
+- **Compatibility Testing** - Ensure backward compatibility where possible
+
+---
+
+## 🏗️ **Testing Architecture**
+
+### **Test Pyramid**
+
+```
+    🔴 E2E Tests (Few)
+    🟡 Integration Tests (Some)
+    🟢 Unit Tests (Many)
+    🟦 Property Tests (Comprehensive)
+```
+
+### **Test Categories**
+
+#### **1. Unit Tests**
+- **Purpose**: Test individual functions and methods
+- **Scope**: Single module or function
+- **Speed**: Fast execution (< 1ms per test)
+- **Coverage**: 100% of public API
+
+#### **2. Integration Tests**
+- **Purpose**: Test feature interactions
+- **Scope**: Multiple modules working together
+- **Speed**: Medium execution (< 10ms per test)
+- **Coverage**: All feature combinations
+
+#### **3. Property-Based Tests**
+- **Purpose**: Test invariants and edge cases
+- **Scope**: Data structure properties and algorithms
+- **Speed**: Variable execution (1-100ms per test)
+- **Coverage**: Comprehensive edge case coverage
+
+#### **4. Performance Tests**
+- **Purpose**: Benchmark and detect regressions
+- **Scope**: Critical performance paths
+- **Speed**: Longer execution (100ms-1s per test)
+- **Coverage**: Performance-critical operations
+
+#### **5. E2E Tests**
+- **Purpose**: Test complete user workflows
+- **Scope**: Full application scenarios
+- **Speed**: Slow execution (1-10s per test)
+- **Coverage**: Critical user paths
+
+---
+
+## 🧪 **Testing Tools and Frameworks**
+
+### **Core Testing Framework**
 ```toml
 [dev-dependencies]
-# Core testing
-leptos_test = "0.1"
-wasm-bindgen-test = "0.3"
-pretty_assertions = "1.4"
+# Standard Rust testing
+tokio-test = "0.4"  # Async testing support
 
 # Property-based testing
-proptest = "1.4"
-quickcheck = "1.0"
+proptest = "1.4"    # Property-based testing
+proptest-derive = "0.4"  # Derive macros for proptest
 
-# Async testing
-tokio-test = "0.4"
-async-std = { version = "1.12", features = ["attributes"] }
+# Performance testing
+criterion = "0.5"   # Benchmarking framework
+iai = "0.1"         # Callgrind-based benchmarking
 
-# Benchmarking
-criterion = { version = "0.5", features = ["html_reports"] }
-divan = "0.1"
-
-# Mocking
-mockall = "0.12"
-fake = "2.9"
-
-# Test utilities
-rstest = "0.18"
-test-case = "3.1"
-insta = "1.34"
-
-# WASM testing
-wasm-pack-test = "0.3"
-console_error_panic_hook = "0.1"
-
-# Code coverage
-cargo-tarpaulin = "0.27"
+# Fuzz testing
+arbitrary = "1.4"   # Arbitrary trait for fuzzing
 ```
 
-### Test Organization
+### **Testing Utilities**
+```toml
+[dev-dependencies]
+# Test data generation
+fake = "2.9"        # Fake data generation
+rand = "0.8"        # Random number generation
 
-```
-tests/
-├── unit/                   # Unit tests
-│   ├── store/
-│   │   ├── creation.rs
-│   │   ├── updates.rs
-│   │   ├── selectors.rs
-│   │   └── middleware.rs
-│   ├── machine/
-│   │   ├── states.rs
-│   │   ├── transitions.rs
-│   │   ├── guards.rs
-│   │   └── actions.rs
-│   └── hooks/
-│       ├── use_store.rs
-│       └── use_machine.rs
-├── integration/            # Integration tests
-│   ├── store_with_leptos.rs
-│   ├── machine_with_leptos.rs
-│   ├── ssr_hydration.rs
-│   └── persistence.rs
-├── e2e/                   # End-to-end tests
-│   ├── todo_app.rs
-│   ├── form_wizard.rs
-│   └── real_time_sync.rs
-├── performance/           # Performance tests
-│   ├── benchmarks.rs
-│   ├── memory_usage.rs
-│   └── stress_tests.rs
-├── property/              # Property-based tests
-│   ├── store_invariants.rs
-│   └── machine_invariants.rs
-└── fixtures/              # Test fixtures and utilities
-    ├── mod.rs
-    ├── mock_stores.rs
-    └── test_machines.rs
+# Assertion libraries
+assert2 = "0.3"     # Enhanced assertions
+expect-test = "1.4" # Snapshot testing
+
+# Mocking and stubbing
+mockall = "0.12"    # Mocking framework
 ```
 
-## Testing Levels
+---
 
-### Level 1: Unit Tests
+## 📝 **Unit Testing Strategy**
 
-#### Store Unit Tests
+### **Core State Machine Tests**
 
 ```rust
-// tests/unit/store/creation.rs
-use leptos_state::*;
-use leptos_test::*;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use proptest::prelude::*;
 
-#[derive(Clone, PartialEq, Debug)]
-struct TestState {
-    count: i32,
-    name: String,
-}
-
-#[test]
-fn create_store_with_initial_state() {
-    create_runtime();
-    
-    create_store!(TestStore, TestState, TestState {
-        count: 0,
-        name: "test".to_string()
-    });
-    
-    let (state, _) = TestStore::use_store();
-    assert_eq!(state.get().count, 0);
-    assert_eq!(state.get().name, "test");
-}
-
-#[test]
-fn store_updates_trigger_reactivity() {
-    create_runtime();
-    
-    let (state, set_state) = create_signal(TestState {
-        count: 0,
-        name: "test".to_string()
-    });
-    
-    let effect_count = create_rw_signal(0);
-    
-    create_effect(move |_| {
-        state.get();
-        effect_count.update(|c| *c += 1);
-    });
-    
-    set_state.update(|s| s.count += 1);
-    
-    assert_eq!(effect_count.get(), 2); // Initial + update
-}
-
-#[rstest]
-#[case(0, 1, 1)]
-#[case(5, 3, 8)]
-#[case(-1, 1, 0)]
-fn store_arithmetic_operations(
-    #[case] initial: i32,
-    #[case] increment: i32,
-    #[case] expected: i32,
-) {
-    create_runtime();
-    
-    let (state, set_state) = create_signal(TestState {
-        count: initial,
-        name: "test".to_string()
-    });
-    
-    set_state.update(|s| s.count += increment);
-    assert_eq!(state.get().count, expected);
-}
-```
-
-#### Selector Tests
-
-```rust
-// tests/unit/store/selectors.rs
-#[test]
-fn selector_memoization() {
-    create_runtime();
-    
-    let (state, set_state) = create_signal(TestState {
-        count: 10,
-        name: "test".to_string()
-    });
-    
-    let computation_count = create_rw_signal(0);
-    
-    let doubled = create_memo(move |_| {
-        computation_count.update(|c| *c += 1);
-        state.get().count * 2
-    });
-    
-    assert_eq!(doubled.get(), 20);
-    assert_eq!(computation_count.get(), 1);
-    
-    // Update name, shouldn't recompute
-    set_state.update(|s| s.name = "new".to_string());
-    assert_eq!(computation_count.get(), 1);
-    
-    // Update count, should recompute
-    set_state.update(|s| s.count = 15);
-    assert_eq!(doubled.get(), 30);
-    assert_eq!(computation_count.get(), 2);
-}
-
-#[test]
-fn multiple_selectors_independence() {
-    create_runtime();
-    
-    let (state, set_state) = create_signal(TestState {
-        count: 10,
-        name: "test".to_string()
-    });
-    
-    let count_selector = create_selector(|s: &TestState| s.count);
-    let name_selector = create_selector(|s: &TestState| s.name.clone());
-    
-    let count_updates = track_updates(count_selector);
-    let name_updates = track_updates(name_selector);
-    
-    set_state.update(|s| s.count += 1);
-    
-    assert_eq!(count_updates.get(), 1);
-    assert_eq!(name_updates.get(), 0);
-}
-```
-
-#### State Machine Unit Tests
-
-```rust
-// tests/unit/machine/transitions.rs
-#[test]
-fn simple_state_transition() {
-    let machine = MachineBuilder::new()
-        .state("idle")
-            .on("START", "running")
-        .state("running")
-            .on("STOP", "idle")
-        .initial("idle")
-        .build();
-    
-    let state = machine.initial();
-    assert_eq!(state.value(), "idle");
-    
-    let state = machine.transition(state, "START");
-    assert_eq!(state.value(), "running");
-    
-    let state = machine.transition(state, "STOP");
-    assert_eq!(state.value(), "idle");
-}
-
-#[test]
-fn guarded_transition_blocked() {
-    let machine = MachineBuilder::new()
-        .state("locked")
-            .on("UNLOCK", "unlocked")
-                .guard(|ctx: &Context| ctx.has_key)
-        .state("unlocked")
-        .initial("locked")
-        .build();
-    
-    let state = machine.initial_with_context(Context { has_key: false });
-    let state = machine.transition(state, "UNLOCK");
-    
-    assert_eq!(state.value(), "locked"); // Should not transition
-}
-
-#[test]
-fn hierarchical_state_transitions() {
-    let machine = MachineBuilder::new()
-        .state("power")
-            .initial("off")
-            .state("off")
-                .on("POWER", "power.on")
-            .state("on")
-                .initial("idle")
-                .state("idle")
-                    .on("WORK", "power.on.working")
-                .state("working")
-                    .on("DONE", "power.on.idle")
-                .on("POWER", "power.off")
-        .initial("power.off")
-        .build();
-    
-    let state = machine.initial();
-    assert!(state.matches("power.off"));
-    
-    let state = machine.transition(state, "POWER");
-    assert!(state.matches("power.on.idle"));
-}
-```
-
-### Level 2: Integration Tests
-
-#### Leptos Component Integration
-
-```rust
-// tests/integration/store_with_leptos.rs
-use leptos::*;
-use leptos_test::*;
-
-#[component]
-fn CounterComponent() -> impl IntoView {
-    let (state, set_state) = use_store::<CounterStore>();
-    
-    let increment = move |_| {
-        set_state.update(|s| s.count += 1);
-    };
-    
-    view! {
-        <div>
-            <span id="count">{move || state.get().count}</span>
-            <button id="increment" on:click=increment>"+"</button>
-        </div>
-    }
-}
-
-#[wasm_bindgen_test]
-async fn component_updates_on_store_change() {
-    let doc = mount_component(|| view! { <CounterComponent /> });
-    
-    let count = doc.query_selector("#count").unwrap();
-    assert_eq!(count.text_content(), "0");
-    
-    let button = doc.query_selector("#increment").unwrap();
-    button.click();
-    
-    await_tick().await;
-    
-    assert_eq!(count.text_content(), "1");
-}
-
-#[wasm_bindgen_test]
-async fn multiple_components_share_store() {
-    let doc = mount_component(|| view! {
-        <div>
-            <CounterComponent />
-            <CounterComponent />
-        </div>
-    });
-    
-    let buttons = doc.query_selector_all("#increment");
-    let counts = doc.query_selector_all("#count");
-    
-    buttons[0].click();
-    await_tick().await;
-    
-    assert_eq!(counts[0].text_content(), "1");
-    assert_eq!(counts[1].text_content(), "1");
-}
-```
-
-#### SSR and Hydration Tests
-
-```rust
-// tests/integration/ssr_hydration.rs
-#[tokio::test]
-async fn store_hydrates_correctly() {
-    let initial_state = TestState {
-        count: 42,
-        name: "SSR".to_string()
-    };
-    
-    // Server side
-    let ssr_html = leptos::ssr::render_to_string(move || {
-        provide_store(initial_state.clone());
-        view! { <CounterComponent /> }
-    });
-    
-    assert!(ssr_html.contains("42"));
-    assert!(ssr_html.contains("SSR"));
-    
-    // Client side hydration
-    let hydrated = hydrate_from_html(&ssr_html, move || {
-        provide_store(initial_state.clone());
-        view! { <CounterComponent /> }
-    });
-    
-    let (state, _) = use_store::<TestStore>();
-    assert_eq!(state.get().count, 42);
-    assert_eq!(state.get().name, "SSR");
-}
-
-#[tokio::test]
-async fn machine_state_preserved_during_hydration() {
-    let machine = create_test_machine();
-    let initial_state = machine.transition(machine.initial(), "START");
-    
-    let ssr_html = leptos::ssr::render_to_string(move || {
-        provide_machine(machine.clone(), initial_state.clone());
-        view! { <MachineComponent /> }
-    });
-    
-    let hydrated = hydrate_from_html(&ssr_html, move || {
-        provide_machine(machine.clone(), initial_state.clone());
-        view! { <MachineComponent /> }
-    });
-    
-    let handle = use_machine::<TestMachine>();
-    assert!(handle.state.get().matches("running"));
-}
-```
-
-### Level 3: Property-Based Tests
-
-```rust
-// tests/property/store_invariants.rs
-use proptest::prelude::*;
-
-proptest! {
     #[test]
-    fn store_always_equals_itself(
-        count in any::<i32>(),
-        name in ".*"
-    ) {
-        create_runtime();
+    fn test_machine_creation() {
+        let machine = MachineBuilder::new()
+            .state("idle")
+            .on(TestEvent::Start, "active")
+            .state("active")
+            .on(TestEvent::Stop, "idle")
+            .initial("idle")
+            .build()
+            .expect("Failed to build machine");
         
-        let state = TestState { count, name: name.clone() };
-        let (signal, _) = create_signal(state.clone());
-        
-        assert_eq!(signal.get(), state);
+        assert_eq!(machine.initial_state().value(), "idle");
     }
-    
-    #[test]
-    fn selector_output_consistent_with_input(
-        states in prop::collection::vec(
-            (any::<i32>(), ".*"),
-            1..100
-        )
-    ) {
-        create_runtime();
-        
-        for (count, name) in states {
-            let state = TestState { count, name };
-            let (signal, set_signal) = create_signal(state.clone());
-            
-            let doubled = create_memo(move |_| signal.get().count * 2);
-            
-            set_signal.set(state.clone());
-            assert_eq!(doubled.get(), count * 2);
-        }
-    }
-    
-    #[test]
-    fn middleware_preserves_state_validity(
-        initial_count in 0i32..1000,
-        operations in prop::collection::vec(
-            prop_oneof![
-                Just(Operation::Increment),
-                Just(Operation::Decrement),
-                Just(Operation::Reset),
-            ],
-            0..50
-        )
-    ) {
-        create_runtime();
-        
-        let (state, set_state) = create_signal(TestState {
-            count: initial_count,
-            name: "test".to_string()
-        });
-        
-        // Apply validation middleware
-        let middleware = ValidationMiddleware::new(|s: &TestState| {
-            s.count >= 0 && s.count <= 1000
-        });
-        
-        for op in operations {
-            let result = middleware.process(state.get(), op);
-            prop_assert!(result.count >= 0);
-            prop_assert!(result.count <= 1000);
-        }
-    }
-}
-```
 
-```rust
-// tests/property/machine_invariants.rs
-proptest! {
     #[test]
-    fn machine_always_in_valid_state(
-        events in prop::collection::vec(
-            prop_oneof![
-                Just("START"),
-                Just("STOP"),
-                Just("PAUSE"),
-                Just("RESUME"),
-            ],
-            0..100
-        )
-    ) {
+    fn test_state_transitions() {
         let machine = create_test_machine();
-        let valid_states = ["idle", "running", "paused"];
+        let mut state = machine.initial_state();
         
-        let mut state = machine.initial();
+        // Test valid transitions
+        state = machine.transition(&state, TestEvent::Start);
+        assert_eq!(state.value(), "active");
         
-        for event in events {
-            state = machine.transition(state, event);
-            prop_assert!(
-                valid_states.iter().any(|&s| state.matches(s)),
-                "Invalid state: {:?}",
-                state.value()
-            );
-        }
+        state = machine.transition(&state, TestEvent::Stop);
+        assert_eq!(state.value(), "idle");
     }
-    
+
     #[test]
-    fn deterministic_transitions(
-        seed_state in select(&["idle", "running", "paused"]),
-        event in select(&["START", "STOP", "PAUSE", "RESUME"])
-    ) {
+    fn test_invalid_transitions() {
         let machine = create_test_machine();
-        let state = create_state_from_string(seed_state);
+        let state = machine.initial_state();
         
-        let result1 = machine.transition(state.clone(), event);
-        let result2 = machine.transition(state.clone(), event);
-        
-        prop_assert_eq!(result1, result2);
+        // Test invalid transitions
+        let result = machine.try_transition(&state, TestEvent::Invalid);
+        assert!(result.is_err());
     }
-}
-```
 
-### Level 4: Performance Tests
-
-```rust
-// tests/performance/benchmarks.rs
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
-
-fn bench_store_creation(c: &mut Criterion) {
-    c.bench_function("create_store", |b| {
-        b.iter(|| {
-            create_runtime();
-            create_store!(BenchStore, TestState, TestState {
-                count: black_box(0),
-                name: black_box("bench".to_string())
-            });
-        });
-    });
-}
-
-fn bench_store_update(c: &mut Criterion) {
-    create_runtime();
-    let (_, set_state) = create_signal(TestState {
-        count: 0,
-        name: "bench".to_string()
-    });
-    
-    c.bench_function("store_update", |b| {
-        b.iter(|| {
-            set_state.update(|s| s.count = black_box(s.count + 1));
-        });
-    });
-}
-
-fn bench_selector_computation(c: &mut Criterion) {
-    create_runtime();
-    
-    let (state, set_state) = create_signal(TestState {
-        count: 0,
-        name: "bench".to_string()
-    });
-    
-    let _selector = create_memo(move |_| state.get().count * 2);
-    
-    c.bench_function("selector_computation", |b| {
-        b.iter(|| {
-            set_state.update(|s| s.count = black_box(s.count + 1));
-        });
-    });
-}
-
-fn bench_machine_transition(c: &mut Criterion) {
-    let machine = create_complex_machine(); // 50+ states
-    let state = machine.initial();
-    
-    c.bench_function("machine_transition", |b| {
-        b.iter(|| {
-            machine.transition(black_box(&state), black_box("EVENT"));
-        });
-    });
-}
-
-criterion_group!(
-    benches,
-    bench_store_creation,
-    bench_store_update,
-    bench_selector_computation,
-    bench_machine_transition
-);
-criterion_main!(benches);
-```
-
-```rust
-// tests/performance/memory_usage.rs
-#[test]
-fn no_memory_leaks_in_store_lifecycle() {
-    let initial_memory = get_memory_usage();
-    
-    for _ in 0..10000 {
-        create_runtime();
-        let (state, set_state) = create_signal(TestState {
-            count: 0,
-            name: "test".to_string()
-        });
-        
-        for _ in 0..100 {
-            set_state.update(|s| s.count += 1);
+    // Property-based tests
+    proptest! {
+        #[test]
+        fn test_transition_properties(
+            events in prop::collection::vec(any::<TestEvent>(), 0..100)
+        ) {
+            let machine = create_test_machine();
+            let mut state = machine.initial_state();
+            
+            for event in events {
+                if machine.can_transition(&state, event.clone()) {
+                    state = machine.transition(&state, event);
+                    assert!(machine.is_valid_state(&state));
+                }
+            }
         }
-        
-        drop(state);
-        drop(set_state);
     }
-    
-    let final_memory = get_memory_usage();
-    assert!(final_memory - initial_memory < 1_000_000); // Less than 1MB growth
-}
-
-#[test]
-fn subscription_cleanup() {
-    create_runtime();
-    
-    let (state, _) = create_signal(TestState::default());
-    let mut subscriptions = Vec::new();
-    
-    for _ in 0..1000 {
-        let handle = create_effect(move |_| {
-            state.get();
-        });
-        subscriptions.push(handle);
-    }
-    
-    let with_subs = get_memory_usage();
-    
-    for handle in subscriptions {
-        handle.dispose();
-    }
-    
-    let without_subs = get_memory_usage();
-    assert!(with_subs > without_subs);
 }
 ```
 
-### Level 5: Stress Tests
+### **Store Management Tests**
 
 ```rust
-// tests/performance/stress_tests.rs
-#[tokio::test(flavor = "multi_thread")]
-async fn concurrent_store_updates() {
-    create_runtime();
-    
-    let (state, set_state) = create_signal(AtomicState {
-        counter: Arc::new(AtomicI32::new(0))
-    });
-    
-    let mut handles = vec![];
-    
-    for _ in 0..100 {
-        let set_state = set_state.clone();
-        let handle = tokio::spawn(async move {
-            for _ in 0..1000 {
-                set_state.update(|s| {
-                    s.counter.fetch_add(1, Ordering::SeqCst);
-                });
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use proptest::prelude::*;
+
+    #[test]
+    fn test_store_creation() {
+        let store = TestStore::create();
+        assert_eq!(store.count, 0);
+        assert_eq!(store.name, "Default");
+    }
+
+    #[test]
+    fn test_store_updates() {
+        let mut store = TestStore::create();
+        
+        store.increment();
+        assert_eq!(store.count, 1);
+        
+        store.set_name("New Name".to_string());
+        assert_eq!(store.name, "New Name");
+    }
+
+    #[test]
+    fn test_store_reactivity() {
+        let (state, set_state) = create_test_store();
+        
+        // Test initial state
+        assert_eq!(state.get().count, 0);
+        
+        // Test state updates
+        set_state.update(|s| s.count = 42);
+        assert_eq!(state.get().count, 42);
+    }
+
+    proptest! {
+        #[test]
+        fn test_store_properties(
+            count in 0..1000i32,
+            name in prop::string::string_regex(".*").unwrap()
+        ) {
+            let mut store = TestStore::create();
+            store.count = count;
+            store.name = name.clone();
+            
+            assert_eq!(store.count, count);
+            assert_eq!(store.name, name);
+        }
+    }
+}
+```
+
+---
+
+## 🔗 **Integration Testing Strategy**
+
+### **Feature Combination Tests**
+
+```rust
+#[cfg(test)]
+mod integration_tests {
+    use super::*;
+
+    #[test]
+    fn test_persistence_with_visualization() {
+        // Test that persistence and visualization work together
+        let machine = MachineBuilder::new()
+            .state("idle")
+            .on(TestEvent::Start, "active")
+            .initial("idle")
+            .build()
+            .expect("Failed to build machine");
+        
+        // Test persistence
+        #[cfg(feature = "persist")]
+        {
+            let persistent_machine = machine
+                .with_persistence(PersistenceConfig::default())
+                .expect("Failed to add persistence");
+            
+            // Test visualization
+            #[cfg(feature = "visualization")]
+            {
+                let diagram = persistent_machine.generate_mermaid();
+                assert!(!diagram.is_empty());
+            }
+        }
+    }
+
+    #[test]
+    fn test_all_features_together() {
+        // Test that all features work together
+        let machine = MachineBuilder::new()
+            .state("idle")
+            .on(TestEvent::Start, "active")
+            .initial("idle")
+            .build()
+            .expect("Failed to build machine");
+        
+        // Add all features
+        let enhanced_machine = machine
+            .with_persistence(PersistenceConfig::default())
+            .expect("Failed to add persistence")
+            .with_visualization()
+            .expect("Failed to add visualization")
+            .with_testing()
+            .expect("Failed to add testing");
+        
+        // Verify all features work
+        assert!(enhanced_machine.has_persistence());
+        assert!(enhanced_machine.has_visualization());
+        assert!(enhanced_machine.has_testing());
+    }
+}
+```
+
+### **Leptos Integration Tests**
+
+```rust
+#[cfg(test)]
+mod leptos_integration_tests {
+    use super::*;
+    use leptos::*;
+
+    #[test]
+    fn test_hooks_integration() {
+        // Test that hooks work correctly with Leptos
+        let app = create_app(|| {
+            let (state, set_state) = use_store::<TestStore>();
+            
+            let increment = move |_| {
+                set_state.update(|s| s.count += 1);
+            };
+            
+            view! {
+                <div>
+                    <span>"Count: " {move || state.get().count}</span>
+                    <button on:click=increment>"Increment"</button>
+                </div>
             }
         });
-        handles.push(handle);
+        
+        // Test component rendering and interactions
+        // This would use a testing framework like wasm-bindgen-test
     }
-    
-    futures::future::join_all(handles).await;
-    
-    assert_eq!(
-        state.get().counter.load(Ordering::SeqCst),
-        100_000
+
+    #[test]
+    fn test_ssr_integration() {
+        // Test server-side rendering integration
+        let machine = create_test_machine();
+        let html = machine.render_to_string();
+        
+        assert!(html.contains("idle"));
+        assert!(html.contains("active"));
+    }
+}
+```
+
+---
+
+## 🔄 **Property-Based Testing Strategy**
+
+### **State Machine Properties**
+
+```rust
+#[cfg(test)]
+mod property_tests {
+    use super::*;
+    use proptest::prelude::*;
+
+    // Test that state machines maintain invariants
+    proptest! {
+        #[test]
+        fn test_state_machine_invariants(
+            events in prop::collection::vec(any::<TestEvent>(), 0..1000)
+        ) {
+            let machine = create_test_machine();
+            let mut state = machine.initial_state();
+            
+            for event in events {
+                if machine.can_transition(&state, event.clone()) {
+                    let new_state = machine.transition(&state, event);
+                    
+                    // Invariant: new state must be valid
+                    assert!(machine.is_valid_state(&new_state));
+                    
+                    // Invariant: state must be reachable
+                    assert!(machine.is_reachable(&new_state));
+                    
+                    state = new_state;
+                }
+            }
+        }
+    }
+
+    // Test that state machines are deterministic
+    proptest! {
+        #[test]
+        fn test_deterministic_transitions(
+            events in prop::collection::vec(any::<TestEvent>(), 0..100)
+        ) {
+            let machine = create_test_machine();
+            let mut state1 = machine.initial_state();
+            let mut state2 = machine.initial_state();
+            
+            for event in events {
+                if machine.can_transition(&state1, event.clone()) {
+                    state1 = machine.transition(&state1, event.clone());
+                    state2 = machine.transition(&state2, event);
+                    
+                    // Invariant: same input must produce same output
+                    assert_eq!(state1, state2);
+                }
+            }
+        }
+    }
+
+    // Test that state machines are finite
+    proptest! {
+        #[test]
+        fn test_finite_state_space(
+            events in prop::collection::vec(any::<TestEvent>(), 0..1000)
+        ) {
+            let machine = create_test_machine();
+            let mut state = machine.initial_state();
+            let mut visited_states = std::collections::HashSet::new();
+            
+            visited_states.insert(state.clone());
+            
+            for event in events {
+                if machine.can_transition(&state, event.clone()) {
+                    state = machine.transition(&state, event);
+                    visited_states.insert(state.clone());
+                    
+                    // Invariant: number of states must be finite
+                    assert!(visited_states.len() <= machine.state_count());
+                }
+            }
+        }
+    }
+}
+```
+
+### **Store Properties**
+
+```rust
+#[cfg(test)]
+mod store_property_tests {
+    use super::*;
+    use proptest::prelude::*;
+
+    // Test that stores maintain consistency
+    proptest! {
+        #[test]
+        fn test_store_consistency(
+            operations in prop::collection::vec(any::<StoreOperation>(), 0..100)
+        ) {
+            let mut store = TestStore::create();
+            let mut expected_count = 0;
+            let mut expected_name = "Default".to_string();
+            
+            for operation in operations {
+                match operation {
+                    StoreOperation::Increment => {
+                        store.increment();
+                        expected_count += 1;
+                    }
+                    StoreOperation::SetName(name) => {
+                        store.set_name(name.clone());
+                        expected_name = name;
+                    }
+                    StoreOperation::Reset => {
+                        store.reset();
+                        expected_count = 0;
+                        expected_name = "Default".to_string();
+                    }
+                }
+                
+                // Invariant: store state must match expected state
+                assert_eq!(store.count, expected_count);
+                assert_eq!(store.name, expected_name);
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+enum StoreOperation {
+    Increment,
+    SetName(String),
+    Reset,
+}
+
+impl Arbitrary for StoreOperation {
+    type Parameters = ();
+    type Strategy = BoxedStrategy<Self>;
+
+    fn arbitrary_with(_: Self::Parameters) -> Self::Strategy {
+        prop_oneof![
+            Just(StoreOperation::Increment),
+            any::<String>().prop_map(StoreOperation::SetName),
+            Just(StoreOperation::Reset),
+        ]
+        .boxed()
+    }
+}
+```
+
+---
+
+## ⚡ **Performance Testing Strategy**
+
+### **Benchmarking Framework**
+
+```rust
+#[cfg(test)]
+mod benchmarks {
+    use super::*;
+    use criterion::{black_box, criterion_group, criterion_main, Criterion};
+
+    fn benchmark_state_transitions(c: &mut Criterion) {
+        let machine = create_test_machine();
+        let mut state = machine.initial_state();
+        
+        c.bench_function("state_transitions", |b| {
+            b.iter(|| {
+                let event = TestEvent::Start;
+                if machine.can_transition(&state, event.clone()) {
+                    state = black_box(machine.transition(&state, event));
+                }
+            });
+        });
+    }
+
+    fn benchmark_store_updates(c: &mut Criterion) {
+        let mut store = TestStore::create();
+        
+        c.bench_function("store_updates", |b| {
+            b.iter(|| {
+                store.increment();
+                store.set_name("Benchmark".to_string());
+            });
+        });
+    }
+
+    fn benchmark_machine_building(c: &mut Criterion) {
+        c.bench_function("machine_building", |b| {
+            b.iter(|| {
+                let _machine = MachineBuilder::new()
+                    .state("idle")
+                    .on(TestEvent::Start, "active")
+                    .state("active")
+                    .on(TestEvent::Stop, "idle")
+                    .initial("idle")
+                    .build()
+                    .expect("Failed to build");
+            });
+        });
+    }
+
+    criterion_group!(
+        benches,
+        benchmark_state_transitions,
+        benchmark_store_updates,
+        benchmark_machine_building
     );
+    criterion_main!(benches);
 }
+```
 
-#[test]
-fn rapid_machine_transitions() {
-    let machine = create_test_machine();
-    let mut state = machine.initial();
-    
-    let start = Instant::now();
-    
-    for _ in 0..1_000_000 {
-        state = machine.transition(state, "START");
-        state = machine.transition(state, "STOP");
+### **Performance Regression Testing**
+
+```rust
+#[cfg(test)]
+mod performance_tests {
+    use super::*;
+    use std::time::Instant;
+
+    #[test]
+    fn test_state_transition_performance() {
+        let machine = create_test_machine();
+        let mut state = machine.initial_state();
+        let events = generate_test_events(10000);
+        
+        let start = Instant::now();
+        
+        for event in events {
+            if machine.can_transition(&state, event.clone()) {
+                state = machine.transition(&state, event);
+            }
+        }
+        
+        let duration = start.elapsed();
+        
+        // Performance requirement: 10,000 transitions in < 1ms
+        assert!(duration.as_micros() < 1000);
     }
-    
-    let duration = start.elapsed();
-    assert!(duration < Duration::from_secs(1)); // Should complete in under 1 second
+
+    #[test]
+    fn test_memory_usage() {
+        let machine = create_test_machine();
+        
+        // Test that memory usage is reasonable
+        let size = std::mem::size_of_val(&machine);
+        
+        // Memory requirement: < 1KB for basic machine
+        assert!(size < 1024);
+    }
 }
 ```
 
-## Testing Utilities
+---
 
-### Custom Test Helpers
+## 🧹 **Fuzz Testing Strategy**
+
+### **Input Fuzzing**
 
 ```rust
-// tests/fixtures/mod.rs
-pub fn create_runtime() -> RuntimeHandle {
-    leptos::create_runtime()
-}
+#[cfg(test)]
+mod fuzz_tests {
+    use super::*;
+    use arbitrary::{Arbitrary, Unstructured};
 
-pub fn track_updates<T>(signal: ReadSignal<T>) -> RwSignal<usize> {
-    let counter = create_rw_signal(0);
-    create_effect(move |_| {
-        signal.get();
-        counter.update(|c| *c += 1);
-    });
-    counter
-}
+    #[derive(Debug)]
+    struct FuzzInput {
+        events: Vec<TestEvent>,
+        context: TestContext,
+    }
 
-pub async fn await_tick() {
-    tokio::time::sleep(Duration::from_millis(10)).await;
-}
+    impl Arbitrary for FuzzInput {
+        fn arbitrary(u: &mut Unstructured) -> arbitrary::Result<Self> {
+            let events = u.arbitrary()?;
+            let context = u.arbitrary()?;
+            
+            Ok(FuzzInput { events, context })
+        }
+    }
 
-#[macro_export]
-macro_rules! assert_state_matches {
-    ($machine:expr, $pattern:expr) => {
-        assert!(
-            $machine.matches($pattern),
-            "State {:?} does not match pattern {}",
-            $machine.value(),
-            $pattern
-        );
-    };
+    #[test]
+    fn test_fuzz_state_machine() {
+        let machine = create_test_machine();
+        
+        // Generate random inputs and test for crashes
+        let mut u = Unstructured::new(&[0u8; 1000]);
+        
+        for _ in 0..1000 {
+            if let Ok(input) = FuzzInput::arbitrary(&mut u) {
+                let mut state = machine.initial_state();
+                
+                for event in input.events {
+                    if machine.can_transition(&state, event.clone()) {
+                        state = machine.transition(&state, event);
+                        
+                        // Should not crash
+                        assert!(machine.is_valid_state(&state));
+                    }
+                }
+            }
+        }
+    }
 }
 ```
 
-### Mock Implementations
+---
+
+## 🔍 **Migration Testing Strategy**
+
+### **v0.2.x Compatibility Tests**
 
 ```rust
-// tests/fixtures/mock_stores.rs
-use mockall::*;
+#[cfg(test)]
+mod migration_tests {
+    use super::*;
 
-#[automock]
-pub trait StoreBackend {
-    fn get(&self) -> String;
-    fn set(&mut self, value: String);
-}
+    #[test]
+    fn test_v0_2_x_compatibility() {
+        // Test that v0.2.x patterns still work
+        let machine = MachineBuilder::new()
+            .state("idle")
+            .on(TestEvent::Start, "active")
+            .initial("idle")
+            .build()
+            .expect("Failed to build");
+        
+        // Test basic functionality
+        let mut state = machine.initial_state();
+        assert_eq!(state.value(), "idle");
+        
+        state = machine.transition(&state, TestEvent::Start);
+        assert_eq!(state.value(), "active");
+    }
 
-pub fn create_mock_store() -> MockStoreBackend {
-    let mut mock = MockStoreBackend::new();
-    mock.expect_get()
-        .returning(|| "mock_value".to_string());
-    mock.expect_set()
-        .returning(|_| ());
-    mock
+    #[test]
+    fn test_migration_tools() {
+        // Test automatic migration tools
+        let v0_2_code = r#"
+            #[derive(Clone, PartialEq)]
+            struct MyState {
+                count: i32,
+            }
+        "#;
+        
+        let migrated_code = migrate_code(v0_2_code);
+        
+        // Verify migration was successful
+        assert!(migrated_code.contains("#[derive(Clone, Debug, Default, PartialEq)]"));
+        assert!(migrated_code.contains("impl Default for MyState"));
+    }
 }
 ```
 
-## CI/CD Integration
+---
 
-### GitHub Actions Workflow
+## 📊 **Test Coverage Strategy**
+
+### **Coverage Goals**
+
+```rust
+#[cfg(test)]
+mod coverage_tests {
+    use super::*;
+
+    #[test]
+    fn test_all_public_apis() {
+        // Test every public method and function
+        let machine = create_test_machine();
+        
+        // Test all public methods
+        assert!(machine.initial_state().value() == "idle");
+        assert!(machine.state_count() > 0);
+        assert!(machine.is_valid_state(&machine.initial_state()));
+        assert!(machine.is_reachable(&machine.initial_state()));
+        
+        // Test all transition methods
+        let state = machine.initial_state();
+        let event = TestEvent::Start;
+        
+        if machine.can_transition(&state, event.clone()) {
+            let new_state = machine.transition(&state, event);
+            assert!(machine.is_valid_state(&new_state));
+        }
+    }
+
+    #[test]
+    fn test_all_error_conditions() {
+        // Test all error paths
+        let machine = create_test_machine();
+        let invalid_state = InvalidState::new();
+        
+        // Test invalid state handling
+        assert!(!machine.is_valid_state(&invalid_state));
+        
+        // Test invalid transition handling
+        let result = machine.try_transition(&invalid_state, TestEvent::Start);
+        assert!(result.is_err());
+    }
+}
+```
+
+### **Coverage Reporting**
+
+```toml
+# .cargo/config.toml
+[target.'cfg(coverage)']
+rustflags = [
+    "-Cinstrument-coverage",
+    "-Ccodegen-units=1",
+]
+
+[env]
+CARGO_INCREMENTAL = "0"
+RUSTFLAGS = "-Cinstrument-coverage"
+LLVM_PROFILE_FILE = "target/coverage/leptos-state-%p-%m.profraw"
+```
+
+---
+
+## 🚀 **Continuous Testing Pipeline**
+
+### **CI/CD Integration**
 
 ```yaml
 # .github/workflows/test.yml
-name: Test Suite
+name: Comprehensive Testing
 
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
+on: [push, pull_request]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: [stable, beta, nightly]
+        features: [default, full, minimal]
+    
     steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          components: rustfmt, clippy
-      
-      - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-      
-      - name: Run unit tests
-        run: cargo test --lib
-      
-      - name: Run integration tests
-        run: cargo test --test '*'
-      
-      - name: Run WASM tests
-        run: wasm-pack test --headless --chrome --firefox
-      
-      - name: Run property tests
-        run: cargo test --features proptest
-      
-      - name: Run benchmarks
-        run: cargo bench --no-run
-      
-      - name: Generate coverage
-        run: cargo tarpaulin --out Xml
-      
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-
-  stress-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Run stress tests
-        run: cargo test --release --test stress_tests
-        timeout-minutes: 30
+    - uses: actions/checkout@v3
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust }}
+    
+    - name: Run tests
+      run: |
+        cargo test --features ${{ matrix.features }}
+        cargo test --features ${{ matrix.features }} --release
+    
+    - name: Run benchmarks
+      run: cargo bench --features ${{ matrix.features }}
+    
+    - name: Check coverage
+      run: |
+        cargo install cargo-llvm-cov
+        cargo llvm-cov --features ${{ matrix.features }}
+    
+    - name: Run property tests
+      run: cargo test --features ${{ matrix.features }} --test property_tests
+    
+    - name: Performance regression check
+      run: cargo bench --features ${{ matrix.features }} -- --save-baseline
 ```
 
-## Test Documentation
-
-### Test Naming Convention
+### **Quality Gates**
 
 ```rust
-// Good test names - descriptive and specific
-#[test]
-fn store_update_triggers_single_rerender() { }
+#[cfg(test)]
+mod quality_gates {
+    use super::*;
 
-#[test]
-fn machine_guards_prevent_invalid_transitions() { }
-
-// Bad test names - too vague
-#[test]
-fn test_store() { }
-
-#[test]
-fn it_works() { }
-```
-
-### Test Organization Best Practices
-
-1. **Group by Feature**: Organize tests by the feature they test
-2. **Use Descriptive Modules**: Create clear module hierarchies
-3. **Share Fixtures**: Use common test utilities and fixtures
-4. **Document Complex Tests**: Add comments explaining test intent
-5. **Keep Tests Focused**: One assertion per test when possible
-
-## Debugging Failed Tests
-
-### Tools and Techniques
-
-```rust
-// Enable debug output
-#[test]
-fn debug_test() {
-    env_logger::init();
-    log::debug!("State before: {:?}", state);
-    
-    // Test logic
-    
-    log::debug!("State after: {:?}", state);
-}
-
-// Use snapshot testing for complex outputs
-#[test]
-fn snapshot_test() {
-    let result = complex_computation();
-    insta::assert_snapshot!(result);
-}
-
-// Time-travel debugging
-#[test]
-fn time_travel_test() {
-    let mut history = TestHistory::new();
-    
-    history.record(state.clone());
-    perform_action();
-    history.record(state.clone());
-    
-    // Can now replay and inspect state changes
-    history.replay_from(0);
+    #[test]
+    fn test_quality_gates() {
+        // Gate 1: All tests must pass
+        assert!(run_all_tests());
+        
+        // Gate 2: Coverage must be >= 95%
+        let coverage = measure_test_coverage();
+        assert!(coverage >= 95.0);
+        
+        // Gate 3: No performance regressions
+        let performance = measure_performance();
+        assert!(performance >= baseline_performance());
+        
+        // Gate 4: All features compile together
+        assert!(compile_with_all_features());
+    }
 }
 ```
 
-## Mutation Testing
+---
 
-### Using cargo-mutants
+## 📚 **Testing Documentation**
 
-```bash
-# Install
-cargo install cargo-mutants
+### **Test Writing Guidelines**
 
-# Run mutation tests
-cargo mutants --jobs 4
+1. **Test Names**: Use descriptive names that explain what is being tested
+2. **Arrange-Act-Assert**: Structure tests in three clear sections
+3. **Property Tests**: Use property-based testing for complex logic
+4. **Edge Cases**: Test boundary conditions and error cases
+5. **Performance**: Include performance tests for critical paths
 
-# Generate report
-cargo mutants --output-dir mutants-report
-```
+### **Test Maintenance**
 
-### Expected Mutation Coverage
-- Core store logic: 100% mutation coverage
-- State machine transitions: 95% mutation coverage
-- Utilities and helpers: 80% mutation coverage
+1. **Regular Updates**: Update tests when APIs change
+2. **Coverage Monitoring**: Track test coverage trends
+3. **Performance Tracking**: Monitor performance regression
+4. **Documentation**: Keep test documentation up to date
 
-## Testing Checklist
+---
 
-### Pre-Commit
-- [ ] All unit tests pass
-- [ ] No compiler warnings
-- [ ] Code formatted with rustfmt
-- [ ] Clippy lints pass
+## 🎯 **Success Metrics**
 
-### Pre-Merge
-- [ ] Integration tests pass
-- [ ] WASM tests pass
-- [ ] Coverage >= 90%
-- [ ] No performance regressions
-- [ ] Documentation updated
+### **Quality Metrics**
+- **Test Coverage**: 95%+ line and branch coverage
+- **Test Execution**: All tests pass in < 30 seconds
+- **Property Tests**: 1000+ property test cases
+- **Performance**: Zero regression in benchmarks
 
-### Pre-Release
-- [ ] All stress tests pass
-- [ ] Memory leak tests pass
-- [ ] Cross-browser testing complete
-- [ ] Backward compatibility verified
-- [ ] Security audit complete
+### **Reliability Metrics**
+- **Fuzz Testing**: 100,000+ fuzz test iterations
+- **Integration Tests**: All feature combinations tested
+- **Migration Tests**: 100% v0.2.x compatibility
+- **Error Handling**: All error paths tested
 
-## Conclusion
+---
 
-This testing strategy ensures comprehensive coverage of the Leptos state management library through multiple testing levels, from unit tests to stress tests. The combination of traditional testing, property-based testing, and performance benchmarking provides confidence in both correctness and efficiency of the implementation.
+## 📚 **Additional Resources**
+
+- **[🏗️ Architectural Redesign Plan](./ARCHITECTURAL_REDESIGN.md)** - Complete redesign overview
+- **[🔧 Technical Specification](./TECHNICAL_SPECIFICATION.md)** - Implementation details
+- **[📅 Implementation Timeline](./IMPLEMENTATION_TIMELINE.md)** - Development timeline
+- **[🔄 Migration Guide](../migration/V0_2_TO_V1_0_MIGRATION.md)** - Upgrade instructions
+
+---
+
+*This testing strategy will be updated as implementation progresses. Last updated: September 4, 2025*

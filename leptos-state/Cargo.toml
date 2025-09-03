@@ -16,10 +16,10 @@ serde_json = { workspace = true, optional = true }
 serde_yaml = { workspace = true, optional = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
-web-sys = { workspace = true }
-wasm-bindgen = { workspace = true }
+web-sys = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
 uuid = { workspace = true, optional = true }
-js-sys = { workspace = true }
+js-sys = { workspace = true, optional = true }
 futures = "0.3"
 
 [dev-dependencies]
@@ -40,16 +40,17 @@ console_error_panic_hook = { workspace = true }
 
 [features]
 default = []
-persist = ["serde", "serde_json"]
+persist = ["serde", "serde_json", "web-sys", "wasm-bindgen"]
 visualization = ["serde", "serde_json"]
 testing = []
 performance = []
 integration = []
-documentation = []
+documentation = ["serde", "serde_json"]
 serialization = ["serde", "serde_json", "serde_yaml"]
 codegen = []
-devtools = []
+devtools = ["web-sys", "wasm-bindgen"]
 ssr = ["leptos/ssr"]
+wasm = ["web-sys", "wasm-bindgen", "js-sys"]
 
 # Leptos version compatibility features
 leptos-0-6 = []
