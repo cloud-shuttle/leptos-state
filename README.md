@@ -1,63 +1,187 @@
-# 🚀 **leptos-state** - Powerful State Management for Leptos
+# 🚀 leptos-state
 
 [![Crates.io](https://img.shields.io/crates/v/leptos-state)](https://crates.io/crates/leptos-state)
 [![Documentation](https://img.shields.io/docsrs/leptos-state)](https://docs.rs/leptos-state)
-[![License](https://img.shields.io/crates/l/leptos-state)](https://github.com/cloud-shuttle/leptos-state/blob/main/LICENSE)
-[![Rust](https://img.shields.io/badge/rust-1.70+-blue.svg)](https://www.rust-lang.org)
+[![License](https://img.shields.io/crates/l/leptos-state)](LICENSE)
+[![Rust Version](https://img.shields.io/badge/rust-1.70+-blue.svg)](https://www.rust-lang.org)
 
-**The definitive state management solution for Leptos applications** - featuring stores, state machines, middleware, and DevTools integration.
-
-> 🎉 **v1.0.0-alpha.1 is here!** This is a major architectural redesign with a trait-first approach, improved type safety, and enhanced Leptos v0.8+ integration. See the [migration guide](docs/migration/v1.0.0.md) for upgrading from v0.2.x.
+**Advanced state management for [Leptos](https://github.com/leptos-rs/leptos) applications with state machines, reactive stores, and persistence.**
 
 ## ✨ **Features**
 
-- 🏪 **Reactive Stores** - Zustand-inspired API with Leptos integration
-- 🎯 **State Machines** - XState-like state machines with guards and actions
-- 🔌 **Middleware System** - Extensible middleware for logging, validation, and more
-- 🛠️ **DevTools Integration** - Browser DevTools for state inspection and debugging
-- 💾 **Persistence** - Automatic state persistence with multiple storage backends
-- 📊 **Visualization** - State machine diagrams and transition tracking
-- 🧪 **Testing Framework** - Comprehensive testing utilities for state machines
-- ⚡ **Performance Optimized** - Minimal overhead with smart reactivity
-- 🌐 **WASM Ready** - Full WebAssembly support for web applications
+### 🎯 **State Machines**
+- **XState-inspired API** with guards, actions, and nested states
+- **Type-safe transitions** with compile-time validation
+- **Context management** for complex state logic
+- **Visualization tools** for debugging and documentation
 
-## 🚀 **Quick Start**
+### 🗄️ **Reactive Stores**
+- **Zustand-inspired API** with Leptos integration
+- **Automatic reactivity** using Leptos signals
+- **Middleware support** for logging, persistence, and more
+- **DevTools integration** for state inspection
 
-### Installation
+### 💾 **Persistence**
+- **Multiple backends** (LocalStorage, Memory, IndexedDB)
+- **Serialization formats** (JSON, YAML, MessagePack)
+- **Automatic state restoration** on page reload
+- **Migration support** for schema changes
 
+### 🧪 **Testing Framework**
+- **Property-based testing** with `proptest`
+- **State machine testing** utilities
+- **Performance benchmarking** with `criterion`
+- **Test case generation** for complex scenarios
+
+### 🚀 **Performance**
+- **WASM-first design** for web applications
+- **Native Rust support** for server-side usage
+- **Memory optimization** with efficient data structures
+- **Performance monitoring** and optimization tools
+
+### 🔧 **Developer Experience**
+- **Comprehensive error handling** with actionable messages
+- **Type-safe APIs** with explicit trait bounds
+- **Feature flags** for modular functionality
+- **Migration tools** from v0.2.x
+
+## 📦 **Installation**
+
+### **Basic Installation**
 ```toml
 [dependencies]
-leptos-state = "1.0.0-alpha.1"
+leptos-state = "1.0.0-rc.1"
 leptos = "0.8"
 ```
 
-### Simple Store (v1.0.0-alpha.1)
+### **With Feature Flags**
+```toml
+[dependencies]
+leptos-state = { version = "1.0.0-rc.1", features = ["persist", "devtools", "testing"] }
+```
 
+### **Available Features**
+- `persist` - Persistence system with multiple backends
+- `devtools` - Browser DevTools integration
+- `testing` - Testing framework and utilities
+- `codegen` - Code generation for state machines
+
+## 🚀 **Quick Start**
+
+### **Basic State Machine**
 ```rust
+use leptos::*;
 use leptos_state::v1::*;
-use leptos_state::{use_store, provide_store};
 
-#[derive(Clone, PartialEq, Debug, Default)]
+#[derive(Clone, Debug, PartialEq, Default)]
+enum TrafficState {
+    #[default]
+    Red,
+    Yellow,
+    Green,
+}
+
+#[derive(Clone, Debug, PartialEq, Default)]
+enum TrafficEvent {
+    #[default]
+    Timer,
+}
+
+#[derive(Clone, Debug, PartialEq, Default)]
+struct TrafficContext {
+    duration: u32,
+}
+
+impl StateMachineContext for TrafficContext {}
+impl StateMachineEvent for TrafficEvent {}
+
+impl StateMachineState for TrafficState {
+    type Context = TrafficContext;
+    type Event = TrafficEvent;
+}
+
+impl StateMachine for TrafficState {
+    fn initial_state(&self) -> Self {
+        TrafficState::Red
+    }
+    
+    fn transition(&self, state: &Self, event: Self::Event) -> Self {
+        match (state, event) {
+            (TrafficState::Red, TrafficEvent::Timer) => TrafficState::Green,
+            (TrafficState::Green, TrafficEvent::Timer) => TrafficState::Yellow,
+            (TrafficState::Yellow, TrafficEvent::Timer) => TrafficState::Red,
+            _ => state.clone(),
+        }
+    }
+    
+    fn can_transition(&self, state: &Self, event: Self::Event) -> bool {
+        match (state, event) {
+            (TrafficState::Red, TrafficEvent::Timer) => true,
+            (TrafficState::Green, TrafficEvent::Timer) => true,
+            (TrafficState::Yellow, TrafficEvent::Timer) => true,
+            _ => false,
+        }
+    }
+    
+    fn try_transition(&self, state: &Self, event: Self::Event) -> Result<Self, TransitionError<Self::Event>> {
+        if self.can_transition(state, event.clone()) {
+            Ok(self.transition(state, event))
+        } else {
+            Err(TransitionError::InvalidTransition(event))
+        }
+    }
+    
+    fn state_count(&self) -> usize { 3 }
+    fn is_valid_state(&self, _state: &Self) -> bool { true }
+    fn is_reachable(&self, _state: &Self) -> bool { true }
+}
+
+fn TrafficLight() -> impl IntoView {
+    let initial_context = TrafficContext::default();
+    let machine = use_machine_with_context(TrafficState::Red, initial_context);
+    
+    view! {
+        <div>
+            <h2>"Traffic Light: " {move || format!("{:?}", machine.state())}</h2>
+            <button on:click=move |_| machine.send(TrafficEvent::Timer)>"Next"</button>
+        </div>
+    }
+}
+```
+
+### **Reactive Store**
+```rust
+use leptos::*;
+use leptos_state::v1::*;
+
+#[derive(Clone, Debug, PartialEq, Default)]
 struct CounterStore {
     count: i32,
-    name: String,
 }
 
 impl StoreState for CounterStore {}
+
 impl Store for CounterStore {
     fn create() -> Self {
-        Self { count: 0, name: "Counter".to_string() }
+        Self { count: 0 }
     }
     
-    fn update(&mut self, action: &str, payload: Option<serde_json::Value>) -> Result<(), String> {
-        match action {
-            "increment" => self.count += 1,
-            "set_name" => if let Some(payload) = payload {
-                self.name = payload.as_str().unwrap_or("Counter").to_string();
-            },
-            _ => return Err("Unknown action".to_string()),
-        }
-        Ok(())
+    fn create_with_state(state: Self) -> Self {
+        state
+    }
+    
+    fn update<F>(&mut self, f: F) 
+    where 
+        F: FnOnce(&mut Self) {
+        f(self);
+    }
+    
+    fn get(&self) -> &Self {
+        self
+    }
+    
+    fn get_mut(&mut self) -> &mut Self {
+        self
     }
 }
 
@@ -68,209 +192,199 @@ fn Counter() -> impl IntoView {
         set_store.update(|state| state.count += 1);
     };
     
+    let decrement = move |_| {
+        set_store.update(|state| state.count -= 1);
+    };
+    
     view! {
         <div>
             <h2>"Counter: " {move || store.get().count}</h2>
-            <p>"Name: " {move || store.get().name}</p>
-            <button on:click=increment>
-                "Increment"
-            </button>
+            <button on:click=increment>"Increment"</button>
+            <button on:click=decrement>"Decrement"</button>
         </div>
     }
 }
 ```
 
-### State Machine (v1.0.0-alpha.1)
-
+### **With Persistence**
 ```rust
 use leptos_state::v1::*;
-use leptos_state::use_machine_with_context;
 
-#[derive(Clone, PartialEq, Debug, Default)]
-struct TrafficContext {
-    timer: u32,
-}
+// Create a store with persistence
+let store = create_store_with_persistence::<CounterStore>("counter");
+let (state, set_state) = use_store_with_persistence(store);
 
-impl StateMachineContext for TrafficContext {}
-
-#[derive(Clone, PartialEq, Debug)]
-enum TrafficEvent {
-    Timer,
-    EmergencyStop,
-}
-
-impl StateMachineEvent for TrafficEvent {}
-impl Default for TrafficEvent {
-    fn default() -> Self { TrafficEvent::Timer }
-}
-
-#[derive(Clone, PartialEq, Debug)]
-enum TrafficState {
-    Red,
-    Yellow,
-    Green,
-}
-
-impl StateMachineState for TrafficState {
-    type Context = TrafficContext;
-    type Event = TrafficEvent;
-}
-
-impl Default for TrafficState {
-    fn default() -> Self { TrafficState::Red }
-}
-
-impl StateMachine for TrafficState {
-    fn initial_state(&self) -> Self { TrafficState::Red }
-    
-    fn transitions(&self) -> Vec<Transition<Self::Context, Self::Event, Self>> {
-        vec![
-            Transition::new(TrafficState::Red, TrafficEvent::Timer, TrafficState::Green),
-            Transition::new(TrafficState::Green, TrafficEvent::Timer, TrafficState::Yellow),
-            Transition::new(TrafficState::Yellow, TrafficEvent::Timer, TrafficState::Red),
-        ]
-    }
-}
-
-fn TrafficLight() -> impl IntoView {
-    let initial_context = TrafficContext::default();
-    let machine = use_machine_with_context(TrafficState::Red, initial_context);
-    
-    let current_light = move || {
-        match machine.state() {
-            TrafficState::Red => "red",
-            TrafficState::Yellow => "yellow", 
-            TrafficState::Green => "green",
-        }
-    };
-    
-    let next_timer = move |_| machine.send(TrafficEvent::Timer);
-    
-    view! {
-        <div>
-            <h2>"Traffic Light: " {current_light}</h2>
-            <button on:click=next_timer>
-                "Next Light"
-            </button>
-        </div>
-    }
-}
+// State automatically persists to LocalStorage
+// and restores on page reload
 ```
 
 ## 📚 **Documentation**
 
-- **[📖 User Guide](https://github.com/cloud-shuttle/leptos-state/tree/main/docs/user-guide)** - Comprehensive usage guide
-- **[🔧 API Reference](https://docs.rs/leptos-state)** - Complete API documentation
-- **[📝 Examples](https://github.com/cloud-shuttle/leptos-state/tree/main/examples)** - Working code samples
-- **[🔄 Migration Guide](https://github.com/cloud-shuttle/leptos-state/tree/main/docs/migration)** - Upgrade from v0.1.0
+### **User Guides**
+- **[Quickstart Guide](docs/user-guide/QUICKSTART.md)** - Get started in minutes
+- **[Performance Guide](docs/user-guide/PERFORMANCE.md)** - Optimize your applications
+- **[Migration Guide](docs/migration/V0_2_TO_V1_0_MIGRATION.md)** - Migrate from v0.2.x
 
-## 🎯 **Why leptos-state?**
+### **API Reference**
+- **[Complete API Reference](docs/api-reference/API_REFERENCE.md)** - All public APIs
+- **[Examples](examples/)** - Working examples and demos
+- **[Changelog](docs/CHANGELOG.md)** - Version history and changes
 
-### **For Leptos Developers**
-- **First-class Leptos integration** - Built specifically for Leptos applications
-- **Reactive by design** - Automatic updates when state changes
-- **WASM optimized** - Designed for web applications
+### **Development**
+- **[Architecture Overview](docs/development/ARCHITECTURE.md)** - System design and principles
+- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute
+- **[Testing Guide](docs/development/TESTING.md)** - Testing best practices
 
-### **For State Management**
-- **Familiar APIs** - Inspired by Zustand and XState
-- **Type safety** - Full Rust type safety and compile-time guarantees
-- **Performance** - Minimal runtime overhead with smart optimizations
+## 🔧 **Examples**
 
-### **For Production Apps**
-- **Middleware ecosystem** - Extensible architecture for enterprise needs
-- **DevTools support** - Professional debugging and monitoring
-- **Testing utilities** - Comprehensive testing framework included
+### **Basic Examples**
+- **[Counter](examples/counter/)** - Simple state management
+- **[Todo App](examples/todo/)** - CRUD operations with persistence
+- **[Traffic Light](examples/traffic-light/)** - State machine basics
 
-## 🔧 **Advanced Features**
+### **Advanced Examples**
+- **[E-commerce Cart](examples/ecommerce/)** - Complex state with persistence
+- **[Game State](examples/game/)** - Nested state machines
+- **[Form Management](examples/forms/)** - Form state with validation
 
-### Middleware System
+### **Integration Examples**
+- **[Leptos SSR](examples/ssr/)** - Server-side rendering
+- **[WASM Web](examples/wasm/)** - WebAssembly deployment
+- **[Native App](examples/native/)** - Desktop application
 
-```rust
-use leptos_state::{LoggerMiddleware, ValidationMiddleware, MiddlewareChain};
+## 🚀 **Performance**
 
-let store = create_store::<MyStore>()
-    .with_middleware(
-        MiddlewareChain::new()
-            .add(LoggerMiddleware::new())
-            .add(ValidationMiddleware::new())
-    );
+### **Benchmarks**
+```bash
+# Run performance benchmarks
+cargo bench --features "testing,persist"
+
+# Run specific benchmarks
+cargo bench --bench performance_benchmarks
 ```
 
-### Persistence
+### **Performance Features**
+- **Lazy loading** for large state trees
+- **Connection pooling** for persistence backends
+- **Memory optimization** with efficient data structures
+- **Performance monitoring** with built-in tools
 
+## 🧪 **Testing**
+
+### **Unit Testing**
 ```rust
-let machine = MachineBuilder::new()
-    .state("idle")
-    .build_with_persistence(PersistenceConfig {
-        enabled: true,
-        storage_key: "my_machine".to_string(),
-        auto_save: true,
-        ..Default::default()
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use leptos_state::v1::testing::*;
+    
+    #[test]
+    fn test_traffic_light_transitions() {
+        let machine = TrafficState::default();
+        let context = TrafficContext::default();
+        
+        let result = machine.try_transition(&TrafficState::Red, TrafficEvent::Timer);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), TrafficState::Green);
+    }
+}
+```
+
+### **Property-Based Testing**
+```rust
+#[test]
+fn test_traffic_light_properties() {
+    let tester = StateMachineTester::new(TrafficState::default());
+    let result = tester.property_test(|machine, events| {
+        // Test that all transitions are valid
+        events.iter().all(|event| {
+            machine.can_transition(&machine.current_state(), event.clone())
+        })
     });
+    
+    assert!(result.is_ok());
+}
 ```
 
-### Code Generation
+## 🔄 **Migration from v0.2.x**
 
+leptos-state v1.0.0 is a complete rewrite with breaking changes. We provide comprehensive migration tools:
+
+### **Migration Tools**
 ```rust
-let generator = machine.build_with_code_generation(CodeGenConfig {
-    target_languages: vec![ProgrammingLanguage::Rust, ProgrammingLanguage::TypeScript],
-    output_directory: "generated".to_string(),
-    ..Default::default()
-});
+use leptos_state::v1::migration::*;
 
-generator.generate_code()?;
+let analyzer = MigrationAnalyzer::new();
+let issues = analyzer.analyze_code("old_code.rs");
+let suggestions = analyzer.generate_suggestions(&issues);
+
+for suggestion in suggestions {
+    println!("Suggestion: {}", suggestion.description);
+    println!("Priority: {:?}", suggestion.priority);
+}
 ```
 
-## 🌟 **Examples**
+### **Migration Steps**
+1. **Update dependencies** to `leptos-state = "1.0.0-rc.1"`
+2. **Run migration analysis** to identify issues
+3. **Apply automatic transformations** where possible
+4. **Manually update** remaining code patterns
+5. **Test thoroughly** with new architecture
 
-Check out our comprehensive examples:
-
-- **[📱 Todo App](https://github.com/cloud-shuttle/leptos-state/tree/main/examples/todo-app)** - Full-featured todo application
-- **[🚦 Traffic Light](https://github.com/cloud-shuttle/leptos-state/tree/main/examples/traffic-light)** - State machine basics
-- **[📊 Analytics Dashboard](https://github.com/cloud-shuttle/leptos-state/tree/main/examples/analytics-dashboard)** - Complex state management
-- **[🔧 Code Generation](https://github.com/cloud-shuttle/leptos-state/tree/main/examples/codegen)** - Multi-language code generation
-
-## 🚀 **Getting Started**
-
-1. **Add to your project:**
-   ```bash
-   cargo add leptos-state
-   ```
-
-2. **Check out the examples:**
-   ```bash
-   git clone https://github.com/cloud-shuttle/leptos-state.git
-   cd leptos-state/examples
-   cargo run --bin counter
-   ```
-
-3. **Read the documentation:**
-   - [User Guide](https://github.com/cloud-shuttle/leptos-state/tree/main/docs/user-guide)
-   - [API Reference](https://docs.rs/leptos-state)
+See the [Migration Guide](docs/migration/V0_2_TO_V1_0_MIGRATION.md) for detailed instructions.
 
 ## 🤝 **Contributing**
 
-We welcome contributions! Please see our [Contributing Guide](https://github.com/cloud-shuttle/leptos-state/tree/main/docs/contributing) for details.
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-- 🐛 **Report bugs** on [GitHub Issues](https://github.com/cloud-shuttle/leptos-state/issues)
-- 💡 **Request features** via [GitHub Discussions](https://github.com/cloud-shuttle/leptos-state/discussions)
-- 📝 **Submit PRs** for bug fixes and improvements
+### **Development Setup**
+```bash
+# Clone the repository
+git clone https://github.com/cloud-shuttle/leptos-state.git
+cd leptos-state
+
+# Install dependencies
+cargo build
+
+# Run tests
+cargo test --features "testing,persist,devtools"
+
+# Run benchmarks
+cargo bench --features "testing,persist"
+```
+
+### **Areas for Contribution**
+- **Documentation** - Improve guides and examples
+- **Testing** - Add test coverage and benchmarks
+- **Performance** - Optimize algorithms and data structures
+- **Features** - Implement new functionality
+- **Examples** - Create real-world use cases
 
 ## 📄 **License**
 
-This project is licensed under either of
-
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or https://www.apache.org/licenses/LICENSE-2.0)
-- MIT license ([LICENSE-MIT](LICENSE-MIT) or https://opensource.org/licenses/MIT)
-
-at your option.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 **Acknowledgments**
 
-- Built with ❤️ for the [Leptos](https://github.com/leptos-rs/leptos) community
-- Inspired by [Zustand](https://github.com/pmndrs/zustand) and [XState](https://github.com/statelyai/xstate)
-- Part of the [Cloud Shuttle](https://cloud-shuttle.com) ecosystem
+- **[Leptos](https://github.com/leptos-rs/leptos)** - The amazing Rust web framework
+- **[XState](https://xstate.js.org/)** - Inspiration for state machine design
+- **[Zustand](https://github.com/pmndrs/zustand)** - Inspiration for store API
+- **[Rust Community](https://www.rust-lang.org/community)** - For the excellent ecosystem
+
+## 📞 **Support**
+
+### **Getting Help**
+- **[GitHub Issues](https://github.com/cloud-shuttle/leptos-state/issues)** - Report bugs and request features
+- **[GitHub Discussions](https://github.com/cloud-shuttle/leptos-state/discussions)** - Ask questions and share ideas
+- **[Documentation](https://docs.rs/leptos-state)** - Comprehensive API reference
+
+### **Community**
+- **Discord**: Join our community server
+- **Twitter**: Follow for updates and announcements
+- **Blog**: Read about new features and best practices
 
 ---
 
-**Ready to build amazing Leptos applications?** [Get started now!](https://github.com/cloud-shuttle/leptos-state)
+**Built with ❤️ by the CloudShuttle team and contributors**
+
+*Ready to build amazing state management for your Leptos applications? [Get started now!](docs/user-guide/QUICKSTART.md)* 🚀

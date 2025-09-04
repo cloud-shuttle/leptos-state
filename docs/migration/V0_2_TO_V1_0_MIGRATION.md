@@ -1,480 +1,430 @@
-# 🔄 Migration Guide: v0.2.x → v1.0.0
-## **Complete Migration from Current to New Architecture**
+# 🔄 Migration Guide: v0.2.x to v1.0.0
 
-> **Status**: 🚧 In Development  
-> **Target Release**: December 2025  
-> **Breaking Changes**: Yes, but with migration tools
+This guide helps you migrate your leptos-state applications from v0.2.x to v1.0.0. The v1.0.0 release introduces significant architectural changes to improve type safety, performance, and maintainability.
 
----
+## 🚨 **Breaking Changes Overview**
 
-## 📋 **Overview**
+### **Major Changes**
+- **Trait-first design**: All functionality is now trait-based
+- **Explicit trait bounds**: Generic parameters have explicit constraints
+- **New state machine API**: Completely redesigned state machine system
+- **Store API changes**: New reactive store implementation
+- **Feature flags**: Modular functionality with explicit feature gates
 
-This guide covers the complete migration from `leptos-state` v0.2.x to v1.0.0. The new version introduces a completely redesigned architecture that fixes fundamental type system issues and provides a more robust, maintainable foundation.
+### **Removed Components**
+- `MachineBuilder` (replaced with new builder pattern)
+- `MachineStateImpl` (replaced with trait-based states)
+- Old persistence system (replaced with new trait-based system)
 
-### **Why Migrate?**
-- **Fix Type System Issues** - No more compilation errors with feature combinations
-- **Feature Independence** - All features work together without conflicts
-- **Better Performance** - Optimized for modern Rust and WASM
-- **Future-Proof** - Architecture that can grow with your needs
+## 📋 **Migration Checklist**
 
----
+- [ ] **Update dependencies** to `leptos-state = "1.0.0-beta.1"`
+- [ ] **Review feature flags** and enable required features
+- [ ] **Update state machine implementations** to use new traits
+- [ ] **Migrate store implementations** to new API
+- [ ] **Update persistence code** to use new system
+- [ ] **Test thoroughly** with new architecture
+- [ ] **Update imports** to use `leptos_state::v1::*`
 
-## 🚨 **Breaking Changes Summary**
-
-### **1. Trait Bounds**
-- **Before**: Minimal bounds (`Send + Sync`)
-- **After**: Proper bounds (`Clone + Debug + Default + Send + Sync`)
-
-### **2. Builder Pattern**
-- **Before**: Basic builder with limited validation
-- **After**: Type-safe builder with strict validation
-
-### **3. Feature Flags**
-- **Before**: Features don't work together
-- **After**: Features work independently and together
-
-### **4. API Changes**
-- **Before**: Some methods have insufficient bounds
-- **After**: All methods have proper bounds and work correctly
-
----
-
-## 🔧 **Automatic Migration Tools**
-
-### **Migration Command**
-
-```bash
-# Install migration tool
-cargo install leptos-state-migrate
-
-# Run migration on your project
-leptos-state-migrate --project-path ./my-project
-
-# Preview changes without applying
-leptos-state-migrate --project-path ./my-project --dry-run
-```
-
-### **Migration Tool Features**
-- **Automatic Code Updates** - Converts v0.2.x code to v1.0.0
-- **Trait Bound Fixes** - Adds missing trait implementations
-- **API Updates** - Updates method calls to new signatures
-- **Validation** - Checks that migration was successful
-
----
-
-## 📝 **Manual Migration Steps**
+## 🔧 **Step-by-Step Migration**
 
 ### **Step 1: Update Dependencies**
 
+#### **Before (v0.2.x)**
 ```toml
-# Cargo.toml
 [dependencies]
-# Before
-leptos-state = "0.2.2"
-
-# After
-leptos-state = "1.0.0"
+leptos-state = "0.2"
 ```
 
-### **Step 2: Fix Trait Bounds**
+#### **After (v1.0.0)**
+```toml
+[dependencies]
+leptos-state = "1.0.0-beta.1"
+
+# Enable required features
+[features]
+leptos-state = { version = "1.0.0-beta.1", features = ["persist", "devtools", "testing"] }
+```
+
+### **Step 2: Update Imports**
 
 #### **Before (v0.2.x)**
 ```rust
-#[derive(Clone, PartialEq)]
-struct MyState {
-    count: i32,
-    name: String,
-}
+use leptos_state::*;
+use leptos_state::MachineBuilder;
+use leptos_state::MachineStateImpl;
 ```
 
 #### **After (v1.0.0)**
 ```rust
-#[derive(Clone, Debug, Default, PartialEq)]
-struct MyState {
-    count: i32,
-    name: String,
+use leptos_state::v1::*;
+use leptos_state::v1::builder::StateMachineBuilder;
+use leptos_state::v1::traits::*;
+```
+
+### **Step 3: Migrate State Machine Implementations**
+
+#### **Before (v0.2.x)**
+```rust
+#[derive(Clone, Debug, PartialEq)]
+enum TrafficState {
+    Red,
+    Yellow,
+    Green,
 }
 
-impl Default for MyState {
-    fn default() -> Self {
-        Self {
-            count: 0,
-            name: String::new(),
+impl StateMachine for TrafficState {
+    type Context = TrafficContext;
+    type Event = TrafficEvent;
+    
+    fn initial_state() -> Self {
+        TrafficState::Red
+    }
+    
+    fn transition(state: &Self, event: Self::Event) -> Self {
+        match (state, event) {
+            (TrafficState::Red, TrafficEvent::Timer) => TrafficState::Green,
+            (TrafficState::Green, TrafficEvent::Timer) => TrafficState::Yellow,
+            (TrafficState::Yellow, TrafficEvent::Timer) => TrafficState::Red,
+            _ => state.clone(),
         }
     }
 }
 ```
 
-### **Step 3: Update Store Definitions**
-
-#### **Before (v0.2.x)**
-```rust
-create_store!(
-    MyStore,
-    MyState,
-    MyState { count: 0, name: "Default".to_string() }
-);
-```
-
 #### **After (v1.0.0)**
 ```rust
-create_store!(
-    MyStore,
-    MyState,
-    MyState::default()
-);
-```
+#[derive(Clone, Debug, PartialEq, Default)]
+enum TrafficState {
+    #[default]
+    Red,
+    Yellow,
+    Green,
+}
 
-### **Step 4: Update State Machine Definitions**
+impl StateMachineState for TrafficState {
+    type Context = TrafficContext;
+    type Event = TrafficEvent;
+}
 
-#### **Before (v0.2.x)**
-```rust
-let machine = MachineBuilder::new()
-    .state("idle")
-        .on(MyEvent::Start, "active")
-    .state("active")
-        .on(MyEvent::Stop, "idle")
-    .initial("idle")
-    .build();
-```
-
-#### **After (v1.0.0)**
-```rust
-let machine = MachineBuilder::new()
-    .state("idle")
-        .on(MyEvent::Start, "active")
-    .state("active")
-        .on(MyEvent::Stop, "idle")
-    .initial("idle")
-    .build()
-    .expect("Failed to build state machine");
-```
-
-### **Step 5: Update Hooks Usage**
-
-#### **Before (v0.2.x)**
-```rust
-let (state, set_state) = use_store::<MyStore>();
-```
-
-#### **After (v1.0.0)**
-```rust
-let (state, set_state) = use_store::<MyStore>();
-// Same API, but now works with all features
-```
-
----
-
-## 🏗️ **Architecture Changes**
-
-### **New Trait Hierarchy**
-
-#### **Before (v0.2.x)**
-```rust
-pub struct Machine<C: Send + Sync, E> {
-    // Limited bounds
+impl StateMachine for TrafficState {
+    fn initial_state(&self) -> Self {
+        TrafficState::Red
+    }
+    
+    fn transition(&self, state: &Self, event: Self::Event) -> Self {
+        match (state, event) {
+            (TrafficState::Red, TrafficEvent::Timer) => TrafficState::Green,
+            (TrafficState::Green, TrafficEvent::Timer) => TrafficState::Yellow,
+            (TrafficState::Yellow, TrafficEvent::Timer) => TrafficState::Red,
+            _ => state.clone(),
+        }
+    }
+    
+    fn can_transition(&self, state: &Self, event: Self::Event) -> bool {
+        match (state, event) {
+            (TrafficState::Red, TrafficEvent::Timer) => true,
+            (TrafficState::Green, TrafficEvent::Timer) => true,
+            (TrafficState::Yellow, TrafficEvent::Timer) => true,
+            _ => false,
+        }
+    }
+    
+    fn try_transition(&self, state: &Self, event: Self::Event) -> Result<Self, TransitionError<Self::Event>> {
+        if self.can_transition(state, event.clone()) {
+            Ok(self.transition(state, event))
+        } else {
+            Err(TransitionError::InvalidTransition(event))
+        }
+    }
+    
+    fn state_count(&self) -> usize { 3 }
+    fn is_valid_state(&self, _state: &Self) -> bool { true }
+    fn is_reachable(&self, _state: &Self) -> bool { true }
 }
 ```
 
+### **Step 4: Update State Machine Creation**
+
+#### **Before (v0.2.x)**
+```rust
+let machine = MachineBuilder::new()
+    .with_initial_state(TrafficState::Red)
+    .with_context(TrafficContext::default())
+    .build()?;
+```
+
 #### **After (v1.0.0)**
 ```rust
-pub trait StateMachineContext: 
-    Clone + Debug + Default + Send + Sync + 'static {}
+let context = TrafficContext::default();
+let mut machine = Machine::new(TrafficState::Red, context);
 
-pub trait StateMachineEvent: 
-    Clone + Debug + PartialEq + Send + Sync + 'static {}
+// Add states with transitions
+let red_state = StateNode::new("red")
+    .with_value(StateValue::simple("red"))
+    .with_transition(Transition::new(
+        TrafficEvent::Timer,
+        StateValue::simple("green")
+    ));
 
-pub struct Machine<C, E, S>
-where
-    C: StateMachineContext,
-    E: StateMachineEvent,
-    S: StateMachineState<Context = C, Event = E>,
-{
-    // Proper bounds and type safety
+let green_state = StateNode::new("green")
+    .with_value(StateValue::simple("green"))
+    .with_transition(Transition::new(
+        TrafficEvent::Timer,
+        StateValue::simple("yellow")
+    ));
+
+let yellow_state = StateNode::new("yellow")
+    .with_value(StateValue::simple("yellow"))
+    .with_transition(Transition::new(
+        TrafficEvent::Timer,
+        StateValue::simple("red")
+    ));
+
+machine.add_state(red_state)?;
+machine.add_state(green_state)?;
+machine.add_state(yellow_state)?;
+```
+
+### **Step 5: Migrate Store Implementations**
+
+#### **Before (v0.2.x)**
+```rust
+#[derive(Clone, Debug, PartialEq)]
+struct CounterStore {
+    count: i32,
 }
-```
 
-### **New Builder Pattern**
-
-#### **Before (v0.2.x)**
-```rust
-impl<C: Send + Sync, E> MachineBuilder<C, E> {
-    fn build(self) -> Machine<C, E> { /* ... */ }
-}
-```
-
-#### **After (v1.0.0)**
-```rust
-impl<C, E, S> MachineBuilder<C, E, S>
-where
-    C: StateMachineContext,
-    E: StateMachineEvent,
-    S: StateMachineState<Context = C, Event = E>,
-{
-    fn build(self) -> Result<Machine<C, E, S>, BuildError> { /* ... */ }
-}
-```
-
----
-
-## 🔄 **Feature Migration**
-
-### **Persistence Features**
-
-#### **Before (v0.2.x)**
-```rust
-// This didn't work due to type system issues
-#[cfg(feature = "persist")]
-let machine = MachineBuilder::new()
-    .state("idle")
-    .build_with_persistence(config); // Compilation error
-```
-
-#### **After (v1.0.0)**
-```rust
-#[cfg(feature = "persist")]
-let machine = MachineBuilder::new()
-    .state("idle")
-    .build()
-    .expect("Failed to build")
-    .with_persistence(PersistenceConfig {
-        enabled: true,
-        storage_key: "my_machine".to_string(),
-        auto_save: true,
-        ..Default::default()
-    });
-```
-
-### **Visualization Features**
-
-#### **Before (v0.2.x)**
-```rust
-// This didn't work due to type system issues
-#[cfg(feature = "visualization")]
-let diagram = machine.generate_mermaid(); // Compilation error
-```
-
-#### **After (v1.0.0)**
-```rust
-#[cfg(feature = "visualization")]
-let diagram = machine.generate_mermaid();
-println!("{}", diagram);
-```
-
-### **Testing Features**
-
-#### **Before (v0.2.x)**
-```rust
-// Limited testing capabilities
-let machine = MachineBuilder::new()
-    .state("idle")
-    .build();
-// Basic testing only
-```
-
-#### **After (v1.0.0)**
-```rust
-let machine = MachineBuilder::new()
-    .state("idle")
-    .build()
-    .expect("Failed to build");
-
-#[cfg(feature = "testing")]
-let tester = machine.create_tester();
-let result = tester.property_test(|machine, events| {
-    // Property-based testing
-    true
-});
-```
-
----
-
-## 🧪 **Testing Your Migration**
-
-### **Migration Validation**
-
-```bash
-# Run tests to ensure migration was successful
-cargo test
-
-# Check compilation with all features
-cargo check --features persist,visualization,testing,codegen
-
-# Run examples to verify functionality
-cargo run --example counter
-cargo run --example traffic-light
-```
-
-### **Common Migration Issues**
-
-#### **1. Missing Trait Implementations**
-```rust
-// Error: the trait bound `MyState: Default` is not satisfied
-// Solution: Implement Default trait
-impl Default for MyState {
-    fn default() -> Self {
-        Self { /* ... */ }
+impl Store for CounterStore {
+    fn new() -> Self {
+        Self { count: 0 }
+    }
+    
+    fn update(&mut self, action: &str, payload: Option<serde_json::Value>) -> Result<(), String> {
+        match action {
+            "increment" => self.count += 1,
+            "decrement" => self.count -= 1,
+            _ => return Err("Unknown action".to_string()),
+        }
+        Ok(())
     }
 }
 ```
 
-#### **2. Builder Pattern Changes**
+#### **After (v1.0.0)**
 ```rust
-// Error: method `build` returns Result, not Machine
-// Solution: Handle the Result
-let machine = MachineBuilder::new()
-    .state("idle")
-    .build()
-    .expect("Failed to build state machine");
-```
+#[derive(Clone, Debug, PartialEq, Default)]
+struct CounterStore {
+    count: i32,
+}
 
-#### **3. Feature Flag Issues**
-```rust
-// Error: feature combinations don't work
-// Solution: All features now work together in v1.0.0
-cargo check --features persist,visualization,testing
-```
+impl StoreState for CounterStore {}
 
----
-
-## 📊 **Migration Checklist**
-
-### **Pre-Migration**
-- [ ] **Backup your code** - Create a git branch for migration
-- [ ] **Update Rust toolchain** - Ensure you have Rust 1.70+
-- [ ] **Check dependencies** - Update Leptos to v0.8+
-- [ ] **Run current tests** - Ensure everything works before migration
-
-### **Migration Process**
-- [ ] **Update Cargo.toml** - Change leptos-state version to 1.0.0
-- [ ] **Run automatic migration** - Use migration tools
-- [ ] **Fix trait bounds** - Add missing trait implementations
-- [ ] **Update API calls** - Handle Result types from builders
-- [ ] **Test compilation** - Ensure code compiles without errors
-
-### **Post-Migration**
-- [ ] **Run all tests** - Verify functionality is preserved
-- [ ] **Test with features** - Ensure all features work together
-- [ ] **Performance testing** - Verify no performance regressions
-- [ ] **Update documentation** - Reflect new API usage
-
----
-
-## 🚀 **Performance Improvements**
-
-### **What's Faster in v1.0.0**
-
-1. **Compilation Time** - Better type system reduces compilation overhead
-2. **Runtime Performance** - Optimized data structures and algorithms
-3. **Memory Usage** - More efficient memory management
-4. **WASM Size** - Smaller binary size for web deployment
-
-### **Benchmarking Your Migration**
-
-```rust
-#[cfg(test)]
-mod benchmarks {
-    use super::*;
-    use criterion::{black_box, criterion_group, criterion_main, Criterion};
-
-    fn benchmark_state_transitions(c: &mut Criterion) {
-        let machine = create_test_machine();
-        let mut state = machine.initial_state();
-        
-        c.bench_function("state_transitions", |b| {
-            b.iter(|| {
-                let event = TestEvent::Next;
-                black_box(machine.transition(&state, event));
-            });
-        });
+impl Store for CounterStore {
+    fn create() -> Self {
+        Self { count: 0 }
     }
+    
+    fn create_with_state(state: Self) -> Self {
+        state
+    }
+    
+    fn update<F>(&mut self, f: F) 
+    where 
+        F: FnOnce(&mut Self) {
+        f(self);
+    }
+    
+    fn get(&self) -> &Self {
+        self
+    }
+    
+    fn get_mut(&mut self) -> &mut Self {
+        self
+    }
+}
 
-    criterion_group!(benches, benchmark_state_transitions);
-    criterion_main!(benches);
+// Usage in components
+fn Counter() -> impl IntoView {
+    let (store, set_store) = use_store::<CounterStore>();
+    
+    let increment = move |_| {
+        set_store.update(|state| state.count += 1);
+    };
+    
+    let decrement = move |_| {
+        set_store.update(|state| state.count -= 1);
+    };
+    
+    view! {
+        <div>
+            <h2>"Counter: " {move || store.get().count}</h2>
+            <button on:click=increment>"Increment"</button>
+            <button on:click=decrement>"Decrement"</button>
+        </div>
+    }
 }
 ```
 
----
+### **Step 6: Update Persistence Code**
 
-## 🔍 **Debugging Migration Issues**
-
-### **Common Error Messages**
-
-#### **1. Trait Bound Errors**
+#### **Before (v0.2.x)**
+```rust
+let store = Store::new()
+    .with_persistence("counter")
+    .with_backend(LocalStorageBackend::new());
 ```
-error[E0277]: the trait bound `MyState: Default` is not satisfied
-```
-**Solution**: Implement the `Default` trait for your state types.
 
-#### **2. Builder Pattern Errors**
+#### **After (v1.0.0)**
+```rust
+let store = create_store_with_persistence::<CounterStore>("counter");
+let (state, set_state) = use_store_with_persistence(store);
 ```
-error[E0599]: the method `build` exists for struct `MachineBuilder<C, E>`, but its trait bounds were not satisfied
+
+### **Step 7: Update Hooks Usage**
+
+#### **Before (v0.2.x)**
+```rust
+let (machine, set_machine) = use_machine::<TrafficState>();
 ```
-**Solution**: Ensure your types implement all required traits.
 
-#### **3. Feature Flag Errors**
+#### **After (v1.0.0)**
+```rust
+let machine = use_machine_with_context(TrafficState::Red, TrafficContext::default());
 ```
-error[E0599]: the method `with_persistence` exists for struct `Machine<C, E>`, but its trait bounds were not satisfied
+
+## 🛠️ **Migration Tools**
+
+leptos-state v1.0.0 includes automated migration tools to help with the transition:
+
+### **Migration Analyzer**
+```rust
+use leptos_state::v1::migration::*;
+
+let analyzer = MigrationAnalyzer::new();
+let issues = analyzer.analyze_code("old_code.rs");
+let suggestions = analyzer.generate_suggestions(&issues);
+
+for suggestion in suggestions {
+    println!("Suggestion: {}", suggestion.description);
+    println!("Priority: {:?}", suggestion.priority);
+}
 ```
-**Solution**: This will be fixed in v1.0.0 - all features work together.
 
-### **Getting Help**
+### **Code Transformer**
+```rust
+let transformer = CodeTransformer::new();
+let new_code = transformer.transform("old_code.rs");
+println!("Transformed code: {}", new_code);
+```
 
-- **Migration Issues**: [GitHub Issues](https://github.com/cloud-shuttle/leptos-state/issues)
-- **Community Support**: [GitHub Discussions](https://github.com/cloud-shuttle/leptos-state/discussions)
-- **Documentation**: [User Guide](../user-guide/README.md)
+### **Migration Helper**
+```rust
+let helper = MigrationHelper::new();
+let guide = helper.generate_migration_guide(&issues);
+println!("Migration guide: {}", guide);
+```
 
----
+## 🔍 **Common Migration Issues**
+
+### **Issue 1: Missing Default Implementation**
+**Error**: `the trait bound 'YourType: Default' is not satisfied`
+
+**Solution**: Add `#[derive(Default)]` and `#[default]` attribute to your state/event enums:
+
+```rust
+#[derive(Clone, Debug, PartialEq, Default)]
+enum YourState {
+    #[default]
+    Initial,
+    // ... other variants
+}
+```
+
+### **Issue 2: Trait Bounds Not Satisfied**
+**Error**: `the trait bound 'YourType: StateMachineContext' is not satisfied`
+
+**Solution**: Implement the required traits:
+
+```rust
+#[derive(Clone, PartialEq, Debug, Default)]
+struct YourContext {
+    // ... fields
+}
+
+impl StateMachineContext for YourContext {}
+```
+
+### **Issue 3: Missing Import**
+**Error**: `cannot find trait 'StateMachine' in this scope`
+
+**Solution**: Update your imports:
+
+```rust
+use leptos_state::v1::*;
+use leptos_state::v1::traits::*;
+```
+
+### **Issue 4: Feature Flag Issues**
+**Error**: `feature 'persist' is required`
+
+**Solution**: Enable required features in Cargo.toml:
+
+```toml
+[dependencies]
+leptos-state = { version = "1.0.0-beta.1", features = ["persist"] }
+```
 
 ## 📚 **Migration Examples**
 
-### **Complete Migration Example**
+### **Complete State Machine Migration**
 
 #### **Before (v0.2.x)**
 ```rust
-use leptos::*;
 use leptos_state::*;
 
-#[derive(Clone, PartialEq)]
-struct AppState {
-    count: i32,
-    user: Option<String>,
+#[derive(Clone, Debug, PartialEq)]
+enum GameState {
+    Idle,
+    Playing,
+    Paused,
+    GameOver,
 }
 
-create_store!(
-    AppStore,
-    AppState,
-    AppState { count: 0, user: None }
-);
-
-#[derive(Clone, Debug)]
-enum AppEvent {
-    Increment,
-    SetUser(String),
+#[derive(Clone, Debug, PartialEq)]
+enum GameEvent {
+    Start,
+    Pause,
+    Resume,
+    End,
 }
 
-fn App() -> impl IntoView {
-    let (state, set_state) = use_store::<AppStore>();
+impl StateMachine for GameState {
+    type Context = GameContext;
+    type Event = GameEvent;
     
-    let increment = move |_| {
-        set_state.update(|s| s.count += 1);
-    };
+    fn initial_state() -> Self {
+        GameState::Idle
+    }
     
-    let set_user = move |ev| {
-        let value = event_target_value(&ev);
-        set_state.update(|s| s.user = Some(value));
-    };
+    fn transition(state: &Self, event: Self::Event) -> Self {
+        match (state, event) {
+            (GameState::Idle, GameEvent::Start) => GameState::Playing,
+            (GameState::Playing, GameEvent::Pause) => GameState::Paused,
+            (GameState::Paused, GameEvent::Resume) => GameState::Playing,
+            (GameState::Playing, GameEvent::End) => GameState::GameOver,
+            _ => state.clone(),
+        }
+    }
+}
 
+fn Game() -> impl IntoView {
+    let (machine, set_machine) = use_machine::<GameState>();
+    
     view! {
         <div>
-            <h1>"Count: " {move || state.get().count}</h1>
-            <button on:click=increment>"Increment"</button>
-            <input
-                type="text"
-                placeholder="Enter user name"
-                on:input=set_user
-            />
-            <p>"User: " {move || state.get().user.as_ref().unwrap_or(&"None".to_string())}</p>
+            <p>"State: " {move || format!("{:?}", machine.current_state())}</p>
+            <button on:click=move |_| set_machine.transition(GameEvent::Start)>"Start"</button>
         </div>
     }
 }
@@ -482,100 +432,123 @@ fn App() -> impl IntoView {
 
 #### **After (v1.0.0)**
 ```rust
-use leptos::*;
-use leptos_state::*;
+use leptos_state::v1::*;
 
-#[derive(Clone, Debug, Default, PartialEq)]
-struct AppState {
-    count: i32,
-    user: Option<String>,
+#[derive(Clone, Debug, PartialEq, Default)]
+enum GameState {
+    #[default]
+    Idle,
+    Playing,
+    Paused,
+    GameOver,
 }
 
-create_store!(
-    AppStore,
-    AppState,
-    AppState::default()
-);
-
-#[derive(Clone, Debug, PartialEq)]
-enum AppEvent {
-    Increment,
-    SetUser(String),
+#[derive(Clone, Debug, PartialEq, Default)]
+enum GameEvent {
+    #[default]
+    Start,
+    Pause,
+    Resume,
+    End,
 }
 
-fn App() -> impl IntoView {
-    let (state, set_state) = use_store::<AppStore>();
-    
-    let increment = move |_| {
-        set_state.update(|s| s.count += 1);
-    };
-    
-    let set_user = move |ev| {
-        let value = event_target_value(&ev);
-        set_state.update(|s| s.user = Some(value));
-    };
+#[derive(Clone, Debug, PartialEq, Default)]
+struct GameContext {
+    score: u32,
+    level: u32,
+}
 
+impl StateMachineContext for GameContext {}
+impl StateMachineEvent for GameEvent {}
+
+impl StateMachineState for GameState {
+    type Context = GameContext;
+    type Event = GameEvent;
+}
+
+impl StateMachine for GameState {
+    fn initial_state(&self) -> Self {
+        GameState::Idle
+    }
+    
+    fn transition(&self, state: &Self, event: Self::Event) -> Self {
+        match (state, event) {
+            (GameState::Idle, GameEvent::Start) => GameState::Playing,
+            (GameState::Playing, GameEvent::Pause) => GameState::Paused,
+            (GameState::Paused, GameEvent::Resume) => GameState::Playing,
+            (GameState::Playing, GameEvent::End) => GameState::GameOver,
+            _ => state.clone(),
+        }
+    }
+    
+    fn can_transition(&self, state: &Self, event: Self::Event) -> bool {
+        match (state, event) {
+            (GameState::Idle, GameEvent::Start) => true,
+            (GameState::Playing, GameEvent::Pause) => true,
+            (GameState::Paused, GameEvent::Resume) => true,
+            (GameState::Playing, GameEvent::End) => true,
+            _ => false,
+        }
+    }
+    
+    fn try_transition(&self, state: &Self, event: Self::Event) -> Result<Self, TransitionError<Self::Event>> {
+        if self.can_transition(state, event.clone()) {
+            Ok(self.transition(state, event))
+        } else {
+            Err(TransitionError::InvalidTransition(event))
+        }
+    }
+    
+    fn state_count(&self) -> usize { 4 }
+    fn is_valid_state(&self, _state: &Self) -> bool { true }
+    fn is_reachable(&self, _state: &Self) -> bool { true }
+}
+
+fn Game() -> impl IntoView {
+    let initial_context = GameContext::default();
+    let machine = use_machine_with_context(GameState::Idle, initial_context);
+    
     view! {
         <div>
-            <h1>"Count: " {move || state.get().count}</h1>
-            <button on:click=increment>"Increment"</button>
-            <input
-                type="text"
-                placeholder="Enter user name"
-                on:input=set_user
-            />
-            <p>"User: " {move || state.get().user.as_ref().unwrap_or(&"None".to_string())}</p>
+            <p>"State: " {move || format!("{:?}", machine.state())}</p>
+            <p>"Score: " {move || machine.context().score}</p>
+            <button on:click=move |_| machine.send(GameEvent::Start)>"Start"</button>
+            <button on:click=move |_| machine.send(GameEvent::Pause)>"Pause"</button>
+            <button on:click=move |_| machine.send(GameEvent::Resume)>"Resume"</button>
+            <button on:click=move |_| machine.send(GameEvent::End)>"End"</button>
         </div>
     }
 }
 ```
 
----
+## ✅ **Migration Validation**
 
-## 🎯 **Migration Timeline**
+After completing the migration, validate your changes:
 
-### **Phase 1: Preparation (September 2025)**
-- **Migration Tools Development** - Automatic migration tools
-- **Documentation Updates** - Complete migration guides
-- **Community Outreach** - Announce migration plans
+1. **Compilation**: Ensure the code compiles without errors
+2. **Functionality**: Test all state transitions and store operations
+3. **Performance**: Verify performance characteristics are maintained
+4. **Integration**: Test with your Leptos application
 
-### **Phase 2: Early Access (October 2025)**
-- **Alpha Release** - v1.0.0-alpha for early adopters
-- **Migration Testing** - Community testing of migration tools
-- **Feedback Collection** - Gather migration experience
+## 🆘 **Getting Help**
 
-### **Phase 3: General Release (December 2025)**
-- **v1.0.0 Release** - Stable release with migration tools
-- **Community Migration** - Support community migration
-- **Documentation Updates** - Final migration guides
+If you encounter issues during migration:
 
----
+1. **Check the error messages** for specific trait bound issues
+2. **Review the examples** in the Quickstart Guide
+3. **Use migration tools** to analyze your code
+4. **Consult the API Reference** for detailed interface information
+5. **Open an issue** on GitHub with your specific problem
 
-## 🤝 **Getting Help with Migration**
+## 🎯 **Next Steps**
 
-### **Migration Support Channels**
+After successful migration:
 
-1. **GitHub Issues** - Report migration problems
-2. **GitHub Discussions** - Ask migration questions
-3. **Migration Tools** - Use automatic migration tools
-4. **Documentation** - Comprehensive migration guides
-
-### **Community Resources**
-
-- **Migration Examples** - Real-world migration examples
-- **Video Tutorials** - Step-by-step migration videos
-- **Community Support** - Help from other developers
-- **Migration Workshops** - Live migration assistance
+1. **Explore new features** like performance monitoring and DevTools
+2. **Optimize performance** using the built-in benchmarking tools
+3. **Add persistence** to your state machines and stores
+4. **Implement testing** using the new testing framework
 
 ---
 
-## 📚 **Additional Resources**
-
-- **[🏗️ Architectural Redesign Plan](../development/ARCHITECTURAL_REDESIGN.md)** - Complete redesign overview
-- **[🔧 Technical Specification](../development/TECHNICAL_SPECIFICATION.md)** - Implementation details
-- **[📅 Implementation Timeline](../development/IMPLEMENTATION_TIMELINE.md)** - Development timeline
-- **[📖 User Guide](../user-guide/README.md)** - Current usage documentation
-
----
-
-*This migration guide will be updated as v1.0.0 development progresses. Last updated: September 4, 2025*
+**The migration to v1.0.0 opens up new possibilities for building robust, performant state management in your Leptos applications. Take advantage of the improved type safety and new features!** 🚀
