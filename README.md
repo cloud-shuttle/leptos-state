@@ -7,6 +7,8 @@
 
 **The definitive state management solution for Leptos applications** - featuring stores, state machines, middleware, and DevTools integration.
 
+> 🎉 **v1.0.0-alpha.1 is here!** This is a major architectural redesign with a trait-first approach, improved type safety, and enhanced Leptos v0.8+ integration. See the [migration guide](docs/migration/v1.0.0.md) for upgrading from v0.2.x.
+
 ## ✨ **Features**
 
 - 🏪 **Reactive Stores** - Zustand-inspired API with Leptos integration
@@ -25,39 +27,52 @@
 
 ```toml
 [dependencies]
-leptos-state = "0.2.0"
+leptos-state = "1.0.0-alpha.1"
 leptos = "0.8"
 ```
 
-### Simple Store
+### Simple Store (v1.0.0-alpha.1)
 
 ```rust
-use leptos_state::{create_store, use_store};
+use leptos_state::v1::*;
+use leptos_state::{use_store, provide_store};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, PartialEq, Debug, Default)]
 struct CounterStore {
     count: i32,
     name: String,
 }
 
-impl CounterStore {
-    fn increment(&mut self) {
-        self.count += 1;
+impl StoreState for CounterStore {}
+impl Store for CounterStore {
+    fn create() -> Self {
+        Self { count: 0, name: "Counter".to_string() }
     }
     
-    fn set_name(&mut self, name: String) {
-        self.name = name;
+    fn update(&mut self, action: &str, payload: Option<serde_json::Value>) -> Result<(), String> {
+        match action {
+            "increment" => self.count += 1,
+            "set_name" => if let Some(payload) = payload {
+                self.name = payload.as_str().unwrap_or("Counter").to_string();
+            },
+            _ => return Err("Unknown action".to_string()),
+        }
+        Ok(())
     }
 }
 
 fn Counter() -> impl IntoView {
-    let (store, actions) = use_store::<CounterStore>();
+    let (store, set_store) = use_store::<CounterStore>();
+    
+    let increment = move |_| {
+        set_store.update(|state| state.count += 1);
+    };
     
     view! {
         <div>
-            <h2>"Counter: " {store.count}</h2>
-            <p>"Name: " {store.name}</p>
-            <button on:click=move |_| actions.increment()>
+            <h2>"Counter: " {move || store.get().count}</h2>
+            <p>"Name: " {move || store.get().name}</p>
+            <button on:click=increment>
                 "Increment"
             </button>
         </div>
@@ -65,34 +80,76 @@ fn Counter() -> impl IntoView {
 }
 ```
 
-### State Machine
+### State Machine (v1.0.0-alpha.1)
 
 ```rust
-use leptos_state::{MachineBuilder, use_machine};
+use leptos_state::v1::*;
+use leptos_state::use_machine_with_context;
 
-#[derive(Clone, Debug)]
-enum TrafficLightEvent {
-    Next,
-    Emergency,
+#[derive(Clone, PartialEq, Debug, Default)]
+struct TrafficContext {
+    timer: u32,
+}
+
+impl StateMachineContext for TrafficContext {}
+
+#[derive(Clone, PartialEq, Debug)]
+enum TrafficEvent {
+    Timer,
+    EmergencyStop,
+}
+
+impl StateMachineEvent for TrafficEvent {}
+impl Default for TrafficEvent {
+    fn default() -> Self { TrafficEvent::Timer }
+}
+
+#[derive(Clone, PartialEq, Debug)]
+enum TrafficState {
+    Red,
+    Yellow,
+    Green,
+}
+
+impl StateMachineState for TrafficState {
+    type Context = TrafficContext;
+    type Event = TrafficEvent;
+}
+
+impl Default for TrafficState {
+    fn default() -> Self { TrafficState::Red }
+}
+
+impl StateMachine for TrafficState {
+    fn initial_state(&self) -> Self { TrafficState::Red }
+    
+    fn transitions(&self) -> Vec<Transition<Self::Context, Self::Event, Self>> {
+        vec![
+            Transition::new(TrafficState::Red, TrafficEvent::Timer, TrafficState::Green),
+            Transition::new(TrafficState::Green, TrafficEvent::Timer, TrafficState::Yellow),
+            Transition::new(TrafficState::Yellow, TrafficEvent::Timer, TrafficState::Red),
+        ]
+    }
 }
 
 fn TrafficLight() -> impl IntoView {
-    let machine = MachineBuilder::new()
-        .state("red")
-            .on(TrafficLightEvent::Next, "green")
-        .state("green")
-            .on(TrafficLightEvent::Next, "yellow")
-        .state("yellow")
-            .on(TrafficLightEvent::Next, "red")
-        .initial("red")
-        .build();
+    let initial_context = TrafficContext::default();
+    let machine = use_machine_with_context(TrafficState::Red, initial_context);
     
-    let (state, send) = use_machine(machine);
+    let current_light = move || {
+        match machine.state() {
+            TrafficState::Red => "red",
+            TrafficState::Yellow => "yellow", 
+            TrafficState::Green => "green",
+        }
+    };
+    
+    let next_timer = move |_| machine.send(TrafficEvent::Timer);
     
     view! {
         <div>
-            <h2>"Traffic Light: " {state.value()}</h2>
-            <button on:click=move |_| send(TrafficLightEvent::Next)>
+            <h2>"Traffic Light: " {current_light}</h2>
+            <button on:click=next_timer>
                 "Next Light"
             </button>
         </div>

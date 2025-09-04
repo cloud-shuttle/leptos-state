@@ -3,7 +3,10 @@
 //! This module defines comprehensive error types that provide detailed
 //! information about what went wrong and how to fix it.
 
-use std::fmt;
+
+
+#[cfg(feature = "persist")]
+use serde_json;
 
 // =============================================================================
 // Core Error Types
@@ -313,12 +316,14 @@ impl<C, E, S> From<std::io::Error> for StateMachineError<C, E, S> {
     }
 }
 
+#[cfg(feature = "persist")]
 impl<C, E, S> From<serde_json::Error> for StateMachineError<C, E, S> {
     fn from(err: serde_json::Error) -> Self {
         StateMachineError::Serialization(SerializationError::SerializationFailed(err.to_string()))
     }
 }
 
+#[cfg(feature = "persist")]
 impl<C, E, S> From<serde_yaml::Error> for StateMachineError<C, E, S> {
     fn from(err: serde_yaml::Error) -> Self {
         StateMachineError::Serialization(SerializationError::SerializationFailed(err.to_string()))
@@ -414,14 +419,14 @@ mod tests {
 
     #[test]
     fn test_error_creation() {
-        let err = StateMachineError::Construction(ConstructionError::NoInitialState);
+        let err: StateMachineError<(), (), ()> = StateMachineError::Construction(ConstructionError::NoInitialState);
         assert_eq!(err.error_code(), "CONSTRUCTION_ERROR");
         assert!(err.description().contains("construction"));
     }
 
     #[test]
     fn test_error_suggestions() {
-        let err = StateMachineError::Construction(ConstructionError::NoInitialState);
+        let err: StateMachineError<(), (), ()> = StateMachineError::Construction(ConstructionError::NoInitialState);
         let suggestions = err.suggestions();
         assert!(!suggestions.is_empty());
         assert!(suggestions.iter().any(|s| s.contains("initial")));

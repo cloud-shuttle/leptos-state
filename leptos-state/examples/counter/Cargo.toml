@@ -1,0 +1,16 @@
+[package]
+name = "counter-example"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+leptos = { version = "0.8", features = ["csr"] }
+leptos_state = { path = "../..", features = ["persist"] }
+
+[lib]
+name = "counter_example"
+path = "src/main.rs"
+
+[[bin]]
+name = "counter"
+path = "src/main.rs"

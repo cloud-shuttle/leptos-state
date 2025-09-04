@@ -19,6 +19,8 @@ pub mod error;
 pub mod state;
 pub mod event;
 pub mod context;
+pub mod devtools;
+pub mod performance;
 
 // Re-export main types for easy access
 pub use traits::*;
@@ -29,10 +31,12 @@ pub use error::*;
 pub use state::*;
 pub use event::*;
 pub use context::*;
+pub use devtools::*;
+pub use performance::*;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+
 
     #[test]
     fn test_module_compilation() {

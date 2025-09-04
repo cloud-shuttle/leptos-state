@@ -877,7 +877,8 @@ pub struct Transition<C, E> {
 }
 
 /// Complete machine implementation
-pub struct Machine<C: Send + Sync, E> {
+#[derive(Clone)]
+pub struct Machine<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug> {
     states: HashMap<String, StateNode<C, E>>,
     initial: String,
 }

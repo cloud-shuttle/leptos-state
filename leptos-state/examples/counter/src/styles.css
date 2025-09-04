@@ -1,0 +1,268 @@
+/* Counter Example Styles */
+.app {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: white;
+}
+
+.app h1 {
+    text-align: center;
+    margin-bottom: 40px;
+    font-size: 2.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.counter-container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.counter-container h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2rem;
+    color: #f8f9fa;
+}
+
+.counter-display {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.count {
+    display: block;
+    font-size: 4rem;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 10px;
+}
+
+.state {
+    display: block;
+    font-size: 1.2rem;
+    color: #e9ecef;
+    font-style: italic;
+}
+
+.counter-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.counter-btn {
+    padding: 12px 24px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    min-width: 120px;
+}
+
+.counter-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.counter-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.counter-btn.increment {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    color: white;
+}
+
+.counter-btn.increment:hover:not(:disabled) {
+    background: linear-gradient(45deg, #20c997, #28a745);
+}
+
+.counter-btn.decrement {
+    background: linear-gradient(45deg, #dc3545, #fd7e14);
+    color: white;
+}
+
+.counter-btn.decrement:hover:not(:disabled) {
+    background: linear-gradient(45deg, #fd7e14, #dc3545);
+}
+
+.counter-btn.reset {
+    background: linear-gradient(45deg, #6c757d, #495057);
+    color: white;
+}
+
+.counter-btn.reset:hover:not(:disabled) {
+    background: linear-gradient(45deg, #495057, #6c757d);
+}
+
+.counter-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.counter-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.counter-info {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.counter-info p {
+    margin: 8px 0;
+    font-size: 1rem;
+    color: #e9ecef;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .app {
+        padding: 15px;
+    }
+    
+    .app h1 {
+        font-size: 2rem;
+        margin-bottom: 30px;
+    }
+    
+    .counter-container {
+        padding: 20px;
+    }
+    
+    .counter-container h2 {
+        font-size: 1.5rem;
+    }
+    
+    .count {
+        font-size: 3rem;
+    }
+    
+    .counter-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .counter-btn {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .counter-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .action-btn {
+        width: 100%;
+        max-width: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    .app {
+        padding: 10px;
+    }
+    
+    .counter-container {
+        padding: 15px;
+    }
+    
+    .count {
+        font-size: 2.5rem;
+    }
+    
+    .counter-btn {
+        padding: 10px 20px;
+        font-size: 1rem;
+    }
+}
+
+/* Animation for state changes */
+.counter-display {
+    transition: all 0.3s ease;
+}
+
+.counter-display:hover {
+    transform: scale(1.02);
+}
+
+/* Focus styles for accessibility */
+.counter-btn:focus,
+.action-btn:focus {
+    outline: 2px solid #ffd700;
+    outline-offset: 2px;
+}
+
+/* Loading state */
+.counter-container.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Success/Error states */
+.counter-display.success {
+    border-color: #28a745;
+    box-shadow: 0 0 20px rgba(40, 167, 69, 0.3);
+}
+
+.counter-display.error {
+    border-color: #dc3545;
+    box-shadow: 0 0 20px rgba(220, 53, 69, 0.3);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .app {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    }
+    
+    .counter-container {
+        background: rgba(0, 0, 0, 0.3);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+}

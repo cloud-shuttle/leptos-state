@@ -1,6 +1,6 @@
 [package]
 name = "leptos-state"
-version = "0.2.2"
+version = "1.0.0-alpha.1"
 edition = "2021"
 authors = ["Cloud Shuttle <team@cloud-shuttle.com>"]
 description = "A powerful state management library for Leptos applications with state machines, persistence, and DevTools"
@@ -21,11 +21,11 @@ wasm-bindgen = { workspace = true, optional = true }
 uuid = { workspace = true, optional = true }
 js-sys = { workspace = true, optional = true }
 futures = "0.3"
+proptest = { workspace = true, optional = true }
 
 [dev-dependencies]
 wasm-bindgen-test = { workspace = true }
 pretty_assertions = { workspace = true }
-proptest = { workspace = true }
 quickcheck = { workspace = true }
 tokio-test = { workspace = true }
 async-std = { workspace = true }
@@ -40,17 +40,13 @@ console_error_panic_hook = { workspace = true }
 
 [features]
 default = []
-persist = ["serde", "serde_json", "web-sys", "wasm-bindgen"]
-visualization = ["serde", "serde_json"]
-testing = []
-performance = []
-integration = []
-documentation = ["serde", "serde_json"]
-serialization = ["serde", "serde_json", "serde_yaml"]
-codegen = []
-devtools = ["web-sys", "wasm-bindgen"]
-ssr = ["leptos/ssr"]
 wasm = ["web-sys", "wasm-bindgen", "js-sys"]
+persist = ["serde", "serde_json", "serde_yaml", "uuid"]
+visualization = ["serde", "serde_json"]
+codegen = ["serde", "serde_json"]
+testing = ["proptest"]
+devtools = ["serde", "serde_json", "web-sys", "wasm-bindgen", "uuid"]
+ssr = ["leptos/ssr"]
 
 # Leptos version compatibility features
 leptos-0-6 = []

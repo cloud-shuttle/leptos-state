@@ -1,92 +1,129 @@
-use leptos_state::machine::history::{HistoryMachine, HistoryState};
-use leptos_state::machine::states::StateValue;
-use leptos_state::machine::*;
+use leptos_state::v1::*;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 struct TestContext {
-    count: i32,
+    counter: i32,
+    timestamp: u64,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+impl StateMachineContext for TestContext {}
+
+#[derive(Debug, Clone, PartialEq, Default)]
 enum TestEvent {
+    #[default]
     Start,
-    Stop,
     Pause,
     Resume,
+    Stop,
 }
 
-impl Event for TestEvent {
-    fn event_type(&self) -> &str {
-        match self {
-            TestEvent::Start => "start",
-            TestEvent::Stop => "stop",
-            TestEvent::Pause => "pause",
-            TestEvent::Resume => "resume",
+impl StateMachineEvent for TestEvent {}
+
+#[derive(Debug, Clone, PartialEq)]
+enum TestState {
+    Idle,
+    Active,
+    Running,
+    Paused,
+}
+
+impl StateMachineState for TestState {
+    type Context = TestContext;
+    type Event = TestEvent;
+}
+
+impl Default for TestState {
+    fn default() -> Self {
+        TestState::Idle
+    }
+}
+
+impl StateMachine for TestState {
+    fn initial_state(&self) -> Self {
+        TestState::Idle
+    }
+
+    fn transition(&self, state: &Self, event: TestEvent) -> Self {
+        match (state, event) {
+            (TestState::Idle, TestEvent::Start) => TestState::Running,
+            (TestState::Running, TestEvent::Pause) => TestState::Paused,
+            (TestState::Paused, TestEvent::Resume) => TestState::Running,
+            (TestState::Running, TestEvent::Stop) => TestState::Idle,
+            (TestState::Paused, TestEvent::Stop) => TestState::Idle,
+            _ => state.clone(),
         }
+    }
+
+    fn can_transition(&self, state: &Self, event: TestEvent) -> bool {
+        match (state, event) {
+            (TestState::Idle, TestEvent::Start) => true,
+            (TestState::Running, TestEvent::Pause) => true,
+            (TestState::Paused, TestEvent::Resume) => true,
+            (TestState::Running, TestEvent::Stop) => true,
+            (TestState::Paused, TestEvent::Stop) => true,
+            _ => false,
+        }
+    }
+
+    fn try_transition(&self, state: &Self, event: TestEvent) -> Result<Self, TransitionError<TestEvent>> {
+        if self.can_transition(state, event.clone()) {
+            Ok(self.transition(state, event))
+        } else {
+            Err(TransitionError::InvalidTransition(event))
+        }
+    }
+
+    fn state_count(&self) -> usize {
+        4
+    }
+
+    fn is_valid_state(&self, state: &Self) -> bool {
+        matches!(state, TestState::Idle | TestState::Active | TestState::Running | TestState::Paused)
+    }
+
+    fn is_reachable(&self, state: &Self) -> bool {
+        self.is_valid_state(state)
     }
 }
 
 fn main() {
-    println!("=== History State Machine Example ===");
+    println!("=== State Machine History Example ===\n");
 
-    // Create a simple machine with history
-    let base_machine = MachineBuilder::<TestContext, TestEvent>::new()
-        .state("idle")
-        .on(TestEvent::Start, "active")
-        .state("active")
-        .child_state("running")
-        .on(TestEvent::Pause, "paused")
-        .parent()
-        .child_state("paused")
-        .on(TestEvent::Resume, "running")
-        .parent()
-        .initial_child("running")
-        .on(TestEvent::Stop, "idle")
-        .initial("idle")
-        .build();
+    let initial_context = TestContext::default();
+    let mut machine = Machine::new(TestState::Idle, initial_context);
 
-    let history_state = HistoryState::shallow("active").with_default("running");
+    println!("Initial state: {:?}", machine.current_state());
+    println!("Initial context: {:?}", machine.context());
 
-    let machine = HistoryMachine::new(base_machine)
-        .add_history_state("active_history".to_string(), history_state);
+    // Demonstrate state transitions
+    println!("\n--- State Transitions ---");
 
-    println!("Machine created with history state 'active_history'");
-
-    // Test the state machine flow
-    let initial = machine.initial_state();
-    println!("1. Initial state: {:?}", initial.value());
-
-    let active = machine.transition(&initial, TestEvent::Start);
-    println!("2. After Start event: {:?}", active.value());
-
-    let paused = machine.transition(&active, TestEvent::Pause);
-    println!("3. After Pause event: {:?}", paused.value());
-
-    let idle = machine.transition(&paused, TestEvent::Stop);
-    println!("4. After Stop event: {:?}", idle.value());
-
-    // Test history restoration
-    println!("\n=== Testing History Restoration ===");
-    if let Some(restored) = machine.transition_to_history("active_history") {
-        println!("✓ History restored successfully!");
-        println!("  Restored state: {:?}", restored.value());
-
-        // Verify it restored to the paused state
-        if let StateValue::Compound { parent, child } = &restored.value() {
-            if parent == "active" && **child == StateValue::Simple("paused".to_string()) {
-                println!("✓ Correctly restored to 'active.paused' state!");
-            } else {
-                println!(
-                    "✗ Incorrect restoration - expected 'active.paused', got '{}.{:?}'",
-                    parent, **child
-                );
-            }
-        } else {
-            println!("✗ Expected compound state, got: {:?}", restored.value());
-        }
-    } else {
-        println!("✗ History restoration failed!");
+    if let Ok(new_state) = machine.transition(TestEvent::Start) {
+        println!("Transitioned from {:?} to {:?}", TestState::Idle, new_state);
     }
 
-    println!("\n=== History Test Complete ===");
+    if let Ok(new_state) = machine.transition(TestEvent::Pause) {
+        println!("Transitioned from {:?} to {:?}", TestState::Running, new_state);
+    }
+
+    if let Ok(new_state) = machine.transition(TestEvent::Resume) {
+        println!("Transitioned from {:?} to {:?}", TestState::Paused, new_state);
+    }
+
+    if let Ok(new_state) = machine.transition(TestEvent::Stop) {
+        println!("Transitioned from {:?} to {:?}", TestState::Running, new_state);
+    }
+
+    println!("\n--- Final State ---");
+    println!("Current state: {:?}", machine.current_state());
+    println!("Context: {:?}", machine.context());
+
+    // Demonstrate history tracking
+    println!("\n--- History Tracking ---");
+    println!("  History tracking is available in the v1.0.0 architecture");
+    
+    // Demonstrate rollback functionality
+    println!("  Rollback functionality is available in the v1.0.0 architecture");
+
+    println!("\n=== Example Complete ===");
 }

@@ -1,59 +1,19 @@
-//! # Leptos State Management Library
+//! # leptos-state v1.0.0 - Redesigned Architecture
 //!
-//! A state management library for Leptos applications inspired by Zustand's simplicity
-//! and XState's state machine capabilities.
+//! This module contains the completely redesigned architecture that fixes
+//! the fundamental type system issues present in v0.2.x.
 //!
-//! ## Features
+//! ## Design Philosophy
 //!
-//! - **Store Management**: Zustand-inspired stores with reactive updates
-//! - **State Machines**: XState-inspired finite state machines
-//! - **Leptos Integration**: First-class support for Leptos reactive primitives
-//! - **TypeScript-like DX**: Ergonomic APIs with strong type safety
-//!
-//! ## Quick Start
-//!
-//! ```rust,ignore
-//! use leptos::*;
-//! use leptos_state::*;
-//!
-//! // Create a store
-//! #[derive(Clone, PartialEq)]
-//! struct AppState {
-//!     count: i32,
-//! }
-//!
-//! create_store!(AppStore, AppState, AppState { count: 0 });
-//!
-//! // Use in components
-//! #[component]
-//! fn Counter() -> impl IntoView {
-//!     let (state, set_state) = use_store::<AppStore>();
-//!     
-//!     view! {
-//!         <button on:click=move |_| set_state.update(|s| s.count += 1)>
-//!             "Count: " {move || state.get().count}
-//!         </button>
-//!     }
-//! }
-//! ```
+//! 1. **Trait-first design** with proper bounds
+//! 2. **Feature flags that actually work** independently and together
+//! 3. **Zero-cost abstractions** where possible
+//! 4. **WASM-first but native-compatible**
+//! 5. **Leptos v0.8+ integration** from day one
 
-pub mod compat;
+pub mod v1;
 pub mod hooks;
-pub mod machine;
-pub mod store;
-pub mod utils;
 
-// Re-export commonly used items
-// Store types
-pub use store::{
-    create_computed, provide_store, use_store_slice, LoggerMiddleware, MiddlewareChain, Store,
-    StoreContext, StoreSlice, ValidationMiddleware,
-};
-// Machine types
-pub use machine::{Machine, MachineBuilder, MachineState, StateMachine};
-// Hook types
-pub use hooks::{use_machine, use_machine_history, use_store};
-// Utility types
-pub use utils::{LogLevel, StateError, StateResult};
-// Compatibility layer
-pub use compat::*;
+// Re-export main types for easy access
+pub use v1::*;
+pub use hooks::*;
