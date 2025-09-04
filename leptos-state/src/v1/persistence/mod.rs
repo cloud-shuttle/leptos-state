@@ -454,7 +454,7 @@ struct StoreData<S> {
 
 #[cfg(test)]
 mod tests {
-    use super::{MemoryBackend, PersistenceManager, PersistenceDataType, PersistenceItem};
+    use super::{MemoryBackend, PersistenceManager, PersistenceDataType, PersistenceItem, StorageBackend};
     use crate::v1::traits::*;
     use serde::{Serialize, Deserialize};
     
