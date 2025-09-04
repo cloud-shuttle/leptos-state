@@ -255,8 +255,30 @@ pub enum PersistenceError {
     #[error("Storage not initialized")]
     NotInitialized,
     
+    #[error("Serialization failed: {0}")]
+    SerializationFailed(String),
+    
+    #[error("Deserialization failed: {0}")]
+    DeserializationFailed(String),
+    
     #[error("Migration failed: {0}")]
     MigrationFailed(String),
+}
+
+/// Migration-specific errors
+#[derive(Debug, thiserror::Error)]
+pub enum MigrationError {
+    #[error("Migration analysis failed: {0}")]
+    AnalysisFailed(String),
+    
+    #[error("Code transformation failed: {0}")]
+    TransformationFailed(String),
+    
+    #[error("Migration validation failed: {0}")]
+    ValidationFailed(String),
+    
+    #[error("Unsupported migration pattern: {0}")]
+    UnsupportedPattern(String),
 }
 
 /// Error that occurs during visualization operations

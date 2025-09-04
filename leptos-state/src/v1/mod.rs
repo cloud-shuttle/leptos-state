@@ -21,6 +21,9 @@ pub mod event;
 pub mod context;
 pub mod devtools;
 pub mod performance;
+pub mod persistence;
+pub mod testing;
+pub mod migration;
 
 // Re-export main types for easy access
 pub use traits::*;
@@ -33,6 +36,9 @@ pub use event::*;
 pub use context::*;
 pub use devtools::*;
 pub use performance::*;
+pub use persistence::*;
+pub use testing::*;
+pub use migration::*;
 
 #[cfg(test)]
 mod tests {

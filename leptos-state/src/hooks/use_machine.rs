@@ -254,19 +254,8 @@ mod tests {
 
     struct TestMachine;
 
-    impl StateMachine for TestMachine {
-        type Context = TestContext;
-        type Event = TestEvent;
-        type State = MachineStateImpl<TestContext>;
-
-        fn initial() -> Self::State {
-            MachineStateImpl::default()
-        }
-
-        fn transition(_state: &Self::State, _event: Self::Event) -> Self::State {
-            MachineStateImpl::default()
-        }
-    }
+    // Note: TestMachine implementation removed as it was using old v0.2.x API
+    // The v1 architecture has a different StateMachine trait structure
 
     #[test]
     fn machine_handle_creation() {

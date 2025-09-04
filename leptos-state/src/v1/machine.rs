@@ -4,7 +4,7 @@
 
 use super::traits::{StateMachineContext, StateMachineEvent, StateMachineState};
 use super::error::StateMachineError;
-use super::state::{StateNode, StateValue};
+use super::state::{StateNode, StateValue, Transition};
 use std::collections::HashMap;
 use std::sync::Arc;
 
