@@ -7,6 +7,7 @@ help:
 	@echo "📦 Setup & Installation:"
 	@echo "  make setup          - Install dependencies and setup environment"
 	@echo "  make install        - Install Playwright browsers"
+	@echo "  make setup-hooks    - Setup pre-commit hooks"
 	@echo ""
 	@echo "🔨 Building:"
 	@echo "  make build          - Build all Rust targets"
@@ -30,6 +31,11 @@ help:
 	@echo "🧹 Maintenance:"
 	@echo "  make clean          - Clean build artifacts"
 	@echo "  make clean-all      - Clean all artifacts including node_modules"
+	@echo ""
+	@echo "🔧 Code Quality:"
+	@echo "  make setup-hooks    - Setup pre-commit hooks"
+	@echo "  make lint           - Run clippy and rustfmt"
+	@echo "  make format         - Format code with rustfmt"
 
 # Setup environment
 setup: install
@@ -117,6 +123,24 @@ clean-all: clean
 	@rm -rf node_modules/
 	@rm -rf pnpm-lock.yaml
 	@echo "✅ Full clean complete!"
+
+# Setup pre-commit hooks
+setup-hooks:
+	@echo "🔧 Setting up pre-commit hooks..."
+	@./scripts/setup-pre-commit.sh
+	@echo "✅ Pre-commit hooks setup complete!"
+
+# Code quality targets
+lint:
+	@echo "🔍 Running linters..."
+	@cargo clippy --workspace -- -D warnings
+	@cargo fmt -- --check
+	@echo "✅ Linting complete!"
+
+format:
+	@echo "🎨 Formatting code..."
+	@cargo fmt --workspace
+	@echo "✅ Formatting complete!"
 
 # Quick development workflow
 dev: build test-web

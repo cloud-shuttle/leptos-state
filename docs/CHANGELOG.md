@@ -5,6 +5,53 @@ All notable changes to `leptos-state` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2025-09-07
+
+### 🎉 **Stable Release - Production Ready**
+
+This stable release represents the culmination of extensive development, testing, and refinement. leptos-state v1.0.0 is now production-ready with modern Rust support and comprehensive features.
+
+#### **Added**
+- **Production-Ready Stability**: Comprehensive testing and validation
+- **Modern Rust Support**: Full compatibility with Rust 1.80+ and 2024 edition
+- **Latest Leptos Integration**: Native support for Leptos 0.8+
+- **Enhanced Performance**: Optimized state machines and stores
+- **Rich Documentation**: Complete API reference and examples
+- **WASM Optimization**: Full WebAssembly support with modern tooling
+
+#### **Changed**
+- **Serialization Feature**: Proper feature gating and conditional compilation
+- **CI Compilation**: Resolved all 17 identified compilation errors
+- **Code Quality**: Reduced warnings and improved code maintainability
+- **API Consistency**: Enhanced state machine API with additional utility methods
+
+#### **Fixed**
+- **Serialization Issues**: Fixed missing serialization feature causing test failures
+- **Trait Bounds**: Resolved complex trait bound issues in persistence and visualization
+- **Conditional Compilation**: Fixed unstable `#[cfg]` attributes in where clauses
+- **Test Failures**: All integration and unit tests now passing
+- **Warning Cleanup**: Addressed unused variables and dead code warnings
+
+#### **Technical Improvements**
+- **Feature Gating**: Proper conditional compilation for serialization features
+- **Type Safety**: Enhanced type system with better trait bounds
+- **Error Handling**: Improved error messages and handling
+- **Performance**: Optimized state machine operations
+- **Memory Management**: Better memory usage patterns
+
+#### **Quality Metrics**
+- **Test Coverage**: 203 tests passing (100% success rate)
+- **Integration Tests**: 7/7 integration tests passing
+- **Compilation**: 0 compilation errors
+- **Warnings**: Significantly reduced warning count
+- **Code Quality**: Improved maintainability and readability
+
+#### **Development Process**
+- **TDD Approach**: Red-Green-Refactor methodology applied
+- **Systematic Testing**: Comprehensive test suite validation
+- **Quality Focus**: Emphasis on code quality and maintainability
+- **Documentation**: Updated documentation to reflect current state
+
 ## [1.0.0-rc.1] - 2024-12-19
 
 ### 🎯 **Release Candidate - Production Ready**

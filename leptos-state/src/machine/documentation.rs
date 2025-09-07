@@ -191,7 +191,7 @@ where
             DocumentationFormat::Rst => self.generate_rst_documentation()?,
             DocumentationFormat::Json => self.generate_json_documentation()?,
             DocumentationFormat::Yaml => self.generate_yaml_documentation()?,
-            DocumentationFormat::Custom(ref custom_format) => {
+            DocumentationFormat::Custom(custom_format) => {
                 self.generate_custom_documentation(custom_format)?
             }
         };
@@ -608,7 +608,7 @@ where
             DocumentationFormat::Rst => "documentation.rst".to_string(),
             DocumentationFormat::Json => "documentation.json".to_string(),
             DocumentationFormat::Yaml => "documentation.yaml".to_string(),
-            DocumentationFormat::Custom(ref name) => format!("documentation_{}.txt", name),
+            DocumentationFormat::Custom(name) => format!("documentation_{}.txt", name),
         };
 
         format!("{}/{}", self.config.output_directory, filename)

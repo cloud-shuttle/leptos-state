@@ -1391,7 +1391,7 @@ mod tests {
 
     #[test]
     fn machine_with_actions() {
-        let action = FunctionAction::new(|ctx: &mut TestContext, _: &TestEvent| ctx.count += 1);
+        let _action = FunctionAction::new(|ctx: &mut TestContext, _: &TestEvent| ctx.count += 1);
 
         let _machine = MachineBuilder::<TestContext, TestEvent>::new()
             .initial("idle")

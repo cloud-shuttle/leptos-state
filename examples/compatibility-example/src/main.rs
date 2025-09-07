@@ -51,7 +51,7 @@ impl Store for AppState {
 
 #[component]
 fn Counter() -> impl IntoView {
-    let (state, set_state) = use_store::<AppState>();
+    let (_state, set_state) = use_store::<AppState>();
 
     let increment = move |_| {
         set_state.update(|state| state.count += 1);
@@ -91,7 +91,7 @@ fn Counter() -> impl IntoView {
 
 #[component]
 fn UserProfile() -> impl IntoView {
-    let (state, set_state) = use_store::<AppState>();
+    let (_state, set_state) = use_store::<AppState>();
 
     let set_user = move |name: String| {
         set_state.update(|state| state.user = Some(name));

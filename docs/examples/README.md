@@ -1,6 +1,6 @@
 # 🚀 Leptos State Examples
 
-This directory contains comprehensive examples demonstrating the **leptos-state** library's capabilities, from basic usage to complex real-world applications.
+This directory contains comprehensive examples demonstrating the **leptos-state v1.0.0** library's capabilities, from basic usage to complex real-world applications with modern Rust and Leptos 0.8+.
 
 ## 📚 Example Categories
 
@@ -9,28 +9,31 @@ Simple examples to get you started with state management.
 
 - **[Counter](./counter/)**: Basic store usage with reactive updates
 - **[Traffic Light](./traffic-light/)**: Simple state machine demonstration
-- **[Form Input](./form-input/)**: Form state management patterns
+- **[History](./history/)**: State history and undo/redo functionality
 
 ### 🏗️ **Intermediate Examples**
 More complex patterns and real-world use cases.
 
 - **[Todo App](./todo-app/)**: Full CRUD application with state management
-- **[Shopping Cart](./shopping-cart/)**: Complex state with computed values
-- **[User Authentication](./auth/)**: Authentication state patterns
+- **[Compatibility Example](./compatibility-example/)**: Compatibility testing and validation
 
 ### 🚀 **Advanced Examples**
 Complex applications showcasing advanced features.
 
 - **[Analytics Dashboard](./analytics-dashboard/)**: Real-time data visualization
-- **[Code Generator](./codegen/)**: Multi-language code generation
-- **[State Machine Designer](./state-machine-designer/)**: Visual state machine builder
+- **[Code Generator](./codegen/)**: Multi-language code generation with state machines
 
-### 🔄 **Migration Examples**
-Examples showing migration from other state management solutions.
+### 🧪 **Feature Examples**
+Examples demonstrating specific features and capabilities.
 
-- **[Redux Migration](./migration-redux/)**: From Redux to leptos-state
-- **[MobX Migration](./migration-mobx/)**: From MobX to leptos-state
-- **[Zustand Migration](./migration-zustand/)**: From Zustand to leptos-state
+- **Actions Example**: State machine actions and side effects
+- **Guards Example**: State machine guards and conditions
+- **Persistence Example**: State persistence and serialization
+- **Testing Example**: Testing utilities and patterns
+- **Visualization Example**: State machine visualization
+- **Performance Example**: Performance monitoring and optimization
+- **Integration Example**: Integration testing patterns
+- **Documentation Example**: Code generation and documentation
 
 ## 🚀 Getting Started
 
@@ -103,17 +106,21 @@ example-name/
 ### **Beginner** 🟢
 1. **Counter**: Learn basic store creation and usage
 2. **Traffic Light**: Understand state machines
-3. **Form Input**: Practice form state management
+3. **History**: Practice state history and undo/redo
 
 ### **Intermediate** 🟡
 1. **Todo App**: Build a complete CRUD application
-2. **Shopping Cart**: Work with complex state relationships
-3. **User Authentication**: Handle authentication flows
+2. **Compatibility Example**: Test compatibility and validation
+3. **Actions Example**: Learn state machine actions
 
 ### **Advanced** 🔴
 1. **Analytics Dashboard**: Real-time data and complex state
 2. **Code Generator**: Advanced state machine patterns
-3. **State Machine Designer**: Visual state machine tools
+3. **Guards Example**: Complex state machine conditions
+4. **Persistence Example**: State persistence and serialization
+5. **Testing Example**: Advanced testing patterns
+6. **Visualization Example**: State machine visualization
+7. **Performance Example**: Performance monitoring and optimization
 
 ## 🔧 Example Features
 

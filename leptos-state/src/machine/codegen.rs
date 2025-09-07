@@ -111,7 +111,7 @@ where
             ProgrammingLanguage::TypeScript => self.generate_typescript_code(),
             ProgrammingLanguage::JavaScript => self.generate_javascript_code(),
             ProgrammingLanguage::Python => self.generate_python_code(),
-            ProgrammingLanguage::Custom(ref custom_lang) => {
+            ProgrammingLanguage::Custom(custom_lang) => {
                 self.generate_custom_language_code(custom_lang)
             }
         }

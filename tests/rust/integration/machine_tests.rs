@@ -12,7 +12,7 @@ wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 fn machine_creation_and_initial_state() {
-    let machine = create_test_machine();
+    let _machine = create_test_machine();
     let initial_state = TestMachine::initial();
 
     assert_eq!(initial_state, TestState::Idle);
@@ -20,7 +20,7 @@ fn machine_creation_and_initial_state() {
 
 #[wasm_bindgen_test]
 fn machine_basic_transitions() {
-    let machine = create_test_machine();
+    let _machine = create_test_machine();
     let initial_state = TestMachine::initial();
 
     // Test valid transition
@@ -39,7 +39,7 @@ fn machine_basic_transitions() {
 
 #[wasm_bindgen_test]
 fn machine_invalid_transitions() {
-    let machine = create_test_machine();
+    let _machine = create_test_machine();
     let initial_state = TestMachine::initial();
 
     // Invalid transition - decrement from idle should stay in idle
@@ -54,7 +54,7 @@ fn machine_invalid_transitions() {
 #[wasm_bindgen_test]
 fn machine_with_guards() {
     // Test basic machine functionality without guards for now
-    let machine = create_test_machine();
+    let _machine = create_test_machine();
     let initial_state = TestMachine::initial();
 
     // Test basic transition
@@ -69,7 +69,7 @@ fn machine_with_guards() {
 #[wasm_bindgen_test]
 fn machine_with_actions() {
     // Test basic machine functionality without actions for now
-    let machine = create_test_machine();
+    let _machine = create_test_machine();
     let initial_state = TestMachine::initial();
 
     // Test basic transition
@@ -80,7 +80,7 @@ fn machine_with_actions() {
 #[wasm_bindgen_test]
 fn state_value_matching() {
     // Test basic state value functionality
-    let machine = create_test_machine();
+    let _machine = create_test_machine();
     let initial_state = TestMachine::initial();
     
     assert_eq!(initial_state, TestState::Idle);
@@ -89,7 +89,7 @@ fn state_value_matching() {
 #[test]
 fn machine_builder_fluent_api() {
     // Test that the builder pattern works correctly
-    let machine = create_test_machine();
+    let _machine = create_test_machine();
     let initial_state = TestMachine::initial();
     
     assert_eq!(initial_state, TestState::Idle);

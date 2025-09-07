@@ -6,51 +6,86 @@ This document provides a comprehensive reference for all public APIs in leptos-s
 
 ### **Module Structure**
 ```
-leptos_state::v1
-├── traits          # Core trait definitions
+leptos_state
 ├── machine         # State machine implementation
+│   ├── builder     # MachineBuilder for creating state machines
+│   ├── states      # StateValue and state management
+│   ├── events      # Event handling and MachineEvent trait
+│   ├── persistence # State persistence system
+│   ├── visualization # State diagram generation
+│   └── testing     # Testing utilities
 ├── store           # Reactive store system
-├── state           # State and transition management
-├── event           # Event handling and queuing
-├── context         # Context management
-├── builder         # State machine builder
-├── persistence     # State persistence system
-├── devtools        # Development tools integration
-├── performance     # Performance monitoring
-├── testing         # Testing framework
-└── migration       # Migration tools
+│   ├── hooks       # Leptos integration hooks
+│   └── persistence # Store persistence
+├── v1              # Legacy v1 API (deprecated)
+└── utils           # Utility types and helpers
 ```
 
 ## 🎯 **Core Traits**
 
-### **StateMachineContext**
+### **MachineState**
 ```rust
-pub trait StateMachineContext: Clone + PartialEq + Debug + Default + Send + Sync {
-    // Marker trait for context types
+pub trait MachineState: Clone + PartialEq + Debug + Default + Send + Sync {
+    type Context: Clone + PartialEq + Debug + Default + Send + Sync;
+    
+    fn value(&self) -> &StateValue;
+    fn context(&self) -> &Self::Context;
+    fn matches(&self, other: &Self) -> bool;
+    fn can_transition_to(&self, target: &Self) -> bool;
 }
 ```
 
-**Purpose**: Marker trait for types that can serve as state machine context.
+**Purpose**: Core trait for state machine states with associated context.
 
 **Example**:
 ```rust
+#[derive(Clone, PartialEq, Debug, Default)]
+enum TrafficState {
+    #[default]
+    Red,
+    Yellow,
+    Green,
+}
+
 #[derive(Clone, PartialEq, Debug, Default)]
 struct TrafficContext {
     timer: u32,
     emergency_mode: bool,
 }
 
-impl StateMachineContext for TrafficContext {}
-```
-
-### **StateMachineEvent**
-```rust
-pub trait StateMachineEvent: Clone + PartialEq + Debug + Default + Send + Sync {
-    // Marker trait for event types
+impl MachineState for TrafficState {
+    type Context = TrafficContext;
+    
+    fn value(&self) -> &StateValue {
+        match self {
+            TrafficState::Red => &StateValue::Simple("red".to_string()),
+            TrafficState::Yellow => &StateValue::Simple("yellow".to_string()),
+            TrafficState::Green => &StateValue::Simple("green".to_string()),
+        }
+    }
+    
+    fn context(&self) -> &Self::Context {
+        &TrafficContext::default()
+    }
+    
+    fn matches(&self, other: &Self) -> bool {
+        self == other
+    }
+    
+    fn can_transition_to(&self, _target: &Self) -> bool {
+        true
+    }
 }
 ```
 
-**Purpose**: Marker trait for types that can serve as state machine events.
+### **MachineEvent**
+```rust
+pub trait MachineEvent: Clone + PartialEq + Debug + Default + Send + Sync {
+    fn event_type(&self) -> &str;
+}
+```
+
+**Purpose**: Core trait for state machine events.
 
 **Example**:
 ```rust
@@ -62,33 +97,14 @@ enum TrafficEvent {
     EmergencyClear,
 }
 
-impl StateMachineEvent for TrafficEvent {}
-```
-
-### **StateMachineState**
-```rust
-pub trait StateMachineState: Clone + PartialEq + Debug + Default + Send + Sync {
-    type Context: StateMachineContext;
-    type Event: StateMachineEvent;
-}
-```
-
-**Purpose**: Core trait for state machine states with associated context and event types.
-
-**Example**:
-```rust
-#[derive(Clone, PartialEq, Debug, Default)]
-enum TrafficState {
-    #[default]
-    Red,
-    Yellow,
-    Green,
-    Emergency,
-}
-
-impl StateMachineState for TrafficState {
-    type Context = TrafficContext;
-    type Event = TrafficEvent;
+impl MachineEvent for TrafficEvent {
+    fn event_type(&self) -> &str {
+        match self {
+            TrafficEvent::Timer => "timer",
+            TrafficEvent::EmergencyStop => "emergency_stop",
+            TrafficEvent::EmergencyClear => "emergency_clear",
+        }
+    }
 }
 ```
 
@@ -216,32 +232,56 @@ impl Store for CounterStore {
 
 ## 🏭 **State Machine Implementation**
 
-### **Machine**
+### **MachineBuilder**
 ```rust
-pub struct Machine<C, E, S>
-where
-    C: StateMachineContext,
-    E: StateMachineEvent + Default,
-    S: StateMachineState<Context = C, Event = E> + Default,
-{
+pub struct MachineBuilder<C, E> {
     // Private fields
 }
 
-impl<C, E, S> Machine<C, E, S>
+impl<C, E> MachineBuilder<C, E>
 where
-    C: StateMachineContext,
-    E: StateMachineEvent + Default,
-    S: StateMachineState<Context = C, Event = E> + Default,
+    C: Clone + PartialEq + Debug + Default + Send + Sync,
+    E: Clone + PartialEq + Debug + Default + Send + Sync,
 {
-    pub fn new(initial_state: S, context: C) -> Self;
-    pub fn add_state(&mut self, state: StateNode<C, E, S>) -> Result<(), StateMachineError>;
-    pub fn transition(&mut self, event: E) -> Result<S, StateMachineError>;
-    pub fn can_transition(&self, event: &E) -> bool;
-    pub fn current_state(&self) -> &S;
-    pub fn context(&self) -> &C;
-    pub fn context_mut(&mut self) -> &mut C;
-    pub fn reset(&mut self) -> Result<(), StateMachineError>;
-    pub fn rollback(&mut self) -> Result<(), StateMachineError>;
+    pub fn new() -> Self;
+    pub fn state(mut self, name: &'static str) -> StateBuilder<C, E>;
+    pub fn initial(mut self, state_name: &'static str) -> Self;
+    pub fn build(self) -> Machine<C, E>;
+}
+```
+
+**Purpose**: Builder pattern for creating state machines.
+
+**Example**:
+```rust
+let machine = MachineBuilder::<TrafficContext, TrafficEvent>::new()
+    .state("red")
+        .on(TrafficEvent::Timer, "green")
+    .state("yellow")
+        .on(TrafficEvent::Timer, "red")
+    .state("green")
+        .on(TrafficEvent::Timer, "yellow")
+    .initial("red")
+    .build();
+```
+
+### **Machine**
+```rust
+pub struct Machine<C, E> {
+    // Private fields
+}
+
+impl<C, E> Machine<C, E>
+where
+    C: Clone + PartialEq + Debug + Default + Send + Sync,
+    E: Clone + PartialEq + Debug + Default + Send + Sync,
+{
+    pub fn initial_state(&self) -> MachineStateImpl<C, E>;
+    pub fn transition(&self, state: &MachineStateImpl<C, E>, event: E) -> MachineStateImpl<C, E>;
+    pub fn can_transition(&self, state: &MachineStateImpl<C, E>, event: &E) -> bool;
+    pub fn is_valid_state(&self, state: &MachineStateImpl<C, E>) -> bool;
+    pub fn state_count(&self) -> usize;
+    pub fn transition_count(&self) -> usize;
 }
 ```
 
@@ -249,21 +289,18 @@ where
 
 **Example**:
 ```rust
-let context = TrafficContext::default();
-let mut machine = Machine::new(TrafficState::Red, context);
+let machine = MachineBuilder::<TrafficContext, TrafficEvent>::new()
+    .state("red")
+        .on(TrafficEvent::Timer, "green")
+    .state("green")
+        .on(TrafficEvent::Timer, "yellow")
+    .state("yellow")
+        .on(TrafficEvent::Timer, "red")
+    .initial("red")
+    .build();
 
-// Add states
-let red_state = StateNode::new("red")
-    .with_value(StateValue::simple("red"))
-    .with_transition(Transition::new(
-        TrafficEvent::Timer,
-        StateValue::simple("green")
-    ));
-
-machine.add_state(red_state)?;
-
-// Transition
-let new_state = machine.transition(TrafficEvent::Timer)?;
+let initial_state = machine.initial_state();
+let new_state = machine.transition(&initial_state, TrafficEvent::Timer);
 ```
 
 ### **StateNode**
@@ -300,7 +337,7 @@ impl<E, S> Transition<E, S> {
 
 ### **StateValue**
 ```rust
-pub enum StateValue<S> {
+pub enum StateValue {
     Simple(String),
     Compound(Vec<String>),
     Parallel(Vec<String>),
@@ -311,38 +348,101 @@ pub enum StateValue<S> {
 
 **Purpose**: Represents different types of state values.
 
+**Example**:
+```rust
+use leptos_state::machine::states::StateValue;
+
+// Simple state value
+let red_state = StateValue::Simple("red".to_string());
+
+// Compound state value
+let active_state = StateValue::Compound(vec!["active".to_string(), "processing".to_string()]);
+
+// Parallel state value
+let parallel_state = StateValue::Parallel(vec!["ui".to_string(), "data".to_string()]);
+
+// History state value
+let history_state = StateValue::History("previous".to_string());
+
+// Final state value
+let final_state = StateValue::Final;
+```
+
 ## 🏪 **Store System**
 
-### **Store Implementation**
+### **StoreState**
 ```rust
-pub struct Store<T> {
-    // Private fields
-}
-
-impl<T> Store<T>
-where
-    T: StoreState,
-{
-    pub fn new() -> Self;
-    pub fn with_initial_state(state: T) -> Self;
-    pub fn with_persistence(key: &'static str) -> Self;
-    pub fn with_history(max_history: usize) -> Self;
-    pub fn with_middleware<M>(mut self, middleware: M) -> Self where M: StoreMiddleware<T>;
-    
-    pub fn get_state(&self) -> &T;
-    pub fn set_state(&mut self, state: T) -> Result<(), StoreError>;
-    pub fn update_state<F>(&mut self, f: F) -> Result<(), StoreError> where F: FnOnce(&mut T);
-    
-    pub fn subscribe<F>(&self, callback: F) -> SubscriptionId where F: Fn(&T) + Send + Sync + 'static;
-    pub fn unsubscribe(&mut self, id: SubscriptionId) -> Result<(), StoreError>;
-    
-    pub fn undo(&mut self) -> Result<(), StoreError>;
-    pub fn redo(&mut self) -> Result<(), StoreError>;
-    pub fn clear_history(&mut self);
+pub trait StoreState: Clone + PartialEq + Debug + Default + Send + Sync {
+    fn create() -> Self;
+    fn update<F>(&mut self, f: F) where F: FnOnce(&mut Self);
 }
 ```
 
-**Purpose**: Concrete implementation of reactive stores.
+**Purpose**: Core trait for store state types.
+
+**Example**:
+```rust
+#[derive(Clone, PartialEq, Debug, Default)]
+struct CounterStore {
+    count: i32,
+    name: String,
+}
+
+impl StoreState for CounterStore {
+    fn create() -> Self {
+        Self { 
+            count: 0, 
+            name: "Counter".to_string() 
+        }
+    }
+    
+    fn update<F>(&mut self, f: F) 
+    where 
+        F: FnOnce(&mut Self) {
+        f(self);
+    }
+}
+```
+
+### **Store Hooks**
+```rust
+// Leptos integration hooks
+pub fn use_store<T>() -> (ReadSignal<T>, WriteSignal<T>)
+where
+    T: StoreState + 'static;
+
+pub fn use_store_with_persistence<T>(key: &'static str) -> (ReadSignal<T>, WriteSignal<T>)
+where
+    T: StoreState + 'static;
+```
+
+**Purpose**: Leptos hooks for using stores in components.
+
+**Example**:
+```rust
+use leptos::*;
+use leptos_state::store::*;
+
+fn Counter() -> impl IntoView {
+    let (store, set_store) = use_store::<CounterStore>();
+    
+    let increment = move |_| {
+        set_store.update(|state| state.count += 1);
+    };
+    
+    let decrement = move |_| {
+        set_store.update(|state| state.count -= 1);
+    };
+    
+    view! {
+        <div>
+            <h2>"Counter: " {move || store.get().count}</h2>
+            <button on:click=increment>"Increment"</button>
+            <button on:click=decrement>"Decrement"</button>
+        </div>
+    }
+}
+```
 
 ## 🛠️ **Guards and Actions**
 

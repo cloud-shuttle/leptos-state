@@ -1,7 +1,7 @@
 [package]
 name = "leptos-state"
-version = "1.0.0-rc.2"
-edition = "2021"
+version = "1.0.0"
+edition = "2024"
 authors = ["Cloud Shuttle <team@cloud-shuttle.com>"]
 description = "A powerful state management library for Leptos applications with state machines, persistence, and DevTools"
 repository = "https://github.com/cloud-shuttle/leptos-state"
@@ -48,9 +48,11 @@ testing = ["proptest"]
 devtools = ["serde", "serde_json", "web-sys", "wasm-bindgen", "uuid"]
 migration = ["serde", "serde_json"]
 ssr = ["leptos/ssr"]
-serialization = ["serde", "serde_json"]
+serialization = ["serde", "serde_json", "serde_yaml"]
+documentation = []
+integration = []
+performance = []
 
 # Leptos version compatibility features
-leptos-0-6 = []
-leptos-0-7 = []
 leptos-0-8 = []
+leptos-0-9 = []

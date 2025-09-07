@@ -308,7 +308,7 @@ where
 
     /// Export as JSON format
     fn export_json(&self) -> StateResult<String> {
-        let diagram = StateDiagram {
+        let _diagram = StateDiagram {
             machine: self.machine.as_ref(),
             current_state: self.current_state(),
             recent_transitions: self.recent_transitions(10),
@@ -318,7 +318,7 @@ where
 
         #[cfg(feature = "serialization")]
         {
-            serde_json::to_string_pretty(&diagram)
+            serde_json::to_string_pretty(&_diagram)
                 .map_err(|e| StateError::new(&format!("Failed to serialize diagram: {}", e)))
         }
 
@@ -811,14 +811,14 @@ mod tests {
     use crate::machine::*;
 
     #[derive(Debug, Clone, PartialEq, Default)]
-    #[cfg_attr(feature = "visualization", derive(serde::Serialize))]
+    #[cfg_attr(feature = "serialization", derive(serde::Serialize, serde::Deserialize))]
     struct TestContext {
         count: i32,
         name: String,
     }
 
     #[derive(Debug, Clone, PartialEq, Default)]
-    #[cfg_attr(feature = "visualization", derive(serde::Serialize))]
+    #[cfg_attr(feature = "serialization", derive(serde::Serialize, serde::Deserialize))]
     enum TestEvent {
         #[default]
         Increment,

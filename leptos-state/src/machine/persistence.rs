@@ -119,7 +119,7 @@ pub struct SerializedMachine<C, E> {
 }
 
 // Conditional serde implementation
-#[cfg(feature = "serde")]
+#[cfg(feature = "serialization")]
 impl<C, E> SerializedMachine<C, E>
 where
     C: serde::Serialize + for<'de> serde::Deserialize<'de>,
@@ -328,12 +328,12 @@ where
             return Ok(());
         }
 
-        let serialized = self.serialize_machine(machine, state)?;
+        let _serialized = self.serialize_machine(machine, state)?;
 
         #[cfg(feature = "serialization")]
         {
             // Only enable actual serialization when the serialization feature is enabled
-            let data = serde_json::to_string(&serialized)?;
+            let data = serde_json::to_string(&_serialized)?;
 
             // Check size limit
             if data.len() > self.config.max_size {
@@ -371,13 +371,15 @@ where
             if self.config.backup_config.auto_backup {
                 self.create_backup(&final_data)?;
             }
+            
+            Ok(())
         }
 
         #[cfg(not(feature = "serialization"))]
         {
-            return Err(StateError::new(
+            Err(StateError::new(
                 "Serialization requires serialization feature",
-            ));
+            ))
         }
     }
 
@@ -400,7 +402,7 @@ where
         };
 
         // Decompress if needed
-        let data = if self.config.compression_level > 0 {
+        let _data = if self.config.compression_level > 0 {
             self.decompress_data(&data)?
         } else {
             data
@@ -409,7 +411,7 @@ where
         // Deserialize
         #[cfg(feature = "serialization")]
         {
-            let serialized: SerializedMachine<C, E> = serde_json::from_str(&data)?;
+            let serialized: SerializedMachine<C, E> = serde_json::from_str(&_data)?;
 
             // Validate checksum
             self.validate_checksum(&serialized)?;
@@ -874,14 +876,14 @@ mod tests {
     use crate::machine::*;
 
     #[derive(Debug, Clone, PartialEq, Default)]
-    #[cfg_attr(feature = "persist", derive(serde::Serialize, serde::Deserialize))]
+    #[cfg_attr(feature = "serialization", derive(serde::Serialize, serde::Deserialize))]
     struct TestContext {
         count: i32,
         name: String,
     }
 
     #[derive(Debug, Clone, PartialEq, Default)]
-    #[cfg_attr(feature = "persist", derive(serde::Serialize, serde::Deserialize))]
+    #[cfg_attr(feature = "serialization", derive(serde::Serialize, serde::Deserialize))]
     enum TestEvent {
         #[default]
         Increment,
