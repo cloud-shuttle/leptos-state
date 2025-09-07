@@ -858,4 +858,6 @@ pub struct WasmInfo {
 
 ---
 
-**This API reference covers all public interfaces in leptos-state v1.0.0. For detailed examples and usage patterns, see the [Quickstart Guide](QUICKSTART.md) and [Performance Guide](PERFORMANCE.md).**
+**This API reference covers all public interfaces in leptos-state v1.0.1. For detailed examples and usage patterns, see the [Quickstart Guide](QUICKSTART.md) and [Performance Guide](PERFORMANCE.md).**
+
+**For a comprehensive comparison with XState, see the [XState Comparison Guide](../comparison/XSTATE_COMPARISON.md).**
