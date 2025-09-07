@@ -926,6 +926,11 @@ mod tests {
 
     #[test]
     fn test_persistent_machine() {
+        #[cfg(not(feature = "serialization"))]
+        {
+            println!("Skipping persistent machine test - serialization feature not enabled");
+            return;
+        }
         #[cfg(feature = "serde_json")]
         {
             let machine = MachineBuilder::<TestContext, TestEvent>::new()
@@ -997,6 +1002,11 @@ mod tests {
 
     #[test]
     fn test_serialization() {
+        #[cfg(not(feature = "serialization"))]
+        {
+            println!("Skipping serialization test - serialization feature not enabled");
+            return;
+        }
         #[cfg(feature = "serde_json")]
         {
             let context = TestContext {

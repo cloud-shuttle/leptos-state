@@ -1,0 +1,30 @@
+{
+  "title": "State Machine Documentation",
+  "states": [
+    "idle",
+    "counting"
+  ],
+  "events": [
+    "start",
+    "stop",
+    "pause"
+  ],
+  "transitions": [
+    {
+      "from": "idle",
+      "to": "running",
+      "event": "start"
+    },
+    {
+      "from": "running",
+      "to": "paused",
+      "event": "pause"
+    },
+    {
+      "from": "running",
+      "to": "idle",
+      "event": "stop"
+    }
+  ],
+  "generated_at": 1757214159
+}

@@ -367,12 +367,19 @@ mod tests {
 
     #[test]
     fn test_state_machine_functionality() {
-        let initial_context = GameContext::default();
-        let mut machine = Machine::new(GameState::Idle, initial_context);
+        let initial_state = GameState::Idle;
         
         // Test that we can transition from Idle to Playing
-        let new_state = machine.transition(GameEvent::Start);
-        assert!(new_state.is_ok());
-        assert_eq!(new_state.unwrap(), GameState::Playing);
+        let new_state = initial_state.transition(&initial_state, GameEvent::Start);
+        assert_eq!(new_state, GameState::Playing);
+        
+        // Test that we can transition from Playing to Paused
+        let playing_state = GameState::Playing;
+        let paused_state = playing_state.transition(&playing_state, GameEvent::Pause);
+        assert_eq!(paused_state, GameState::Paused);
+        
+        // Test that we can transition from Paused back to Playing
+        let resumed_state = paused_state.transition(&paused_state, GameEvent::Resume);
+        assert_eq!(resumed_state, GameState::Playing);
     }
 }

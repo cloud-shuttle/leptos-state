@@ -12,13 +12,14 @@ pub mod integration;
 pub mod machine;
 pub mod performance;
 pub mod persistence;
-// pub mod proptest_tests; // Temporarily disabled due to import conflicts between v1 and machine modules
+pub mod proptest_tests;
 pub mod states;
 pub mod testing;
 pub mod visualization;
 
 pub use machine::*;
 // Core machine types
+pub use machine::{MachineState, StateMachine};
 pub use actions::{Action, ActionBuilder, ActionExecution, ActionExecutor};
 pub use codegen::{CodeGenConfig, CodeGenerator, GeneratedFile, MachineCodeGenExt};
 pub use documentation::{DocumentationConfig, DocumentationGenerator, GeneratedDocument};

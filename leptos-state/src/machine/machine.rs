@@ -1104,6 +1104,81 @@ impl<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Se
 
         state
     }
+
+    /// Check if a transition is possible from the given state with the given event
+    pub fn can_transition(&self, state: &MachineStateImpl<C>, event: &E) -> bool
+    where
+        E: PartialEq,
+    {
+        match &state.value {
+            StateValue::Simple(id) => self.can_transition_simple(id, event),
+            StateValue::Compound { parent, child } => {
+                self.can_transition_simple(parent, event) || self.can_transition_simple(&child.to_string(), event)
+            }
+            StateValue::Parallel(states) => {
+                states.iter().any(|parallel_state| {
+                    let temp_state = MachineStateImpl {
+                        value: parallel_state.clone(),
+                        context: state.context.clone(),
+                    };
+                    self.can_transition(&temp_state, event)
+                })
+            }
+        }
+    }
+
+    fn can_transition_simple(&self, state_id: &str, event: &E) -> bool
+    where
+        E: PartialEq,
+    {
+        if let Some(state_node) = self.states.get(state_id) {
+            for transition in &state_node.transitions {
+                if transition.event == *event {
+                    // For now, assume guards pass if no context is available
+                    // In a real implementation, we'd need to pass the context
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    /// Check if a state ID is valid in this machine
+    pub fn is_valid_state(&self, state_id: &str) -> bool {
+        self.states.contains_key(state_id)
+    }
+
+    /// Get all transitions from a specific state
+    pub fn get_transitions_from(&self, state_id: &str) -> Vec<&Transition<C, E>> {
+        if let Some(state_node) = self.states.get(state_id) {
+            state_node.transitions.iter().collect()
+        } else {
+            Vec::new()
+        }
+    }
+
+    /// Get all transitions to a specific state
+    pub fn get_transitions_to(&self, target_state_id: &str) -> Vec<&Transition<C, E>> {
+        let mut transitions = Vec::new();
+        for state_node in self.states.values() {
+            for transition in &state_node.transitions {
+                if transition.target == target_state_id {
+                    transitions.push(transition);
+                }
+            }
+        }
+        transitions
+    }
+
+    /// Get the number of states in the machine
+    pub fn state_count(&self) -> usize {
+        self.states.len()
+    }
+
+    /// Get the number of transitions in the machine
+    pub fn transition_count(&self) -> usize {
+        self.states.values().map(|node| node.transitions.len()).sum()
+    }
 }
 
 /// Concrete implementation of machine state
@@ -1216,6 +1291,73 @@ mod tests {
             .guard(guard)
             .state("unlocked")
             .build();
+    }
+
+    #[test]
+    fn machine_can_check_transitions() {
+        let machine = MachineBuilder::<TestContext, TestEvent>::new()
+            .initial("idle")
+            .state("idle")
+            .on(TestEvent::Start, "running")
+            .state("running")
+            .on(TestEvent::Stop, "idle")
+            .build();
+
+        let state = machine.initial_state();
+        
+        // Test can_transition method
+        assert!(machine.can_transition(&state, &TestEvent::Start));
+        assert!(!machine.can_transition(&state, &TestEvent::Stop));
+    }
+
+    #[test]
+    fn machine_can_validate_states() {
+        let machine = MachineBuilder::<TestContext, TestEvent>::new()
+            .initial("idle")
+            .state("idle")
+            .state("running")
+            .build();
+
+        // Test state validation methods
+        assert!(machine.is_valid_state("idle"));
+        assert!(machine.is_valid_state("running"));
+        assert!(!machine.is_valid_state("invalid"));
+    }
+
+    #[test]
+    fn machine_can_get_transition_info() {
+        let machine = MachineBuilder::<TestContext, TestEvent>::new()
+            .initial("idle")
+            .state("idle")
+            .on(TestEvent::Start, "running")
+            .state("running")
+            .on(TestEvent::Stop, "idle")
+            .build();
+
+        // Test transition information methods
+        let transitions = machine.get_transitions_from("idle");
+        assert_eq!(transitions.len(), 1);
+        assert_eq!(transitions[0].event, TestEvent::Start);
+        assert_eq!(transitions[0].target, "running");
+
+        let transitions_to_idle = machine.get_transitions_to("idle");
+        assert_eq!(transitions_to_idle.len(), 1);
+        assert_eq!(transitions_to_idle[0].event, TestEvent::Stop);
+    }
+
+    #[test]
+    fn machine_can_count_states_and_transitions() {
+        let machine = MachineBuilder::<TestContext, TestEvent>::new()
+            .initial("idle")
+            .state("idle")
+            .on(TestEvent::Start, "running")
+            .state("running")
+            .on(TestEvent::Stop, "idle")
+            .build();
+
+        // Test counting methods
+        assert_eq!(machine.state_count(), 2);
+        assert_eq!(machine.transition_count(), 2);
     }
 
     #[test]

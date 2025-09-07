@@ -3,14 +3,13 @@
 //! These tests use proptest to generate random inputs and verify that
 //! the state machine behaves correctly under all possible conditions.
 
+use crate::machine::machine::{MachineState, StateMachine};
+use crate::machine::states::StateValue;
+
 #[cfg(feature = "testing")]
 use proptest::prelude::*;
 #[cfg(feature = "testing")]
 use super::*;
-#[cfg(feature = "testing")]
-use crate::StateValue;
-#[cfg(feature = "testing")]
-use crate::{MachineState, StateMachine};
 
 /// Test context for property-based testing
 #[derive(Debug, Clone, PartialEq, Default)]
