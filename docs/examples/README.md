@@ -22,6 +22,7 @@ Complex applications showcasing advanced features.
 
 - **[Analytics Dashboard](./analytics-dashboard/)**: Real-time data visualization
 - **[Code Generator](./codegen/)**: Multi-language code generation with state machines
+- **[Ecosystem Integration](./ecosystem-integration/)**: Integration with companion crates
 
 ### 🧪 **Feature Examples**
 Examples demonstrating specific features and capabilities.

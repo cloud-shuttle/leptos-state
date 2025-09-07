@@ -1,0 +1,12 @@
+[package]
+name = "ecosystem-integration"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+leptos = "0.8"
+leptos-state = "1.0.0"
+
+[package.metadata.leptos]
+name = "ecosystem-integration"
+path = "src/main.rs"

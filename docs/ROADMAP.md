@@ -310,6 +310,13 @@
 - **Cross-platform**: Support for other Rust web frameworks
 - **Research**: Academic collaboration and research partnerships
 
+### **Ecosystem Integration**
+- **leptos-ws-pro**: Real-time state synchronization and WebSocket integration
+- **leptos-sync**: Advanced state synchronization utilities and conflict resolution
+- **radix-leptos**: State-aware UI components and accessibility features
+- **leptos-forms**: Integrated form state management and validation
+- **leptos-query**: Server state synchronization and caching strategies
+
 ---
 
 ## 📞 **Get Involved**

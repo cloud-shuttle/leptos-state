@@ -49,6 +49,18 @@
 - **Memory optimization** with efficient data structures
 - **Performance monitoring** and optimization tools
 
+## 🌐 **Ecosystem Integration**
+
+`leptos-state` works seamlessly with the broader Leptos ecosystem:
+
+- **🔄 [leptos-ws-pro](https://crates.io/crates/leptos-ws-pro)** - Real-time WebSocket state synchronization
+- **🔄 [leptos-sync](https://crates.io/crates/leptos-sync)** - Advanced state synchronization utilities
+- **🎨 [radix-leptos](https://crates.io/crates/radix-leptos)** - Accessible UI components with state management
+- **📝 [leptos-forms](https://crates.io/crates/leptos-forms)** - Form state management and validation
+- **🔍 [leptos-query](https://crates.io/crates/leptos-query)** - Async data fetching and caching
+
+See our [Ecosystem Guide](docs/ECOSYSTEM.md) for integration patterns and examples.
+
 ### 🔧 **Developer Experience**
 - **Comprehensive error handling** with actionable messages
 - **Type-safe APIs** with explicit trait bounds
