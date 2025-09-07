@@ -49,6 +49,14 @@
 - **Memory optimization** with efficient data structures
 - **Performance monitoring** and optimization tools
 
+### 📦 **Bundle Optimization**
+- **Bundle size optimization** for smaller WASM binaries
+- **Code splitting** and lazy loading support
+- **Tree shaking** and feature removal capabilities
+- **Progressive loading** strategies
+- **Bundle analysis** and comparison tools
+- **WASM-specific optimizations**
+
 ## 🌐 **Ecosystem Integration**
 
 `leptos-state` works seamlessly with the broader Leptos ecosystem:
@@ -238,6 +246,37 @@ let machine = MachineBuilder::<TrafficContext, TrafficEvent>::new()
 
 let persistent_machine = PersistentMachine::new(machine, "traffic-light");
 // Machine state automatically persists and restores
+```
+
+### **Bundle Optimization**
+```rust
+use leptos_state::machine::*;
+
+// Create a machine with bundle optimization
+let machine = MachineBuilder::<AppContext, AppEvent>::new()
+    .initial("idle")
+    .state("idle")
+        .on(AppEvent::Start, "active")
+    .state("active")
+        .on(AppEvent::Stop, "idle")
+    .build();
+
+// Apply bundle optimizations
+let optimized = machine
+    .with_bundle_optimization()          // Basic optimization
+    .with_code_splitting(1024)           // Split bundles at 1KB
+    .with_lazy_loading()                 // Enable lazy loading
+    .without_features(&["debug"])        // Remove debug features
+    .optimize_for_wasm();                // WASM-specific optimizations
+
+// Analyze bundle size
+let analysis = machine.analyze_bundle();
+println!("Total size: {}KB", analysis.total_size / 1024);
+println!("Features: {:?}", analysis.features);
+
+// Compare with original
+let comparison = machine.compare_bundle_with(&optimized.machine);
+println!("Size reduction: {}%", comparison.size_reduction_percent);
 ```
 
 ## 📚 **Documentation**

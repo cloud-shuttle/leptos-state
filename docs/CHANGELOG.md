@@ -5,6 +5,37 @@ All notable changes to `leptos-state` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-09-07
+
+### 📦 **Bundle Optimization Feature**
+
+#### **Added**
+- **Bundle Size Optimization**: New `BundleOptimization` trait for reducing WASM bundle sizes
+- **Code Splitting**: Support for splitting bundles into smaller chunks
+- **Lazy Loading**: Progressive loading strategies for better performance
+- **Tree Shaking**: Remove unused features and code
+- **Bundle Analysis**: Comprehensive bundle analysis and comparison tools
+- **WASM Optimization**: Specific optimizations for WebAssembly targets
+- **Performance Monitoring**: Enhanced performance tracking and optimization cache
+
+#### **New APIs**
+- `BundleOptimization<C, E>` trait with optimization methods
+- `OptimizedBundle<C, E>` struct for optimized machines
+- `BundleAnalysis` struct for bundle composition analysis
+- `BundleComparison` struct for optimization comparisons
+- `WasmInfo` struct for WASM-specific information
+- `OptimizationCache` for performance improvements
+
+#### **Testing**
+- **7 comprehensive tests** for bundle optimization functionality
+- **TDD approach** with Red-Green-Refactor methodology
+- **All 219 tests passing** (212 existing + 7 new bundle optimization tests)
+
+#### **Documentation**
+- Updated README with bundle optimization features and examples
+- Enhanced API reference with complete bundle optimization documentation
+- Usage examples and best practices
+
 ## [1.0.0] - 2025-09-07
 
 ### 🎉 **Stable Release - Production Ready**

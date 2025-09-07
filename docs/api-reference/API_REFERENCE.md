@@ -770,6 +770,92 @@ impl CodeTransformer {
 
 **Purpose**: Transforms code from v0.2.x to v1.0.0.
 
+## 📦 **Bundle Optimization APIs**
+
+### **BundleOptimization**
+```rust
+pub trait BundleOptimization<C, E>
+where
+    C: Clone + Send + Sync + Default + std::fmt::Debug + 'static,
+    E: Clone + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static,
+{
+    fn with_bundle_optimization(self) -> OptimizedBundle<C, E>;
+    fn with_code_splitting(self, chunk_size: usize) -> OptimizedBundle<C, E>;
+    fn with_progressive_loading(self) -> OptimizedBundle<C, E>;
+    fn with_lazy_loading(self) -> OptimizedBundle<C, E>;
+    fn without_features(self, features: &[&str]) -> OptimizedBundle<C, E>;
+    fn optimize_for_wasm(self) -> OptimizedBundle<C, E>;
+    
+    fn analyze_bundle(&self) -> BundleAnalysis;
+    fn compare_bundle_with(&self, other: &Self) -> BundleComparison;
+    fn get_bundle_info(&self) -> BundleInfo;
+}
+```
+
+**Purpose**: Trait for optimizing bundle size and performance.
+
+**Example**:
+```rust
+let optimized = machine
+    .with_bundle_optimization()
+    .with_code_splitting(1024)
+    .without_features(&["debug", "logging"]);
+```
+
+### **OptimizedBundle**
+```rust
+pub struct OptimizedBundle<C, E> {
+    // Private fields
+}
+
+impl<C, E> OptimizedBundle<C, E> {
+    pub fn new(machine: Machine<C, E>, config: BundleOptimizationConfig) -> Self;
+    pub fn get_machine(&self) -> &Machine<C, E>;
+    pub fn get_config(&self) -> &BundleOptimizationConfig;
+}
+```
+
+**Purpose**: Represents an optimized bundle with reduced size and improved performance.
+
+### **BundleAnalysis**
+```rust
+pub struct BundleAnalysis {
+    pub total_size: usize,
+    pub core_size: usize,
+    pub features_size: usize,
+    pub dev_tools_size: usize,
+    pub persistence_size: usize,
+    pub features: Vec<String>,
+    pub wasm_info: Option<WasmInfo>,
+    pub suggestions: Vec<String>,
+}
+```
+
+**Purpose**: Provides detailed analysis of bundle composition and size.
+
+### **BundleComparison**
+```rust
+pub struct BundleComparison {
+    pub size_reduction: usize,
+    pub size_reduction_percent: f64,
+    pub removed_features: Vec<String>,
+}
+```
+
+**Purpose**: Compares two bundles and shows optimization improvements.
+
+### **WasmInfo**
+```rust
+pub struct WasmInfo {
+    pub heap_size: usize,
+    pub stack_size: usize,
+    pub optimization_level: u8,
+    pub imports: Vec<String>,
+}
+```
+
+**Purpose**: WASM-specific optimization information.
+
 ---
 
 **This API reference covers all public interfaces in leptos-state v1.0.0. For detailed examples and usage patterns, see the [Quickstart Guide](QUICKSTART.md) and [Performance Guide](PERFORMANCE.md).**
