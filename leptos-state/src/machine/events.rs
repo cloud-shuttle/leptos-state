@@ -199,6 +199,7 @@ mod tests {
     use super::*;
 
     #[derive(Debug, Clone, PartialEq)]
+    #[derive(Default)]
     struct TestContext {
         count: i32,
         message: String,

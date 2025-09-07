@@ -7,6 +7,7 @@
 use super::*;
 
 use std::collections::{HashMap, VecDeque};
+use std::fmt::Debug;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
 
@@ -708,7 +709,7 @@ where
 }
 
 /// Performance-optimized state machine
-pub struct OptimizedMachine<C: Send + Sync, E> {
+pub struct OptimizedMachine<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     machine: Machine<C, E>,
     cache: Arc<TransitionCache<C, E>>,
     profiler: Arc<PerformanceProfiler>,
@@ -717,8 +718,8 @@ pub struct OptimizedMachine<C: Send + Sync, E> {
 
 impl<C: Send + Sync, E> OptimizedMachine<C, E>
 where
-    C: Clone + std::hash::Hash + Eq + std::fmt::Debug + 'static + Send + Sync,
-    E: Clone + std::hash::Hash + Eq + Event + 'static,
+    C: Clone + std::hash::Hash + Eq + std::fmt::Debug + Default + 'static + Send + Sync,
+    E: Clone + std::hash::Hash + Eq + Event + PartialEq + 'static + Send + Sync + Default,
 {
     pub fn new(machine: Machine<C, E>, config: PerformanceConfig) -> Self {
         let profiler = Arc::new(PerformanceProfiler::new(config.clone()));
@@ -796,15 +797,15 @@ where
 }
 
 /// Extension trait for adding performance optimization to machines
-pub trait MachinePerformanceExt<C: Send + Sync, E> {
+pub trait MachinePerformanceExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     /// Add performance optimization capabilities to the machine
     fn with_performance_optimization(self, config: PerformanceConfig) -> OptimizedMachine<C, E>;
 }
 
 impl<C: Send + Sync, E> MachinePerformanceExt<C, E> for Machine<C, E>
 where
-    C: Clone + std::hash::Hash + Eq + std::fmt::Debug + 'static,
-    E: Clone + std::hash::Hash + Eq + Event + 'static,
+    C: Clone + std::hash::Hash + Eq + std::fmt::Debug + Default + 'static,
+    E: Clone + std::hash::Hash + Eq + Event + PartialEq + 'static + Send + Sync + Default,
 {
     fn with_performance_optimization(self, config: PerformanceConfig) -> OptimizedMachine<C, E> {
         OptimizedMachine::new(self, config)
@@ -812,15 +813,15 @@ where
 }
 
 /// Performance builder for fluent configuration
-pub struct PerformanceBuilder<C: Send + Sync, E> {
+pub struct PerformanceBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     machine: Machine<C, E>,
     config: PerformanceConfig,
 }
 
 impl<C: Send + Sync, E> PerformanceBuilder<C, E>
 where
-    C: Clone + std::hash::Hash + Eq + std::fmt::Debug + 'static,
-    E: Clone + std::hash::Hash + Eq + Event + 'static,
+    C: Clone + std::hash::Hash + Eq + std::fmt::Debug + Default + 'static,
+    E: Clone + std::hash::Hash + Eq + Event + PartialEq + 'static + Send + Sync + Default,
 {
     pub fn new(machine: Machine<C, E>) -> Self {
         Self {
@@ -891,8 +892,9 @@ mod tests {
         name: String,
     }
 
-    #[derive(Debug, Clone, PartialEq, Hash, Eq)]
+    #[derive(Debug, Clone, PartialEq, Hash, Eq, Default)]
     enum TestEvent {
+        #[default]
         Increment,
         Decrement,
         SetName(String),

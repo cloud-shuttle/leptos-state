@@ -3,6 +3,7 @@
 use super::*;
 use crate::machine::states::StateValue;
 use std::collections::HashMap;
+use std::fmt::Debug;
 
 /// Type of history state
 #[derive(Debug, Clone, PartialEq)]
@@ -45,7 +46,7 @@ impl HistoryState {
 }
 
 /// Machine with history tracking capabilities
-pub struct HistoryMachine<C: Send + Sync, E> {
+pub struct HistoryMachine<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     pub base_machine: Machine<C, E>,
     pub history_states: HashMap<String, HistoryState>,
     pub history_tracker: HistoryTracker<C>,
@@ -59,7 +60,7 @@ impl<
             + std::fmt::Debug
             + std::marker::Send
             + std::marker::Sync,
-        E: Clone + 'static + std::fmt::Debug,
+        E: Clone + 'static + std::fmt::Debug + PartialEq + Send + Sync + Default,
     > HistoryMachine<C, E>
 {
     pub fn new(base_machine: Machine<C, E>) -> Self {
@@ -253,7 +254,7 @@ impl<C: Clone + PartialEq + Default + Send + Sync + 'static> Default for History
 }
 
 /// Builder extension for adding history states
-pub trait HistoryMachineBuilder<C: Send + Sync, E> {
+pub trait HistoryMachineBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     fn with_history_state(self, id: &str, history_state: HistoryState) -> HistoryMachine<C, E>;
 }
 
@@ -265,7 +266,7 @@ impl<
             + std::fmt::Debug
             + std::marker::Send
             + std::marker::Sync,
-        E: Clone + 'static + std::fmt::Debug,
+        E: Clone + 'static + std::fmt::Debug + PartialEq + Send + Sync + Default,
     > HistoryMachineBuilder<C, E> for Machine<C, E>
 {
     fn with_history_state(self, id: &str, history_state: HistoryState) -> HistoryMachine<C, E> {
@@ -302,8 +303,9 @@ mod tests {
         count: i32,
     }
 
-    #[derive(Debug, Clone, PartialEq)]
+    #[derive(Debug, Clone, PartialEq, Default)]
     enum TestEvent {
+        #[default]
         Start,
         Stop,
         Pause,

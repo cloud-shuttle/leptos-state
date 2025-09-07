@@ -598,6 +598,7 @@ mod tests {
     use crate::machine::events::Event;
 
     #[derive(Debug, Clone, PartialEq)]
+    #[derive(Default)]
     struct TestContext {
         count: i32,
         enabled: bool,

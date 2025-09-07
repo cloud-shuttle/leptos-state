@@ -148,7 +148,7 @@ pub struct SubscriptionHandle {
 impl SubscriptionHandle {
     pub fn new(cleanup: impl FnOnce() + 'static + std::marker::Send) -> Self {
         Self {
-            id: format!("sub_{}", js_sys::Math::random()),
+            id: format!("sub_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()),
             cleanup: Some(Box::new(cleanup)),
         }
     }

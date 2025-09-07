@@ -368,7 +368,7 @@ mod tests {
     #[test]
     fn test_state_machine_functionality() {
         let initial_context = GameContext::default();
-        let machine = Machine::new(GameState::Idle, initial_context);
+        let mut machine = Machine::new(GameState::Idle, initial_context);
         
         // Test that we can transition from Idle to Playing
         let new_state = machine.transition(GameEvent::Start);

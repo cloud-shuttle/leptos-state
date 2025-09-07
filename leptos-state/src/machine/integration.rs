@@ -175,7 +175,7 @@ pub enum EventPriority {
 }
 
 /// Integration manager for state machines
-pub struct IntegrationManager<C: Send + Sync, E> {
+pub struct IntegrationManager<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     config: IntegrationConfig,
     adapters: Arc<RwLock<HashMap<String, Box<dyn IntegrationAdapterTrait + Send + Sync>>>>,
     _event_queue: Arc<Mutex<VecDeque<IntegrationEvent>>>,
@@ -186,8 +186,8 @@ pub struct IntegrationManager<C: Send + Sync, E> {
 
 impl<C, E> IntegrationManager<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + Default,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + PartialEq + Default,
 {
     pub fn new(machine: Machine<C, E>, config: IntegrationConfig) -> Self {
         Self {
@@ -484,15 +484,15 @@ impl IntegrationMetrics {
 }
 
 /// Extension trait for adding integration to machines
-pub trait MachineIntegrationExt<C: Send + Sync, E> {
+pub trait MachineIntegrationExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     /// Add integration capabilities to the machine
     fn with_integration(self, config: IntegrationConfig) -> IntegrationManager<C, E>;
 }
 
 impl<C, E> MachineIntegrationExt<C, E> for Machine<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + Default,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + PartialEq + Default,
 {
     fn with_integration(self, config: IntegrationConfig) -> IntegrationManager<C, E> {
         IntegrationManager::new(self, config)
@@ -500,15 +500,15 @@ where
 }
 
 /// Integration builder for fluent configuration
-pub struct IntegrationBuilder<C: Send + Sync, E> {
+pub struct IntegrationBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     machine: Machine<C, E>,
     config: IntegrationConfig,
 }
 
 impl<C, E> IntegrationBuilder<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + Default,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + PartialEq + Default,
 {
     pub fn new(machine: Machine<C, E>) -> Self {
         Self {
@@ -548,13 +548,15 @@ mod tests {
     use crate::machine::*;
 
     #[derive(Debug, Clone, PartialEq)]
+    #[derive(Default)]
     struct TestContext {
         count: i32,
         name: String,
     }
 
-    #[derive(Debug, Clone, PartialEq)]
+    #[derive(Debug, Clone, PartialEq, Default)]
     enum TestEvent {
+        #[default]
         Increment,
         Decrement,
         SetName(String),

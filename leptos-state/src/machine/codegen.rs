@@ -6,6 +6,7 @@
 use super::*;
 use crate::utils::types::{StateError, StateResult};
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::fs;
 use std::sync::{Arc, RwLock};
 use std::time::Instant;
@@ -56,7 +57,7 @@ pub enum ProgrammingLanguage {
 }
 
 /// Code generator for state machines
-pub struct CodeGenerator<C: Send + Sync, E> {
+pub struct CodeGenerator<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     config: CodeGenConfig,
     machine: Arc<Machine<C, E>>,
     generated_files: Arc<RwLock<Vec<GeneratedFile>>>,
@@ -64,8 +65,8 @@ pub struct CodeGenerator<C: Send + Sync, E> {
 
 impl<C, E> CodeGenerator<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + Default,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + PartialEq + Default,
 {
     pub fn new(machine: Machine<C, E>, config: CodeGenConfig) -> Self {
         Self {
@@ -634,15 +635,15 @@ pub struct TransitionInfo {
 }
 
 /// Extension trait for adding code generation to machines
-pub trait MachineCodeGenExt<C: Send + Sync, E> {
+pub trait MachineCodeGenExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     /// Add code generation capabilities to the machine
     fn with_code_generation(self, config: CodeGenConfig) -> CodeGenerator<C, E>;
 }
 
 impl<C, E> MachineCodeGenExt<C, E> for Machine<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + Default,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + PartialEq + Default,
 {
     fn with_code_generation(self, config: CodeGenConfig) -> CodeGenerator<C, E> {
         CodeGenerator::new(self, config)
@@ -650,15 +651,15 @@ where
 }
 
 /// Code generation builder for fluent configuration
-pub struct CodeGenBuilder<C: Send + Sync, E> {
+pub struct CodeGenBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     machine: Machine<C, E>,
     pub(crate) config: CodeGenConfig,
 }
 
 impl<C, E> CodeGenBuilder<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + Default,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + PartialEq + Default,
 {
     pub fn new(machine: Machine<C, E>) -> Self {
         Self {
@@ -713,13 +714,15 @@ mod tests {
     use crate::machine::*;
 
     #[derive(Debug, Clone, PartialEq)]
+    #[derive(Default)]
     struct TestContext {
         count: i32,
         name: String,
     }
 
-    #[derive(Debug, Clone, PartialEq)]
+    #[derive(Debug, Clone, PartialEq, Default)]
     enum TestEvent {
+        #[default]
         Increment,
         Decrement,
         SetName(String),

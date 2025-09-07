@@ -13,7 +13,11 @@
 
 pub mod v1;
 pub mod hooks;
+pub mod machine;
+pub mod store;
+pub mod utils;
 
 // Re-export main types for easy access
 pub use v1::*;
 pub use hooks::*;
+pub use machine::*;

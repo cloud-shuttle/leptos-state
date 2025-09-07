@@ -516,9 +516,11 @@ where
 mod tests {
     use super::*;
     use crate::v1::traits::*;
+    #[cfg(feature = "serde")]
     use serde::{Serialize, Deserialize};
     
-    #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+    #[derive(Clone, Debug, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     struct TestContext {
         value: i32,
     }
@@ -531,7 +533,8 @@ mod tests {
     
     impl StateMachineContext for TestContext {}
     
-    #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+    #[derive(Clone, Debug, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     enum TestEvent {
         Increment,
         Decrement,
@@ -546,7 +549,8 @@ mod tests {
     
     impl StateMachineEvent for TestEvent {}
     
-    #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+    #[derive(Clone, Debug, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     enum TestState {
         Idle,
         Active,
@@ -566,7 +570,8 @@ mod tests {
     // Note: StateMachine trait implementation would go here
     // For testing purposes, we'll skip the full implementation
     
-    #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+    #[derive(Clone, Debug, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     struct TestStore {
         count: i32,
     }

@@ -12,6 +12,7 @@ pub mod integration;
 pub mod machine;
 pub mod performance;
 pub mod persistence;
+// pub mod proptest_tests; // Temporarily disabled due to import conflicts between v1 and machine modules
 pub mod states;
 pub mod testing;
 pub mod visualization;
@@ -27,5 +28,6 @@ pub use history::{HistoryMachine, HistoryTracker, HistoryType};
 pub use integration::{IntegrationAdapter, IntegrationConfig, IntegrationManager};
 pub use performance::{OptimizedMachine, PerformanceConfig, PerformanceProfiler};
 pub use persistence::{MachinePersistence, PersistenceConfig, PersistentMachine};
+pub use states::{StateValue, HistoryState, HistoryType as StatesHistoryType};
 pub use testing::{MachineTestRunner, TestCase, TestConfig, TestResult};
 pub use visualization::{MachineVisualizer, VisualizationConfig, VisualizedMachine};

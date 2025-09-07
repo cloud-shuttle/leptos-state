@@ -161,7 +161,7 @@ pub struct TestStep {
 }
 
 /// State machine test runner
-pub struct MachineTestRunner<C: Send + Sync, E> {
+pub struct MachineTestRunner<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     machine: Machine<C, E>,
     config: TestConfig,
     test_data_generator: Box<dyn TestDataGenerator<C, E>>,
@@ -759,7 +759,7 @@ impl CoverageTracker {
         self.actions_executed.insert(action.to_string());
     }
 
-    pub fn calculate_coverage<C: Send + Sync + Clone, E: Clone>(
+    pub fn calculate_coverage<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default>(
         &self,
         machine: &Machine<C, E>,
     ) -> TestCoverage {
@@ -848,7 +848,7 @@ impl PerformanceTracker {
 }
 
 /// Extension trait for adding testing to machines
-pub trait MachineTestingExt<C: Send + Sync, E> {
+pub trait MachineTestingExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     /// Add testing capabilities to the machine
     fn with_testing(self, config: TestConfig) -> MachineTestRunner<C, E>;
 }
@@ -871,7 +871,7 @@ where
 }
 
 /// Test builder for fluent test creation
-pub struct TestBuilder<C: Send + Sync, E> {
+pub struct TestBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     machine: Machine<C, E>,
     config: TestConfig,
 }

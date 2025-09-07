@@ -304,8 +304,8 @@ pub struct MachinePersistence<C: Send + Sync, E> {
 
 impl<C: Send + Sync + 'static, E> MachinePersistence<C, E>
 where
-    C: Clone + Send + Sync + 'static,
-    E: Clone,
+    C: Clone + Send + Sync + Default + Debug + 'static,
+    E: Clone + PartialEq + Debug + Send + Sync + Default,
 {
     pub fn new(config: PersistenceConfig) -> Self {
         Self {
@@ -741,7 +741,7 @@ impl MachineStorage for MemoryStorage {
 }
 
 /// Extension trait for adding persistence to machines
-pub trait MachinePersistenceExt<C: Send + Sync, E> {
+pub trait MachinePersistenceExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     /// Add persistence to the machine
     fn with_persistence(self, config: PersistenceConfig) -> PersistentMachine<C, E>;
 }
@@ -749,7 +749,7 @@ pub trait MachinePersistenceExt<C: Send + Sync, E> {
 impl<C: Send + Sync, E> MachinePersistenceExt<C, E> for Machine<C, E>
 where
     C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
-    E: Clone + std::cmp::PartialEq + 'static + std::fmt::Debug,
+    E: Clone + std::cmp::PartialEq + 'static + std::fmt::Debug + Send + Sync + Default,
 {
     fn with_persistence(self, config: PersistenceConfig) -> PersistentMachine<C, E> {
         PersistentMachine::new(self, config)
@@ -757,7 +757,7 @@ where
 }
 
 /// A state machine with persistence capabilities
-pub struct PersistentMachine<C: Send + Sync, E> {
+pub struct PersistentMachine<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     machine: Machine<C, E>,
     persistence: MachinePersistence<C, E>,
     current_state: Option<MachineStateImpl<C>>,
@@ -766,7 +766,7 @@ pub struct PersistentMachine<C: Send + Sync, E> {
 impl<C: Send + Sync, E> PersistentMachine<C, E>
 where
     C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
-    E: Clone + std::cmp::PartialEq + 'static + std::fmt::Debug,
+    E: Clone + std::cmp::PartialEq + 'static + std::fmt::Debug + Send + Sync + Default,
 {
     pub fn new(machine: Machine<C, E>, config: PersistenceConfig) -> Self {
         let persistence = MachinePersistence::new(config);
@@ -880,9 +880,10 @@ mod tests {
         name: String,
     }
 
-    #[derive(Debug, Clone, PartialEq)]
+    #[derive(Debug, Clone, PartialEq, Default)]
     #[cfg_attr(feature = "persist", derive(serde::Serialize, serde::Deserialize))]
     enum TestEvent {
+        #[default]
         Increment,
         Decrement,
         SetName(String),

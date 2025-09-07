@@ -8,6 +8,7 @@ use super::*;
 use crate::machine::states::StateValue;
 use crate::utils::types::{StateError, StateResult};
 use std::collections::VecDeque;
+use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -119,7 +120,7 @@ pub struct ActionExecution {
 }
 
 /// State machine visualizer
-pub struct MachineVisualizer<C: Send + Sync, E> {
+pub struct MachineVisualizer<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     config: VisualizationConfig,
     transitions: Arc<Mutex<VecDeque<TransitionEvent<C, E>>>>,
     snapshots: Arc<Mutex<VecDeque<MachineSnapshot<C, E>>>>,
@@ -131,7 +132,7 @@ pub struct MachineVisualizer<C: Send + Sync, E> {
 impl<C: Send + Sync, E> MachineVisualizer<C, E>
 where
     C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
-    E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug,
+    E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug + Send + Sync + Default,
 {
     pub fn new(machine: Machine<C, E>, config: VisualizationConfig) -> Self {
         Self {
@@ -370,7 +371,7 @@ where
 }
 
 /// State diagram representation for export
-pub struct StateDiagram<'a, C: Send + Sync, E> {
+pub struct StateDiagram<'a, C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     pub machine: &'a Machine<C, E>,
     pub current_state: Option<MachineStateImpl<C>>,
     pub recent_transitions: Vec<TransitionEvent<C, E>>,
@@ -638,7 +639,7 @@ pub struct TimeTravelPosition {
 }
 
 /// Real-time state monitor
-pub struct StateMonitor<C: Send + Sync, E> {
+pub struct StateMonitor<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     visualizer: Arc<MachineVisualizer<C, E>>,
     time_travel: Arc<Mutex<TimeTravelDebugger<C, E>>>,
     _config: VisualizationConfig,
@@ -647,7 +648,7 @@ pub struct StateMonitor<C: Send + Sync, E> {
 impl<C: Send + Sync, E> StateMonitor<C, E>
 where
     C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
-    E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug,
+    E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug + Send + Sync + Default,
 {
     pub fn new(visualizer: Arc<MachineVisualizer<C, E>>, config: VisualizationConfig) -> Self {
         Self {
@@ -705,7 +706,7 @@ pub struct StateInfo<C: Send + Sync, E> {
 }
 
 /// Extension trait for adding visualization to machines
-pub trait MachineVisualizationExt<C: Send + Sync, E> {
+pub trait MachineVisualizationExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     /// Add visualization capabilities to the machine
     fn with_visualization(self, config: VisualizationConfig) -> VisualizedMachine<C, E>;
 }
@@ -713,7 +714,7 @@ pub trait MachineVisualizationExt<C: Send + Sync, E> {
 impl<C: Send + Sync, E> MachineVisualizationExt<C, E> for Machine<C, E>
 where
     C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
-    E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug,
+    E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug + Send + Sync + Default,
 {
     fn with_visualization(self, _config: VisualizationConfig) -> VisualizedMachine<C, E> {
         // TODO: This method is temporarily disabled because Machine doesn't implement Clone
@@ -723,7 +724,7 @@ where
 }
 
 /// A state machine with visualization capabilities
-pub struct VisualizedMachine<C: Send + Sync, E> {
+pub struct VisualizedMachine<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     machine: Machine<C, E>,
     visualizer: Arc<MachineVisualizer<C, E>>,
     monitor: Arc<StateMonitor<C, E>>,
@@ -733,7 +734,7 @@ pub struct VisualizedMachine<C: Send + Sync, E> {
 impl<C: Send + Sync, E> VisualizedMachine<C, E>
 where
     C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
-    E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug,
+    E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug + Send + Sync + Default,
 {
     // TODO: This method is temporarily disabled because Machine doesn't implement Clone
     // This would need to be addressed in a future iteration
@@ -816,9 +817,10 @@ mod tests {
         name: String,
     }
 
-    #[derive(Debug, Clone, PartialEq)]
+    #[derive(Debug, Clone, PartialEq, Default)]
     #[cfg_attr(feature = "visualization", derive(serde::Serialize))]
     enum TestEvent {
+        #[default]
         Increment,
         Decrement,
         SetName(String),

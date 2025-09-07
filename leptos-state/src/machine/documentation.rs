@@ -7,6 +7,7 @@ use super::*;
 use crate::machine::visualization::ExportFormat;
 use crate::utils::types::{StateError, StateResult};
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::fs;
 
 use std::sync::{Arc, RwLock};
@@ -131,7 +132,7 @@ impl Default for DocumentationStyling {
 }
 
 /// Documentation generator for state machines
-pub struct DocumentationGenerator<C: Send + Sync, E> {
+pub struct DocumentationGenerator<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     config: DocumentationConfig,
     machine: Arc<Machine<C, E>>,
     templates: Arc<RwLock<HashMap<String, String>>>,
@@ -140,8 +141,8 @@ pub struct DocumentationGenerator<C: Send + Sync, E> {
 
 impl<C, E> DocumentationGenerator<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + Default,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + PartialEq + Default,
 {
     pub fn new(machine: Machine<C, E>, config: DocumentationConfig) -> Self {
         Self {
@@ -711,7 +712,7 @@ pub struct GeneratedDocument {
 /// Transition information for documentation
 #[derive(Debug, Clone)]
 #[cfg_attr(
-    feature = "serialization",
+    any(feature = "serialization", feature = "serde_json"),
     derive(serde::Serialize, serde::Deserialize)
 )]
 pub struct TransitionInfo {
@@ -726,7 +727,7 @@ pub struct TransitionInfo {
 /// Documentation data structure
 #[derive(Debug, Clone)]
 #[cfg_attr(
-    feature = "serialization",
+    any(feature = "serialization", feature = "serde_json"),
     derive(serde::Serialize, serde::Deserialize)
 )]
 pub struct DocumentationData {
@@ -743,15 +744,15 @@ pub struct DocumentationData {
 }
 
 /// Extension trait for adding documentation to machines
-pub trait MachineDocumentationExt<C: Send + Sync, E> {
+pub trait MachineDocumentationExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     /// Add documentation generation capabilities to the machine
     fn with_documentation(self, config: DocumentationConfig) -> DocumentationGenerator<C, E>;
 }
 
 impl<C, E> MachineDocumentationExt<C, E> for Machine<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + Default,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + PartialEq + Default,
 {
     fn with_documentation(self, config: DocumentationConfig) -> DocumentationGenerator<C, E> {
         DocumentationGenerator::new(self, config)
@@ -759,15 +760,15 @@ where
 }
 
 /// Documentation builder for fluent configuration
-pub struct DocumentationBuilder<C: Send + Sync, E> {
+pub struct DocumentationBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
     machine: Machine<C, E>,
     config: DocumentationConfig,
 }
 
 impl<C, E> DocumentationBuilder<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + Default,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + PartialEq + Default,
 {
     pub fn new(machine: Machine<C, E>) -> Self {
         Self {
@@ -842,13 +843,15 @@ mod tests {
     use crate::machine::*;
 
     #[derive(Debug, Clone, PartialEq)]
+    #[derive(Default)]
     struct TestContext {
         count: i32,
         name: String,
     }
 
-    #[derive(Debug, Clone, PartialEq)]
+    #[derive(Debug, Clone, PartialEq, Default)]
     enum TestEvent {
+        #[default]
         Increment,
         Decrement,
         SetName(String),
