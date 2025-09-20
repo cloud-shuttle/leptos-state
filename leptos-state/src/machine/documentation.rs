@@ -132,7 +132,7 @@ impl Default for DocumentationStyling {
 }
 
 /// Documentation generator for state machines
-pub struct DocumentationGenerator<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub struct DocumentationGenerator<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     config: DocumentationConfig,
     machine: Arc<Machine<C, E>>,
     templates: Arc<RwLock<HashMap<String, String>>>,
@@ -242,7 +242,7 @@ where
                 transition.from, transition.to, transition.event
             ));
         }
-        markdown.push_str("\n");
+        markdown.push('\n');
 
         // Guards
         if self.config.include_api_docs {
@@ -304,8 +304,8 @@ where
         html.push_str(
             "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n",
         );
-        html.push_str(&format!("    <title>State Machine Documentation</title>\n"));
-        html.push_str(&format!("    <style>\n"));
+        html.push_str("    <title>State Machine Documentation</title>\n");
+        html.push_str("    <style>\n");
         html.push_str(&format!(
             "        body {{ font-family: {}; font-size: {}; }}\n",
             self.config.styling.font_family, self.config.styling.font_size
@@ -330,9 +330,7 @@ where
         html.push_str("<body>\n");
 
         // Title
-        html.push_str(&format!(
-            "    <h1 class=\"primary\">State Machine Documentation</h1>\n"
-        ));
+        html.push_str("    <h1 class=\"primary\">State Machine Documentation</h1>\n");
 
         // Overview
         html.push_str("    <h2>Overview</h2>\n");
@@ -342,7 +340,7 @@ where
         html.push_str("    <h2>States</h2>\n");
         let states = self.machine.get_states();
         for state in states {
-            html.push_str(&format!("    <div class=\"state\">\n"));
+            html.push_str("    <div class=\"state\">\n");
             html.push_str(&format!("        <h3>{}</h3>\n", state));
             html.push_str("        <p>State description and behavior.</p>\n");
             html.push_str("    </div>\n");
@@ -352,7 +350,7 @@ where
         html.push_str("    <h2>Events</h2>\n");
         let events = self.get_machine_events();
         for event in events {
-            html.push_str(&format!("    <div class=\"event\">\n"));
+            html.push_str("    <div class=\"event\">\n");
             html.push_str(&format!("        <h3>{}</h3>\n", event));
             html.push_str("        <p>Event description and effects.</p>\n");
             html.push_str("    </div>\n");
@@ -362,7 +360,7 @@ where
         html.push_str("    <h2>Transitions</h2>\n");
         let transitions = self.get_machine_transitions();
         for transition in transitions {
-            html.push_str(&format!("    <div class=\"transition\">\n"));
+            html.push_str("    <div class=\"transition\">\n");
             html.push_str(&format!(
                 "        <strong>{} → {}</strong> (Event: {})\n",
                 transition.from, transition.to, transition.event
@@ -448,7 +446,7 @@ where
                 transition.from, transition.to, transition.event
             ));
         }
-        asciidoc.push_str("\n");
+        asciidoc.push('\n');
 
         Ok(asciidoc)
     }
@@ -544,10 +542,9 @@ where
     /// Generate custom format documentation
     fn generate_custom_documentation(&self, format: &str) -> StateResult<String> {
         // Load custom template
-        if let Ok(templates) = self.templates.read() {
-            if let Some(template) = templates.get(format) {
-                return self.render_template(template);
-            }
+        if let Ok(templates) = self.templates.read()
+            && let Some(template) = templates.get(format) {
+            return self.render_template(template);
         }
 
         Err(StateError::custom(format!(
@@ -617,7 +614,7 @@ where
     /// Save documentation to files
     fn save_documentation(&self, docs: &[GeneratedDocument]) -> StateResult<()> {
         // Create output directory if it doesn't exist
-        if let Err(_) = fs::create_dir_all(&self.config.output_directory) {
+        if fs::create_dir_all(&self.config.output_directory).is_err() {
             return Err(StateError::custom(format!(
                 "Failed to create output directory: {}",
                 self.config.output_directory
@@ -664,8 +661,8 @@ where
         let docs = self.get_generated_documentation();
         for doc in docs {
             index.push_str(&format!(
-                "- [{}]({})\n",
-                format!("{:?}", doc.format),
+                "- [{:?}]({})\n",
+                doc.format,
                 doc.file_path
             ));
         }
@@ -744,7 +741,7 @@ pub struct DocumentationData {
 }
 
 /// Extension trait for adding documentation to machines
-pub trait MachineDocumentationExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub trait MachineDocumentationExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     /// Add documentation generation capabilities to the machine
     fn with_documentation(self, config: DocumentationConfig) -> DocumentationGenerator<C, E>;
 }
@@ -760,7 +757,7 @@ where
 }
 
 /// Documentation builder for fluent configuration
-pub struct DocumentationBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub struct DocumentationBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     machine: Machine<C, E>,
     config: DocumentationConfig,
 }

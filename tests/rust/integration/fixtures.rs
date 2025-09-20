@@ -2,9 +2,8 @@
 
 use leptos::prelude::*;
 use leptos_state::{
-    machine::{MachineBuilder, StateMachine, MachineState},
+    machine::{StateMachine, MachineState},
     machine::states::StateValue,
-    utils::types::StateResult,
 };
 
 /// Helper to track effect executions

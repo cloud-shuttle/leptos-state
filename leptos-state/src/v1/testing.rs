@@ -2,10 +2,9 @@
 //! 
 //! This module provides comprehensive testing utilities for state machines and stores.
 
-use super::traits::{StateMachineContext, StateMachineEvent, StateMachineState, StateMachine, StoreState, Store};
+use super::traits::{StateMachineContext, StateMachineEvent, StateMachineState, Store};
 use super::machine::Machine;
-use super::error::{StateMachineError, TransitionError};
-use std::collections::HashMap;
+use super::error::StateMachineError;
 use std::fmt::Debug;
 use std::time::{Duration, Instant};
 
@@ -107,14 +106,20 @@ pub struct PropertyTestGenerator {
     pub seed: Option<u64>,
 }
 
-impl PropertyTestGenerator {
-    /// Create a new property test generator
-    pub fn new() -> Self {
+impl Default for PropertyTestGenerator {
+    fn default() -> Self {
         Self {
             max_cases: 100,
             max_sequence_length: 10,
             seed: None,
         }
+    }
+}
+
+impl PropertyTestGenerator {
+    /// Create a new property test generator
+    pub fn new() -> Self {
+        Self::default()
     }
     
     /// Set maximum test cases
@@ -295,7 +300,7 @@ where
         };
         
         for test_case in &suite.test_cases {
-            match self.run_test_case(&test_case) {
+            match self.run_test_case(test_case) {
                 TestResult::Pass => report.passed += 1,
                 TestResult::Fail(reason) => {
                     report.failed += 1;
@@ -466,7 +471,7 @@ where
             let start = Instant::now();
             let mut machine = self.machine.clone();
             
-            if let Err(_) = benchmark_fn(&mut machine) {
+            if benchmark_fn(&mut machine).is_err() {
                 // Benchmark failed, skip this iteration
                 continue;
             }

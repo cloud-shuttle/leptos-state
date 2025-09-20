@@ -2,6 +2,7 @@
 name = "leptos-state"
 version = "1.0.1"
 edition = "2024"
+rust-version = "1.89.0"
 authors = ["Cloud Shuttle <team@cloud-shuttle.com>"]
 description = "A powerful state management library for Leptos applications with state machines, persistence, and DevTools"
 repository = "https://github.com/cloud-shuttle/leptos-state"
@@ -56,3 +57,15 @@ performance = []
 # Leptos version compatibility features
 leptos-0-8 = []
 leptos-0-9 = []
+
+[profile.release]
+# Optimize for performance
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.dev]
+# Optimize for compilation speed
+opt-level = 0
+debug = true

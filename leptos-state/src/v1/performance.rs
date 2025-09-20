@@ -1,7 +1,11 @@
 use std::time::{Duration, Instant};
 use std::collections::HashMap;
 
+/// Type alias for benchmark operations
+type BenchmarkOperation = Box<dyn Fn() -> usize>;
+
 /// Performance benchmarking and optimization utilities
+#[derive(Default)]
 pub struct PerformanceBenchmark {
     /// Benchmark results
     results: HashMap<String, BenchmarkResult>,
@@ -72,11 +76,7 @@ pub enum OptimizationType {
 impl PerformanceBenchmark {
     /// Create new performance benchmark
     pub fn new() -> Self {
-        Self {
-            results: HashMap::new(),
-            thresholds: PerformanceThresholds::default(),
-            suggestions: Vec::new(),
-        }
+        Self::default()
     }
 
     /// Set performance thresholds
@@ -151,7 +151,7 @@ impl PerformanceBenchmark {
     /// Run comprehensive benchmark suite
     pub fn run_benchmark_suite(
         &mut self,
-        operations: Vec<(&str, Box<dyn Fn() -> usize>)>,
+        operations: Vec<(&str, BenchmarkOperation)>,
         iterations: usize,
     ) -> BenchmarkSuite {
         let mut suite = BenchmarkSuite::new();
@@ -297,14 +297,20 @@ pub struct BenchmarkSuite {
     execution_time: Duration,
 }
 
-impl BenchmarkSuite {
-    /// Create new benchmark suite
-    pub fn new() -> Self {
+impl Default for BenchmarkSuite {
+    fn default() -> Self {
         Self {
             results: HashMap::new(),
             overall_score: 0.0,
             execution_time: Duration::from_nanos(0),
         }
+    }
+}
+
+impl BenchmarkSuite {
+    /// Create new benchmark suite
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Add benchmark result
@@ -326,7 +332,7 @@ impl BenchmarkSuite {
     /// Get performance summary
     pub fn get_summary(&self) -> String {
         let mut summary = String::new();
-        summary.push_str(&format!("Benchmark Suite Results\n"));
+        summary.push_str("Benchmark Suite Results\n");
         summary.push_str(&format!("Overall Score: {:.1}/100\n", self.overall_score));
         summary.push_str(&format!("Execution Time: {:?}\n", self.execution_time));
         summary.push_str(&format!("Tests Run: {}\n\n", self.results.len()));

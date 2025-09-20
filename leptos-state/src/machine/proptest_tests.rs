@@ -3,7 +3,7 @@
 //! These tests use proptest to generate random inputs and verify that
 //! the state machine behaves correctly under all possible conditions.
 
-use crate::machine::machine::{MachineState, StateMachine};
+use crate::machine::core::{MachineState, StateMachine};
 use crate::machine::states::StateValue;
 
 #[cfg(feature = "testing")]
@@ -78,16 +78,15 @@ impl MachineState for PropTestState {
     }
 
     fn can_transition_to(&self, target: &str) -> bool {
-        match (self, target) {
-            (PropTestState::Idle, "active") => true,
-            (PropTestState::Active, "counting") => true,
-            (PropTestState::Active, "paused") => true,
-            (PropTestState::Active, "idle") => true,
-            (PropTestState::Paused, "active") => true,
-            (PropTestState::Paused, "idle") => true,
-            (PropTestState::Counting, "idle") => true,
-            _ => false,
-        }
+        matches!((self, target), 
+            (PropTestState::Idle, "active") | 
+            (PropTestState::Active, "counting") | 
+            (PropTestState::Active, "paused") | 
+            (PropTestState::Active, "idle") | 
+            (PropTestState::Paused, "active") | 
+            (PropTestState::Paused, "idle") | 
+            (PropTestState::Counting, "idle")
+        )
     }
 }
 
@@ -112,7 +111,7 @@ impl StateMachine for PropTestMachine {
             (PropTestState::Paused, PropTestEvent::Toggle) => PropTestState::Active,
             (PropTestState::Paused, PropTestEvent::Reset) => PropTestState::Idle,
             (PropTestState::Counting, PropTestEvent::Reset) => PropTestState::Idle,
-            _ => state.clone(),
+            _ => *state,
         }
     }
 }

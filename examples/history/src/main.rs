@@ -22,7 +22,6 @@ impl StateMachineEvent for TestEvent {}
 #[derive(Debug, Clone, PartialEq)]
 enum TestState {
     Idle,
-    Active,
     Running,
     Paused,
 }
@@ -74,11 +73,11 @@ impl StateMachine for TestState {
     }
 
     fn state_count(&self) -> usize {
-        4
+        3
     }
 
     fn is_valid_state(&self, state: &Self) -> bool {
-        matches!(state, TestState::Idle | TestState::Active | TestState::Running | TestState::Paused)
+        matches!(state, TestState::Idle | TestState::Running | TestState::Paused)
     }
 
     fn is_reachable(&self, state: &Self) -> bool {

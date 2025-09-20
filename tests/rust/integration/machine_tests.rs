@@ -2,7 +2,6 @@
 
 use leptos_state::{
     machine::{StateMachine},
-    utils::types::StateResult,
 };
 use wasm_bindgen_test::*;
 

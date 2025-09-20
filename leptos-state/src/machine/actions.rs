@@ -670,14 +670,20 @@ pub struct ActionExecution {
     pub errors: Vec<String>,
 }
 
-impl ActionExecution {
-    pub fn new() -> Self {
+impl Default for ActionExecution {
+    fn default() -> Self {
         Self {
             executed: true,
             action_descriptions: Vec::new(),
             execution_time: None,
             errors: Vec::new(),
         }
+    }
+}
+
+impl ActionExecution {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn add_action(&mut self, description: String, executed: bool) {

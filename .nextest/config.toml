@@ -1,0 +1,34 @@
+# Nextest Configuration
+# Following ADR-007: Rust Coding Standards and Latest Practices
+
+[profile.default]
+# Test execution settings
+retries = 2
+slow-timeout = { period = "60s", terminate-after = 2 }
+leak-timeout = "10s"
+status-level = "pass"
+final-status-level = "flaky"
+
+# Parallel execution
+test-threads = "num-cpus"
+max-test-threads = 8
+
+# Output settings
+failure-output = "immediate-final"
+success-output = "immediate-final"
+status-level = "pass"
+
+# Timeout settings
+slow-timeout = { period = "60s", terminate-after = 2 }
+leak-timeout = "10s"
+
+[profile.ci]
+# CI-specific settings
+retries = 1
+slow-timeout = { period = "120s", terminate-after = 1 }
+leak-timeout = "30s"
+status-level = "none"
+final-status-level = "none"
+failure-output = "immediate-final"
+success-output = "none"
+

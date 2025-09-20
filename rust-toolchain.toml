@@ -1,0 +1,8 @@
+# Rust Toolchain Configuration
+# Following ADR-007: Rust Coding Standards and Latest Practices
+
+[toolchain]
+channel = "stable"
+components = ["rustfmt", "clippy", "rust-analyzer"]
+targets = ["wasm32-unknown-unknown"]
+

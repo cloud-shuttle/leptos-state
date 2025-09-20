@@ -132,10 +132,9 @@ where
     
     // Watch for state changes and add to history
     Effect::new(move |_| {
-        let current_state = handle.state.get();
         // For now, just track the current state
         // In a real implementation, we'd compare with previous state
-        current_state
+        handle.state.get()
     });
 
     MachineHistory { history }

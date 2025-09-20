@@ -100,14 +100,13 @@ pub struct WebSocketConnection {
     connected: bool,
 }
 
-impl<C, E, S> DevTools<C, E, S>
+impl<C, E, S> Default for DevTools<C, E, S>
 where
     C: StateMachineContext + Clone + 'static,
     E: StateMachineEvent + Clone + 'static,
     S: StateMachineState<Context = C, Event = E> + Clone + 'static,
 {
-    /// Create new DevTools instance
-    pub fn new() -> Self {
+    fn default() -> Self {
         Self {
             enabled: false,
             event_history: Arc::new(Mutex::new(Vec::new())),
@@ -116,6 +115,18 @@ where
             inspectors: HashMap::new(),
             websocket: None,
         }
+    }
+}
+
+impl<C, E, S> DevTools<C, E, S>
+where
+    C: StateMachineContext + Clone + 'static,
+    E: StateMachineEvent + Clone + 'static,
+    S: StateMachineState<Context = C, Event = E> + Clone + 'static,
+{
+    /// Create new DevTools instance
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Enable DevTools

@@ -556,13 +556,19 @@ pub struct GuardEvaluation {
     pub failed_guards: Vec<String>,
 }
 
-impl GuardEvaluation {
-    pub fn new() -> Self {
+impl Default for GuardEvaluation {
+    fn default() -> Self {
         Self {
             passed: true,
             guard_descriptions: Vec::new(),
             failed_guards: Vec::new(),
         }
+    }
+}
+
+impl GuardEvaluation {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn add_result(&mut self, guard_description: &str, passed: bool) {

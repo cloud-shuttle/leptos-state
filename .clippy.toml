@@ -1,0 +1,24 @@
+# Clippy Configuration
+# Following ADR-007: Rust Coding Standards and Latest Practices
+
+# Allow some lints that are too strict for our use case
+allow = [
+    "clippy::too_many_arguments",
+    "clippy::needless_pass_by_value",
+]
+
+# Deny important lints
+deny = [
+    "clippy::all",
+    "clippy::pedantic",
+    "clippy::nursery",
+    "clippy::cargo",
+]
+
+# Set specific lint levels
+warn = [
+    "clippy::missing_docs_in_private_items",
+    "clippy::missing_errors_doc",
+    "clippy::missing_panics_doc",
+]
+

@@ -10,7 +10,7 @@ pub mod events;
 pub mod guards;
 pub mod history;
 pub mod integration;
-pub mod machine;
+pub mod core;
 pub mod optimization;
 pub mod performance;
 pub mod persistence;
@@ -19,9 +19,9 @@ pub mod states;
 pub mod testing;
 pub mod visualization;
 
-pub use machine::*;
+pub use core::*;
 // Core machine types
-pub use machine::{MachineState, StateMachine};
+pub use core::{MachineState, StateMachine};
 pub use actions::{Action, ActionBuilder, ActionExecution, ActionExecutor};
 pub use bundle_optimization::{BundleOptimization, BundleOptimizationConfig, BundleInfo, BundleAnalysis, BundleComparison, OptimizedBundle, WasmInfo, LoadingStrategy};
 pub use codegen::{CodeGenConfig, CodeGenerator, GeneratedFile, MachineCodeGenExt};
@@ -35,4 +35,4 @@ pub use performance::{OptimizedMachine, PerformanceConfig, PerformanceProfiler};
 pub use persistence::{MachinePersistence, PersistenceConfig, PersistentMachine};
 pub use states::{StateValue, HistoryState, HistoryType as StatesHistoryType};
 pub use testing::{MachineTestRunner, TestCase, TestConfig, TestResult};
-pub use visualization::{MachineVisualizer, VisualizationConfig, VisualizedMachine};
+pub use visualization::{MachineVisualizer, VisualizedMachine, VisualizationConfig, ExportFormat, MachineVisualizationExt};

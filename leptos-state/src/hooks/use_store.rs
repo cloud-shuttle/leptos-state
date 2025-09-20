@@ -135,6 +135,7 @@ impl<T: Clone + Send + Sync> StoreBatch<T> {
 }
 
 /// Helper struct for store history
+#[allow(dead_code)]
 pub struct StoreHistory<T: Clone + Send + Sync + 'static> {
     state: ReadSignal<T>,
     setter: WriteSignal<T>,
@@ -167,6 +168,7 @@ impl<T: Clone + Send + Sync> StoreHistory<T> {
 }
 
 /// Helper struct for store persistence
+#[allow(dead_code)]
 pub struct StorePersistence<T: Clone + Send + Sync + 'static> {
     key: &'static str,
     state: ReadSignal<T>,
@@ -196,6 +198,7 @@ impl<T: Clone + Send + Sync> StorePersistence<T> {
 }
 
 /// Helper struct for store middleware
+#[allow(dead_code)]
 pub struct StoreMiddleware<T: Clone + Send + Sync + 'static> {
     state: ReadSignal<T>,
     setter: WriteSignal<T>,

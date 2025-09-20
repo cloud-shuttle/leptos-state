@@ -3,8 +3,7 @@
 //! This module provides tools for optimizing the bundle size of leptos-state
 //! applications, particularly for WASM targets.
 
-use std::collections::HashMap;
-use crate::machine::{Machine, MachineBuilder};
+use crate::machine::Machine;
 
 /// Bundle optimization configuration
 #[derive(Debug, Clone)]
@@ -83,10 +82,11 @@ pub struct LoadingStrategy {
 }
 
 /// An optimized machine with bundle optimization features
+#[allow(dead_code)]
 pub struct OptimizedBundle<C, E>
 where
     C: Clone + Send + Sync + Default + std::fmt::Debug + 'static,
-    E: Clone + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static,
+    E: Clone + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static + crate::machine::events::Event,
 {
     machine: Machine<C, E>,
     optimization_config: BundleOptimizationConfig,
@@ -95,7 +95,7 @@ where
 impl<C, E> OptimizedBundle<C, E>
 where
     C: Clone + Send + Sync + Default + std::fmt::Debug + 'static,
-    E: Clone + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static,
+    E: Clone + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static + crate::machine::events::Event,
 {
     /// Create a new optimized bundle
     pub fn new(machine: Machine<C, E>, config: BundleOptimizationConfig) -> Self {
@@ -145,7 +145,7 @@ where
 pub trait BundleOptimization<C, E>
 where
     C: Clone + Send + Sync + Default + std::fmt::Debug + 'static,
-    E: Clone + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static,
+    E: Clone + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static + crate::machine::events::Event,
 {
     /// Add bundle optimization to the machine
     fn with_bundle_optimization(self) -> OptimizedBundle<C, E>;
@@ -184,27 +184,33 @@ where
 impl<C, E> BundleOptimization<C, E> for Machine<C, E>
 where
     C: Clone + Send + Sync + Default + std::fmt::Debug + 'static,
-    E: Clone + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static,
+    E: Clone + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static + crate::machine::events::Event,
 {
     fn with_bundle_optimization(self) -> OptimizedBundle<C, E> {
         OptimizedBundle::new(self, BundleOptimizationConfig::default())
     }
 
     fn with_code_splitting(self, _chunk_size: usize) -> OptimizedBundle<C, E> {
-        let mut config = BundleOptimizationConfig::default();
-        config.code_splitting = true;
+        let config = BundleOptimizationConfig {
+            code_splitting: true,
+            ..Default::default()
+        };
         OptimizedBundle::new(self, config)
     }
 
     fn with_wasm_optimization(self) -> OptimizedBundle<C, E> {
-        let mut config = BundleOptimizationConfig::default();
-        config.wasm_optimization = true;
+        let config = BundleOptimizationConfig {
+            wasm_optimization: true,
+            ..Default::default()
+        };
         OptimizedBundle::new(self, config)
     }
 
     fn with_progressive_loading(self) -> OptimizedBundle<C, E> {
-        let mut config = BundleOptimizationConfig::default();
-        config.progressive_loading = true;
+        let config = BundleOptimizationConfig {
+            progressive_loading: true,
+            ..Default::default()
+        };
         OptimizedBundle::new(self, config)
     }
 
@@ -317,6 +323,15 @@ mod tests {
         #[default]
         Increment,
         Decrement,
+    }
+
+    impl crate::machine::events::Event for TestEvent {
+        fn event_type(&self) -> &str {
+            match self {
+                TestEvent::Increment => "Increment",
+                TestEvent::Decrement => "Decrement",
+            }
+        }
     }
 
     #[test]

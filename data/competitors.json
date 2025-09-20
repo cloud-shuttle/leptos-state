@@ -1,0 +1,178 @@
+{
+  "competitors": [
+    {
+      "name": "zustand",
+      "description": "Small, fast and scalable bearbones state-management solution",
+      "features": [
+        "state-management",
+        "reactive-updates",
+        "devtools",
+        "persistence",
+        "middleware",
+        "typescript-support"
+      ],
+      "performance": {
+        "bundle-size": "2.9kb",
+        "initialization-time": "0.1ms",
+        "update-frequency": "high"
+      },
+      "github": {
+        "stars": 45000,
+        "forks": 1200,
+        "last-updated": "2024-01-15"
+      },
+      "npm": {
+        "downloads": 2000000,
+        "version": "4.4.7"
+      }
+    },
+    {
+      "name": "redux",
+      "description": "Predictable state container for JavaScript apps",
+      "features": [
+        "state-management",
+        "reactive-updates",
+        "devtools",
+        "middleware",
+        "time-travel",
+        "typescript-support",
+        "ssr-support"
+      ],
+      "performance": {
+        "bundle-size": "2.6kb",
+        "initialization-time": "0.2ms",
+        "update-frequency": "medium"
+      },
+      "github": {
+        "stars": 60000,
+        "forks": 15000,
+        "last-updated": "2024-01-10"
+      },
+      "npm": {
+        "downloads": 8000000,
+        "version": "5.0.1"
+      }
+    },
+    {
+      "name": "mobx",
+      "description": "Simple, scalable state management",
+      "features": [
+        "state-management",
+        "reactive-updates",
+        "devtools",
+        "persistence",
+        "middleware",
+        "typescript-support",
+        "ssr-support"
+      ],
+      "performance": {
+        "bundle-size": "16.8kb",
+        "initialization-time": "0.3ms",
+        "update-frequency": "high"
+      },
+      "github": {
+        "stars": 27000,
+        "forks": 1800,
+        "last-updated": "2024-01-12"
+      },
+      "npm": {
+        "downloads": 3000000,
+        "version": "6.12.0"
+      }
+    },
+    {
+      "name": "jotai",
+      "description": "Primitive and flexible state management for React",
+      "features": [
+        "state-management",
+        "reactive-updates",
+        "devtools",
+        "typescript-support",
+        "ssr-support"
+      ],
+      "performance": {
+        "bundle-size": "3.4kb",
+        "initialization-time": "0.15ms",
+        "update-frequency": "high"
+      },
+      "github": {
+        "stars": 15000,
+        "forks": 500,
+        "last-updated": "2024-01-14"
+      },
+      "npm": {
+        "downloads": 800000,
+        "version": "2.6.0"
+      }
+    },
+    {
+      "name": "xstate",
+      "description": "State machines and statecharts for the modern web",
+      "features": [
+        "state-management",
+        "state-machines",
+        "reactive-updates",
+        "devtools",
+        "visualization",
+        "typescript-support",
+        "testing-utilities"
+      ],
+      "performance": {
+        "bundle-size": "13.2kb",
+        "initialization-time": "0.4ms",
+        "update-frequency": "medium"
+      },
+      "github": {
+        "stars": 25000,
+        "forks": 1200,
+        "last-updated": "2024-01-11"
+      },
+      "npm": {
+        "downloads": 500000,
+        "version": "5.0.0"
+      }
+    }
+  ],
+  "leptos-state": {
+    "name": "leptos-state",
+    "description": "Powerful state management library for Leptos applications",
+    "features": [
+      "state-management",
+      "state-machines",
+      "reactive-updates",
+      "devtools",
+      "persistence",
+      "middleware",
+      "time-travel",
+      "hot-reload",
+      "ssr-support",
+      "typescript-support",
+      "performance",
+      "code-generation",
+      "visualization",
+      "testing-utilities",
+      "migration-tools",
+      "bundle-optimization",
+      "async-handling",
+      "error-recovery",
+      "analytics",
+      "monitoring"
+    ],
+    "performance": {
+      "bundle-size": "8.5kb",
+      "initialization-time": "0.05ms",
+      "update-frequency": "very-high"
+    },
+    "github": {
+      "stars": 500,
+      "forks": 50,
+      "last-updated": "2024-01-20"
+    },
+    "npm": {
+      "downloads": 1000,
+      "version": "1.0.1"
+    }
+  },
+  "last-updated": "2024-01-20T10:00:00Z"
+}
+

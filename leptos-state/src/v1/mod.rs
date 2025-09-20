@@ -35,8 +35,7 @@ pub use state::*;
 pub use event::*;
 pub use context::*;
 pub use devtools::*;
-pub use performance::*;
-pub use persistence::*;
+pub use performance::{PerformanceBenchmark, PerformanceThresholds, BenchmarkSuite, OptimizationSuggestion};
 pub use testing::*;
 pub use migration::*;
 

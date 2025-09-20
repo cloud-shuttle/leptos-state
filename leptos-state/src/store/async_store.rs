@@ -1,7 +1,6 @@
 //! Async store integration with Leptos Resources
 
 use leptos::prelude::Resource;
-use leptos::prelude::*;
 
 use crate::store::Store;
 use crate::utils::{StateError, StateResult};
@@ -35,12 +34,18 @@ pub struct ResourceStore<A: AsyncStore> {
     _phantom: PhantomData<A>,
 }
 
-impl<A: AsyncStore> ResourceStore<A> {
-    /// Create a new resource store with automatic loading
-    pub fn new() -> Self {
+impl<A: AsyncStore> Default for ResourceStore<A> {
+    fn default() -> Self {
         Self {
             _phantom: PhantomData,
         }
+    }
+}
+
+impl<A: AsyncStore> ResourceStore<A> {
+    /// Create a new resource store with automatic loading
+    pub fn new() -> Self {
+        Self::default()
     }
 }
 

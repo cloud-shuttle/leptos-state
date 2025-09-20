@@ -216,10 +216,9 @@ where
         let mut last_input = self.last_input.borrow_mut();
         let mut last_output = self.last_output.borrow_mut();
 
-        if let (Some(prev_input), Some(prev_output)) = (last_input.as_ref(), last_output.as_ref()) {
-            if prev_input == input {
-                return prev_output.clone();
-            }
+        if let (Some(prev_input), Some(prev_output)) = (last_input.as_ref(), last_output.as_ref())
+            && prev_input == input {
+            return prev_output.clone();
         }
 
         let output = (self.selector_fn)(input);

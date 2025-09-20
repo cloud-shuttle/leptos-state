@@ -13,7 +13,6 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 #[cfg(feature = "serde_json")]
-use serde_json;
 #[cfg(feature = "serde_yaml")]
 /// Trait for serializing state machine data
 pub trait MachineSerialize {
@@ -305,7 +304,7 @@ pub struct MachinePersistence<C: Send + Sync, E> {
 impl<C: Send + Sync + 'static, E> MachinePersistence<C, E>
 where
     C: Clone + Send + Sync + Default + Debug + 'static,
-    E: Clone + PartialEq + Debug + Send + Sync + Default,
+    E: Clone + PartialEq + Debug + Send + Sync + Default + Event,
 {
     pub fn new(config: PersistenceConfig) -> Self {
         Self {
@@ -461,12 +460,11 @@ where
             });
 
             // Remove old backups if we exceed the limit
-            if backups.len() > self.config.backup_config.max_backups {
-                if let Some(oldest) = backups.iter().min_by_key(|b| b.timestamp) {
-                    let oldest_key = oldest.key.clone();
-                    let _ = self.storage.delete(&oldest_key);
-                    backups.retain(|b| b.key != oldest_key);
-                }
+            if backups.len() > self.config.backup_config.max_backups
+                && let Some(oldest) = backups.iter().min_by_key(|b| b.timestamp) {
+                let oldest_key = oldest.key.clone();
+                let _ = self.storage.delete(&oldest_key);
+                backups.retain(|b| b.key != oldest_key);
             }
         }
 
@@ -514,14 +512,13 @@ where
             return false;
         }
 
-        if let Ok(last_save) = self.last_save.lock() {
-            if let Some(last) = *last_save {
-                let now = std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap()
-                    .as_secs();
-                return now - last >= self.config.backup_config.backup_interval;
-            }
+        if let Ok(last_save) = self.last_save.lock()
+            && let Some(last) = *last_save {
+            let now = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs();
+            return now - last >= self.config.backup_config.backup_interval;
         }
 
         true
@@ -661,6 +658,12 @@ pub trait MachineStorage: Send + Sync {
 /// Local storage implementation using web storage
 pub struct LocalStorage;
 
+impl Default for LocalStorage {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl LocalStorage {
     pub fn new() -> Self {
         Self
@@ -695,11 +698,17 @@ pub struct MemoryStorage {
     data: Arc<Mutex<HashMap<String, String>>>,
 }
 
-impl MemoryStorage {
-    pub fn new() -> Self {
+impl Default for MemoryStorage {
+    fn default() -> Self {
         Self {
             data: Arc::new(Mutex::new(HashMap::new())),
         }
+    }
+}
+
+impl MemoryStorage {
+    pub fn new() -> Self {
+        Self::default()
     }
 }
 
@@ -714,14 +723,14 @@ impl MachineStorage for MemoryStorage {
     }
 
     fn load(&self, key: &str) -> StateResult<String> {
-        if let Ok(storage) = self.data.lock() {
-            storage
-                .get(key)
-                .cloned()
-                .ok_or_else(|| StateError::new("Data not found"))
-        } else {
-            Err(StateError::new("Failed to acquire storage lock"))
-        }
+        self.data.lock()
+            .map_err(|_| StateError::new("Failed to acquire storage lock"))
+            .and_then(|storage| {
+                storage
+                    .get(key)
+                    .cloned()
+                    .ok_or_else(|| StateError::new("Data not found"))
+            })
     }
 
     fn delete(&self, key: &str) -> StateResult<()> {
@@ -743,7 +752,7 @@ impl MachineStorage for MemoryStorage {
 }
 
 /// Extension trait for adding persistence to machines
-pub trait MachinePersistenceExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub trait MachinePersistenceExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     /// Add persistence to the machine
     fn with_persistence(self, config: PersistenceConfig) -> PersistentMachine<C, E>;
 }
@@ -751,7 +760,7 @@ pub trait MachinePersistenceExt<C: Send + Sync + Clone + Default + Debug, E: Clo
 impl<C: Send + Sync, E> MachinePersistenceExt<C, E> for Machine<C, E>
 where
     C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
-    E: Clone + std::cmp::PartialEq + 'static + std::fmt::Debug + Send + Sync + Default,
+    E: Clone + std::cmp::PartialEq + 'static + std::fmt::Debug + Send + Sync + Default + Event,
 {
     fn with_persistence(self, config: PersistenceConfig) -> PersistentMachine<C, E> {
         PersistentMachine::new(self, config)
@@ -759,7 +768,7 @@ where
 }
 
 /// A state machine with persistence capabilities
-pub struct PersistentMachine<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub struct PersistentMachine<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     machine: Machine<C, E>,
     persistence: MachinePersistence<C, E>,
     current_state: Option<MachineStateImpl<C>>,
@@ -768,7 +777,7 @@ pub struct PersistentMachine<C: Send + Sync + Clone + Default + Debug, E: Clone 
 impl<C: Send + Sync, E> PersistentMachine<C, E>
 where
     C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
-    E: Clone + std::cmp::PartialEq + 'static + std::fmt::Debug + Send + Sync + Default,
+    E: Clone + std::cmp::PartialEq + 'static + std::fmt::Debug + Send + Sync + Default + Event,
 {
     pub fn new(machine: Machine<C, E>, config: PersistenceConfig) -> Self {
         let persistence = MachinePersistence::new(config);
@@ -816,10 +825,9 @@ where
         let new_state = Machine::transition(&self.machine, current, event);
 
         // Auto-save if enabled
-        if self.persistence.should_auto_save() {
-            if let Err(e) = self.persistence.save(&self.machine, &new_state) {
-                tracing::warn!("Failed to auto-save machine state: {:?}", e);
-            }
+        if self.persistence.should_auto_save()
+            && let Err(e) = self.persistence.save(&self.machine, &new_state) {
+            tracing::warn!("Failed to auto-save machine state: {:?}", e);
         }
 
         self.current_state = Some(new_state.clone());

@@ -110,14 +110,14 @@ impl StateValue {
     }
 
     /// Convert to a dot-notation string
-    pub fn to_string(&self) -> String {
+    pub fn to_dot_notation(&self) -> String {
         match self {
             StateValue::Simple(name) => name.clone(),
             StateValue::Compound { parent, child } => {
-                format!("{}.{}", parent, child.to_string())
+                format!("{}.{}", parent, child.to_dot_notation())
             }
             StateValue::Parallel(states) => {
-                let state_strings: Vec<String> = states.iter().map(|s| s.to_string()).collect();
+                let state_strings: Vec<String> = states.iter().map(|s| s.to_dot_notation()).collect();
                 format!("[{}]", state_strings.join(", "))
             }
         }
@@ -126,7 +126,7 @@ impl StateValue {
 
 impl fmt::Display for StateValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_string())
+        write!(f, "{}", self.to_dot_notation())
     }
 }
 

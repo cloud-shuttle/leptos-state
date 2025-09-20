@@ -1,6 +1,5 @@
 use leptos::ev::SubmitEvent;
 use leptos::prelude::*;
-use leptos::*;
 use std::collections::HashMap;
 use uuid::Uuid;
 

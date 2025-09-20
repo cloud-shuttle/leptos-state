@@ -2,10 +2,6 @@
 //! 
 //! This module provides tools to help migrate from v0.2.x to v1.0.0.
 
-use super::traits::{StateMachineContext, StateMachineEvent, StateMachineState, StateMachine, StoreState, Store};
-use super::machine::Machine;
-use super::error::{StateMachineError, MigrationError};
-use std::collections::HashMap;
 use std::fmt::Debug;
 
 /// Migration result
@@ -37,6 +33,7 @@ pub struct MigrationReport {
 }
 
 /// Migration analyzer for detecting migration issues
+#[derive(Default)]
 pub struct MigrationAnalyzer {
     /// Issues found during analysis
     issues: Vec<MigrationIssue>,
@@ -118,6 +115,7 @@ pub enum SuggestionPriority {
 }
 
 /// Code transformer for automatic migration
+#[derive(Default)]
 pub struct CodeTransformer {
     /// Transformation rules
     rules: Vec<TransformationRule>,
@@ -139,10 +137,7 @@ pub struct TransformationRule {
 impl MigrationAnalyzer {
     /// Create a new migration analyzer
     pub fn new() -> Self {
-        Self {
-            issues: Vec::new(),
-            suggestions: Vec::new(),
-        }
+        Self::default()
     }
     
     /// Analyze code for migration issues
@@ -254,9 +249,7 @@ impl MigrationAnalyzer {
 impl CodeTransformer {
     /// Create a new code transformer
     pub fn new() -> Self {
-        Self {
-            rules: Vec::new(),
-        }
+        Self::default()
     }
     
     /// Add a transformation rule

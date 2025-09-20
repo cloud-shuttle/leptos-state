@@ -1,0 +1,39 @@
+# Tarpaulin Configuration
+# Following ADR-004: Testing Strategy - Near 100% Coverage
+
+[tool.tarpaulin]
+# Coverage threshold
+fail-under = 95
+
+# Exclude patterns
+exclude-files = [
+    "examples/*",
+    "tests/*",
+    "benches/*",
+    "target/*",
+    "*.rs.bak",
+    "**/main.rs",
+    "**/lib.rs",
+]
+
+# Output formats
+out = ["Html", "Xml", "Json"]
+
+# Output directory
+output-dir = "coverage"
+
+# Timeout settings
+timeout = 120
+
+# Test settings
+test-threads = 4
+
+# Coverage settings
+line = true
+branch = true
+features = ["all"]
+
+# Ignore patterns
+ignore-panics = true
+ignore-tests = true
+

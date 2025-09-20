@@ -1,0 +1,13 @@
+[package]
+name = "competitive-dashboard"
+version = "0.1.0"
+edition = "2021"
+authors = ["Cloud Shuttle <team@cloud-shuttle.com>"]
+description = "Competitive analysis dashboard example"
+
+[dependencies]
+leptos = { workspace = true }
+leptos-state = { path = "../../leptos-state" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+

@@ -57,7 +57,7 @@ pub enum ProgrammingLanguage {
 }
 
 /// Code generator for state machines
-pub struct CodeGenerator<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub struct CodeGenerator<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     config: CodeGenConfig,
     machine: Arc<Machine<C, E>>,
     generated_files: Arc<RwLock<Vec<GeneratedFile>>>,
@@ -271,7 +271,7 @@ where
                 "        let result = machine.transition(StateEvent::{});\n",
                 transition.event
             ));
-            code.push_str(&format!("        assert!(result.is_ok());\n"));
+            code.push_str("        assert!(result.is_ok());\n");
             code.push_str(&format!(
                 "        assert_eq!(result.unwrap(), State::{});\n",
                 transition.to
@@ -297,14 +297,14 @@ where
         for state in states {
             code.push_str(&format!("- **{}**: State description\n", state));
         }
-        code.push_str("\n");
+        code.push('\n');
 
         code.push_str("## Events\n\n");
         let events = self.get_machine_events();
         for event in events {
             code.push_str(&format!("- **{}**: Event description\n", event));
         }
-        code.push_str("\n");
+        code.push('\n');
 
         code.push_str("## Transitions\n\n");
         let transitions = self.get_machine_transitions();
@@ -314,7 +314,7 @@ where
                 transition.from, transition.to, transition.event
             ));
         }
-        code.push_str("\n");
+        code.push('\n');
 
         Ok(code)
     }
@@ -521,7 +521,7 @@ where
     /// Save generated files
     fn save_generated_files(&self, files: &[GeneratedFile]) -> StateResult<()> {
         // Create output directory if it doesn't exist
-        if let Err(_) = fs::create_dir_all(&self.config.output_directory) {
+        if fs::create_dir_all(&self.config.output_directory).is_err() {
             return Err(StateError::custom(format!(
                 "Failed to create output directory: {}",
                 self.config.output_directory
@@ -533,13 +533,12 @@ where
             let full_path = format!("{}/{}", self.config.output_directory, file.file_path);
 
             // Create subdirectories if needed
-            if let Some(parent) = std::path::Path::new(&full_path).parent() {
-                if let Err(_) = fs::create_dir_all(parent) {
-                    return Err(StateError::custom(format!(
-                        "Failed to create directory: {:?}",
-                        parent
-                    )));
-                }
+            if let Some(parent) = std::path::Path::new(&full_path).parent()
+                && fs::create_dir_all(parent).is_err() {
+                return Err(StateError::custom(format!(
+                    "Failed to create directory: {:?}",
+                    parent
+                )));
             }
 
             if let Err(e) = fs::write(&full_path, &file.content) {
@@ -573,8 +572,8 @@ where
         let files = self.get_generated_files();
         for file in files {
             index.push_str(&format!(
-                "- [{}]({})\n",
-                format!("{:?}", file.language),
+                "- [{:?}]({})\n",
+                file.language,
                 file.file_path
             ));
         }
@@ -635,7 +634,7 @@ pub struct TransitionInfo {
 }
 
 /// Extension trait for adding code generation to machines
-pub trait MachineCodeGenExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub trait MachineCodeGenExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     /// Add code generation capabilities to the machine
     fn with_code_generation(self, config: CodeGenConfig) -> CodeGenerator<C, E>;
 }
@@ -651,7 +650,7 @@ where
 }
 
 /// Code generation builder for fluent configuration
-pub struct CodeGenBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub struct CodeGenBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     machine: Machine<C, E>,
     pub(crate) config: CodeGenConfig,
 }

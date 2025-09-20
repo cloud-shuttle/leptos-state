@@ -6,6 +6,12 @@ use super::traits::StoreState;
 use super::error::StateMachineError;
 use leptos::prelude::*;
 
+/// Type alias for middleware functions
+type MiddlewareFn<State> = Box<dyn Fn(&State, &State) + Send + Sync>;
+
+/// Type alias for subscriber functions
+type SubscriberFn<State> = Box<dyn Fn(&State) + Send + Sync>;
+
 /// A reactive store that manages state and provides Leptos integration
 #[derive(Default)]
 pub struct StateStore<State>
@@ -19,9 +25,9 @@ where
     /// Maximum history size
     max_history: usize,
     /// Middleware functions
-    middleware: Vec<Box<dyn Fn(&State, &State) + Send + Sync>>,
+    middleware: Vec<MiddlewareFn<State>>,
     /// Subscribers for state changes
-    subscribers: Vec<Box<dyn Fn(&State) + Send + Sync>>,
+    subscribers: Vec<SubscriberFn<State>>,
     /// Persistence configuration
     persistence: Option<PersistenceConfig>,
 }
@@ -99,10 +105,9 @@ where
         }
         
         // Persist if configured
-        if let Some(config) = &self.persistence {
-            if config.persist_on_change {
-                self.persist_state(&new_state, config);
-            }
+        if let Some(config) = &self.persistence
+            && config.persist_on_change {
+            self.persist_state(&new_state, config);
         }
     }
 

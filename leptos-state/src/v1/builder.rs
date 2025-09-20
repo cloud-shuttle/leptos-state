@@ -7,6 +7,9 @@ use super::error::StateMachineError;
 use super::state::{StateNode, StateValue, Transition};
 use super::machine::Machine;
 
+/// Type alias for validation rule functions
+type ValidationRule<C, E> = Box<dyn Fn(&[StateNode<C, E>]) -> Result<(), String>>;
+
 /// Type-safe builder for constructing state machines
 pub struct MachineBuilder<C, E, S>
 where
@@ -21,9 +24,26 @@ where
     /// Context factory for creating new contexts
     context_factory: Option<Box<dyn Fn() -> C>>,
     /// Validation rules
-    validation_rules: Vec<Box<dyn Fn(&[StateNode<C, E>]) -> Result<(), String>>>,
+    validation_rules: Vec<ValidationRule<C, E>>,
     /// Phantom data to use the type parameter S
     _phantom: std::marker::PhantomData<S>,
+}
+
+impl<C, E, S> Default for MachineBuilder<C, E, S>
+where
+    C: StateMachineContext,
+    E: StateMachineEvent + Default,
+    S: StateMachineState<Context = C, Event = E> + Default,
+{
+    fn default() -> Self {
+        Self {
+            states: Vec::new(),
+            initial_state: None,
+            context_factory: None,
+            validation_rules: Vec::new(),
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
 
 impl<C, E, S> MachineBuilder<C, E, S>
@@ -34,13 +54,7 @@ where
 {
     /// Create a new machine builder
     pub fn new() -> Self {
-        Self {
-            states: Vec::new(),
-            initial_state: None,
-            context_factory: None,
-            validation_rules: Vec::new(),
-            _phantom: std::marker::PhantomData,
-        }
+        Self::default()
     }
 
     /// Add a state to the machine

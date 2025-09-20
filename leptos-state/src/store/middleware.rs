@@ -1,10 +1,13 @@
 use super::Store;
 use std::marker::PhantomData;
 
+/// Type alias for middleware function
+type MiddlewareFn<S> = Box<dyn Fn(&S) -> S>;
+
 /// Trait for store middleware
 pub trait Middleware<S: Store> {
     /// Wrap the next middleware/store operation
-    fn wrap(&self, next: Box<dyn Fn(&S::State) -> S::State>) -> Box<dyn Fn(&S::State) -> S::State>;
+    fn wrap(&self, next: MiddlewareFn<S::State>) -> MiddlewareFn<S::State>;
 }
 
 /// Chain multiple middleware together
@@ -19,7 +22,7 @@ impl<S: Store> MiddlewareChain<S> {
         }
     }
 
-    pub fn add(mut self, middleware: Box<dyn Middleware<S>>) -> Self {
+    pub fn with_middleware(mut self, middleware: Box<dyn Middleware<S>>) -> Self {
         self.middlewares.push(middleware);
         self
     }
@@ -28,7 +31,7 @@ impl<S: Store> MiddlewareChain<S> {
         &self,
         base: impl Fn(&S::State) -> S::State + 'static,
     ) -> impl Fn(&S::State) -> S::State {
-        let mut result: Box<dyn Fn(&S::State) -> S::State> = Box::new(base);
+        let mut result: MiddlewareFn<S::State> = Box::new(base);
 
         for middleware in self.middlewares.iter().rev() {
             result = middleware.wrap(result);
@@ -63,7 +66,7 @@ impl<S: Store> Middleware<S> for LoggerMiddleware<S>
 where
     S::State: std::fmt::Debug,
 {
-    fn wrap(&self, next: Box<dyn Fn(&S::State) -> S::State>) -> Box<dyn Fn(&S::State) -> S::State> {
+    fn wrap(&self, next: MiddlewareFn<S::State>) -> MiddlewareFn<S::State> {
         let prefix = self.prefix.clone();
         Box::new(move |state| {
             tracing::debug!("{}: Previous state: {:?}", prefix, state);
@@ -96,7 +99,7 @@ impl<S: Store> Middleware<S> for PersistMiddleware<S>
 where
     S::State: serde::Serialize + for<'de> serde::Deserialize<'de>,
 {
-    fn wrap(&self, next: Box<dyn Fn(&S::State) -> S::State>) -> Box<dyn Fn(&S::State) -> S::State> {
+    fn wrap(&self, next: MiddlewareFn<S::State>) -> MiddlewareFn<S::State> {
         let key = self.key.clone();
         Box::new(move |state| {
             let new_state = next(state);
@@ -133,7 +136,7 @@ impl<S: Store, F> Middleware<S> for ValidationMiddleware<S, F>
 where
     F: Fn(&S::State) -> bool + Clone + 'static,
 {
-    fn wrap(&self, next: Box<dyn Fn(&S::State) -> S::State>) -> Box<dyn Fn(&S::State) -> S::State> {
+    fn wrap(&self, next: MiddlewareFn<S::State>) -> MiddlewareFn<S::State> {
         let validator = self.validator.clone();
         Box::new(move |state| {
             let new_state = next(state);
@@ -163,8 +166,8 @@ mod tests {
     #[test]
     fn middleware_chain_applies_in_reverse_order() {
         let chain = MiddlewareChain::<TestStore>::new()
-            .add(Box::new(LoggerMiddleware::new("first")))
-            .add(Box::new(LoggerMiddleware::new("second")));
+            .with_middleware(Box::new(LoggerMiddleware::new("first")))
+            .with_middleware(Box::new(LoggerMiddleware::new("second")));
 
         // Test that the chain can be created and applied
         let wrapped = chain.apply(|state| TestState {

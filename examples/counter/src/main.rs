@@ -18,10 +18,14 @@ impl StateMachineContext for CounterContext {}
 /// Counter events
 #[derive(Clone, Debug, PartialEq)]
 enum CounterEvent {
+    #[allow(dead_code)]
     Increment,
+    #[allow(dead_code)]
     Decrement,
     Reset,
+    #[allow(dead_code)]
     SetValue(i32),
+    #[allow(dead_code)]
     SetLimits { min: i32, max: i32 },
 }
 
@@ -35,6 +39,7 @@ impl Default for CounterEvent {
 
 /// Counter states
 #[derive(Clone, Debug, PartialEq)]
+#[allow(dead_code)]
 enum CounterState {
     Idle,
     AtMin,
@@ -58,6 +63,7 @@ impl Default for CounterState {
 // =============================================================================
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 struct IncrementAction;
 
 impl Action<CounterContext> for IncrementAction {
@@ -76,6 +82,7 @@ impl Action<CounterContext> for IncrementAction {
 }
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 struct DecrementAction;
 
 impl Action<CounterContext> for DecrementAction {
@@ -108,6 +115,7 @@ impl Action<CounterContext> for ResetAction {
 }
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 struct SetValueAction(i32);
 
 impl Action<CounterContext> for SetValueAction {
@@ -129,6 +137,7 @@ impl Action<CounterContext> for SetValueAction {
 }
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 struct SetLimitsAction {
     min: i32,
     max: i32,
@@ -163,6 +172,7 @@ impl Action<CounterContext> for SetLimitsAction {
 // =============================================================================
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 struct CanIncrementGuard;
 
 impl Guard<CounterContext, CounterEvent> for CanIncrementGuard {
@@ -176,6 +186,7 @@ impl Guard<CounterContext, CounterEvent> for CanIncrementGuard {
 }
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 struct CanDecrementGuard;
 
 impl Guard<CounterContext, CounterEvent> for CanDecrementGuard {

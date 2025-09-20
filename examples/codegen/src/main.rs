@@ -22,9 +22,12 @@ enum GameEvent {
     Pause,
     Resume,
     Stop,
-    Score(i32),
-    LevelUp,
-    GameOver,
+    #[allow(dead_code)]
+    Score(i32), // Used in generated code examples
+    #[allow(dead_code)]
+    LevelUp,    // Used in generated code examples
+    #[allow(dead_code)]
+    GameOver,   // Used in state machine transitions
 }
 
 impl StateMachineEvent for GameEvent {}
@@ -104,7 +107,7 @@ impl StateMachine for GameState {
 
 // Code generation simulation for v1.0.0
 struct CodeGenerator {
-    machine: Machine<GameContext, GameEvent, GameState>,
+    _machine: Machine<GameContext, GameEvent, GameState>,
     target_languages: Vec<String>,
     output_directory: String,
 }
@@ -112,7 +115,7 @@ struct CodeGenerator {
 impl CodeGenerator {
     fn new(machine: Machine<GameContext, GameEvent, GameState>) -> Self {
         Self {
-            machine,
+            _machine: machine,
             target_languages: vec!["rust".to_string(), "typescript".to_string(), "python".to_string()],
             output_directory: "generated".to_string(),
         }
@@ -135,7 +138,7 @@ impl CodeGenerator {
             let file = GeneratedFile {
                 file_path: format!("{}/{}.{}", self.output_directory, "game_state_machine", language),
                 language: language.clone(),
-                content: self.generate_for_language(language),
+                _content: self.generate_for_language(language),
             };
             files.push(file);
         }
@@ -293,7 +296,7 @@ class GameStateMachine:
 struct GeneratedFile {
     file_path: String,
     language: String,
-    content: String,
+    _content: String,
 }
 
 fn main() {

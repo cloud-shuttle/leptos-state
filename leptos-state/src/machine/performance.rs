@@ -13,6 +13,9 @@ use std::time::{Duration, Instant};
 
 use std::marker::PhantomData;
 
+/// Type alias for transition cache
+type TransitionCacheMap<C, E> = Arc<RwLock<HashMap<CacheKey<C, E>, CachedTransition<C>>>>;
+
 /// Performance configuration for state machines
 #[derive(Debug, Clone)]
 pub struct PerformanceConfig {
@@ -353,20 +356,19 @@ impl PerformanceProfiler {
         }
 
         // Check cache hit ratio
-        if let Ok(metrics) = self.metrics.read() {
-            if metrics.cache_hit_ratio < 0.5 && metrics.total_transitions > 10 {
-                bottlenecks.push(PerformanceBottleneck {
-                    bottleneck_type: BottleneckType::CacheMiss,
-                    description: format!(
-                        "Low cache hit ratio: {:.2}%",
-                        metrics.cache_hit_ratio * 100.0
-                    ),
-                    impact: 0.6,
-                    solution: "Consider increasing cache size or improving cache key strategy"
-                        .to_string(),
-                    location: "Cache system".to_string(),
-                });
-            }
+        if let Ok(metrics) = self.metrics.read()
+            && metrics.cache_hit_ratio < 0.5 && metrics.total_transitions > 10 {
+            bottlenecks.push(PerformanceBottleneck {
+                bottleneck_type: BottleneckType::CacheMiss,
+                description: format!(
+                    "Low cache hit ratio: {:.2}%",
+                    metrics.cache_hit_ratio * 100.0
+                ),
+                impact: 0.6,
+                solution: "Consider increasing cache size or improving cache key strategy"
+                    .to_string(),
+                location: "Cache system".to_string(),
+            });
         }
 
         // Add bottlenecks to the list
@@ -466,14 +468,20 @@ pub struct CacheStats {
     pub hit_ratio: f64,
 }
 
-impl CacheStats {
-    pub fn new() -> Self {
+impl Default for CacheStats {
+    fn default() -> Self {
         Self {
             hits: 0,
             misses: 0,
             total_accesses: 0,
             hit_ratio: 0.0,
         }
+    }
+}
+
+impl CacheStats {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn record_access(&mut self, hit: bool) {
@@ -488,7 +496,7 @@ impl CacheStats {
 }
 
 /// Memory usage tracker
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct MemoryTracker {
     pub total_allocated: usize,
     pub total_freed: usize,
@@ -500,14 +508,7 @@ pub struct MemoryTracker {
 
 impl MemoryTracker {
     pub fn new() -> Self {
-        Self {
-            total_allocated: 0,
-            total_freed: 0,
-            current_usage: 0,
-            peak_usage: 0,
-            allocation_count: 0,
-            deallocation_count: 0,
-        }
+        Self::default()
     }
 
     pub fn record_allocation(&mut self, size: usize) {
@@ -529,7 +530,7 @@ impl MemoryTracker {
 
 /// Transition cache for performance optimization
 pub struct TransitionCache<C: Send + Sync, E> {
-    cache: Arc<RwLock<HashMap<CacheKey<C, E>, CachedTransition<C>>>>,
+    cache: TransitionCacheMap<C, E>,
     config: PerformanceConfig,
     profiler: Arc<PerformanceProfiler>,
 }
@@ -553,13 +554,11 @@ where
             return None;
         }
 
-        if let Ok(cache) = self.cache.read() {
-            if let Some(cached) = cache.get(key) {
-                if cached.is_valid() {
-                    self.profiler.record_cache_access(true);
-                    return Some(cached.result.clone());
-                }
-            }
+        if let Ok(cache) = self.cache.read()
+            && let Some(cached) = cache.get(key)
+            && cached.is_valid() {
+            self.profiler.record_cache_access(true);
+            return Some(cached.result.clone());
         }
 
         self.profiler.record_cache_access(false);
@@ -686,19 +685,17 @@ where
     }
 
     pub fn get(&mut self) -> &T {
-        if self.value.is_none() {
-            if let Some(evaluator) = self.evaluator.take() {
-                self.value = Some(evaluator());
-            }
+        if self.value.is_none()
+            && let Some(evaluator) = self.evaluator.take() {
+            self.value = Some(evaluator());
         }
         self.value.as_ref().unwrap()
     }
 
     pub fn get_mut(&mut self) -> &mut T {
-        if self.value.is_none() {
-            if let Some(evaluator) = self.evaluator.take() {
-                self.value = Some(evaluator());
-            }
+        if self.value.is_none()
+            && let Some(evaluator) = self.evaluator.take() {
+            self.value = Some(evaluator());
         }
         self.value.as_mut().unwrap()
     }
@@ -709,7 +706,7 @@ where
 }
 
 /// Performance-optimized state machine
-pub struct OptimizedMachine<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub struct OptimizedMachine<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     machine: Machine<C, E>,
     cache: Arc<TransitionCache<C, E>>,
     profiler: Arc<PerformanceProfiler>,
@@ -797,7 +794,7 @@ where
 }
 
 /// Extension trait for adding performance optimization to machines
-pub trait MachinePerformanceExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub trait MachinePerformanceExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     /// Add performance optimization capabilities to the machine
     fn with_performance_optimization(self, config: PerformanceConfig) -> OptimizedMachine<C, E>;
 }
@@ -813,7 +810,7 @@ where
 }
 
 /// Performance builder for fluent configuration
-pub struct PerformanceBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub struct PerformanceBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     machine: Machine<C, E>,
     config: PerformanceConfig,
 }

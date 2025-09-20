@@ -1,0 +1,110 @@
+# Competitive Analysis Configuration
+# Following ADR-006: Competitive Analysis Strategy
+
+[competitors]
+# Main competitors in the state management space
+main = [
+    "zustand",
+    "redux",
+    "mobx",
+    "jotai",
+    "valtio",
+    "recoil",
+    "xstate",
+    "robot3",
+    "stately",
+]
+
+# Emerging competitors
+emerging = [
+    "nanostores",
+    "signia",
+    "solid-store",
+    "preact-signals",
+]
+
+[features]
+# Core features to compare
+core = [
+    "state-management",
+    "reactive-updates",
+    "devtools",
+    "persistence",
+    "middleware",
+    "time-travel",
+    "hot-reload",
+    "ssr-support",
+    "typescript-support",
+    "performance",
+]
+
+# Advanced features
+advanced = [
+    "state-machines",
+    "code-generation",
+    "visualization",
+    "testing-utilities",
+    "migration-tools",
+    "bundle-optimization",
+    "async-handling",
+    "error-recovery",
+    "analytics",
+    "monitoring",
+]
+
+[benchmarks]
+# Performance benchmarks to run
+performance = [
+    "initialization-time",
+    "update-frequency",
+    "memory-usage",
+    "bundle-size",
+    "render-time",
+    "re-render-count",
+]
+
+# Feature benchmarks
+features = [
+    "devtools-integration",
+    "persistence-speed",
+    "middleware-overhead",
+    "time-travel-performance",
+    "ssr-rendering",
+]
+
+[analysis]
+# Analysis settings
+update-frequency = "weekly"
+alert-thresholds = {
+    performance-degradation = 10.0,  # 10% performance drop
+    feature-gap = 3,                 # 3 missing features
+    bundle-size-increase = 20.0,     # 20% bundle size increase
+}
+
+# Reporting settings
+reports = {
+    format = ["html", "json", "markdown"]
+    output-dir = "reports/competitive-analysis"
+    include-charts = true
+    include-recommendations = true
+}
+
+[tracking]
+# What to track
+metrics = [
+    "github-stars",
+    "npm-downloads",
+    "release-frequency",
+    "issue-resolution-time",
+    "community-activity",
+    "documentation-quality",
+]
+
+# Data sources
+sources = [
+    "github-api",
+    "npm-registry",
+    "web-scraping",
+    "manual-updates",
+]
+

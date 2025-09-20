@@ -6,10 +6,10 @@ pub mod async_store;
 #[cfg(feature = "devtools")]
 pub mod devtools;
 pub mod middleware;
-pub mod store;
+pub mod core;
 
 pub use async_store::*;
 #[cfg(feature = "devtools")]
 pub use devtools::*;
 pub use middleware::*;
-pub use store::*;
+pub use core::*;

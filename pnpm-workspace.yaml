@@ -1,0 +1,11 @@
+# PNPM Workspace Configuration
+# Following ADR-005: PNPM Package Management Strategy
+
+packages:
+  - 'packages/*'
+  - 'apps/*'
+  - 'tools/*'
+  - 'tests/*'
+  - 'demos/*'
+  - 'examples/*'
+

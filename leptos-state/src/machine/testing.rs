@@ -161,7 +161,7 @@ pub struct TestStep {
 }
 
 /// State machine test runner
-pub struct MachineTestRunner<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub struct MachineTestRunner<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     machine: Machine<C, E>,
     config: TestConfig,
     test_data_generator: Box<dyn TestDataGenerator<C, E>>,
@@ -219,7 +219,7 @@ where
 
                 // Record coverage before transition
                 if let Some(ref mut tracker) = self.coverage_tracker {
-                    tracker.record_state(&current_state.value());
+                    tracker.record_state(current_state.value());
                 }
 
                 // Perform transition - need to convert String back to E
@@ -261,25 +261,23 @@ where
             }
 
             // Verify final state if specified
-            if let Some(expected_final_state) = test_case.expected_final_state {
-                if *current_state.value() != expected_final_state {
-                    return Err(format!(
-                        "Expected final state {:?}, got {:?}",
-                        expected_final_state,
-                        current_state.value()
-                    ));
-                }
+            if let Some(expected_final_state) = test_case.expected_final_state
+                && *current_state.value() != expected_final_state {
+                return Err(format!(
+                    "Expected final state {:?}, got {:?}",
+                    expected_final_state,
+                    current_state.value()
+                ));
             }
 
             // Verify final context if specified
-            if let Some(expected_final_context) = test_case.expected_final_context {
-                if current_state.context() != &expected_final_context {
-                    return Err(format!(
-                        "Expected final context {:?}, got {:?}",
-                        expected_final_context,
-                        current_state.context()
-                    ));
-                }
+            if let Some(expected_final_context) = test_case.expected_final_context
+                && current_state.context() != &expected_final_context {
+                return Err(format!(
+                    "Expected final context {:?}, got {:?}",
+                    expected_final_context,
+                    current_state.context()
+                ));
             }
 
             Ok(())
@@ -290,18 +288,10 @@ where
         let error = result.err();
 
         // Calculate coverage
-        let coverage = if let Some(ref tracker) = self.coverage_tracker {
-            Some(tracker.calculate_coverage(&self.machine))
-        } else {
-            None
-        };
+        let coverage = self.coverage_tracker.as_ref().map(|tracker| tracker.calculate_coverage(&self.machine));
 
         // Calculate performance metrics
-        let performance = if let Some(ref tracker) = self.performance_tracker {
-            Some(tracker.calculate_metrics())
-        } else {
-            None
-        };
+        let performance = self.performance_tracker.as_ref().map(|tracker| tracker.calculate_metrics());
 
         TestResult {
             passed,
@@ -697,6 +687,12 @@ pub trait TestDataGenerator<C, E> {
 /// Default test data generator
 pub struct DefaultTestDataGenerator;
 
+impl Default for DefaultTestDataGenerator {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl DefaultTestDataGenerator {
     pub fn new() -> Self {
         Self
@@ -711,6 +707,7 @@ impl<C, E> TestDataGenerator<C, E> for DefaultTestDataGenerator {
 }
 
 /// Coverage tracker for tests
+#[derive(Default)]
 pub struct CoverageTracker {
     states_visited: HashSet<String>,
     transitions_visited: HashSet<(String, String)>,
@@ -719,15 +716,10 @@ pub struct CoverageTracker {
     actions_executed: HashSet<String>,
 }
 
+
 impl CoverageTracker {
     pub fn new() -> Self {
-        Self {
-            states_visited: HashSet::new(),
-            transitions_visited: HashSet::new(),
-            events_used: HashSet::new(),
-            guards_evaluated: HashSet::new(),
-            actions_executed: HashSet::new(),
-        }
+        Self::default()
     }
 
     pub fn reset(&mut self) {
@@ -759,7 +751,7 @@ impl CoverageTracker {
         self.actions_executed.insert(action.to_string());
     }
 
-    pub fn calculate_coverage<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default>(
+    pub fn calculate_coverage<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event>(
         &self,
         machine: &Machine<C, E>,
     ) -> TestCoverage {
@@ -800,14 +792,20 @@ pub struct PerformanceTracker {
     allocations: usize,
 }
 
-impl PerformanceTracker {
-    pub fn new() -> Self {
+impl Default for PerformanceTracker {
+    fn default() -> Self {
         Self {
             transition_times: Vec::new(),
             start_time: Instant::now(),
             memory_usage: 0,
             allocations: 0,
         }
+    }
+}
+
+impl PerformanceTracker {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn reset(&mut self) {
@@ -834,8 +832,8 @@ impl PerformanceTracker {
 
         let total_time: Duration = self.transition_times.iter().sum();
         let avg_transition_time = total_time / self.transition_times.len() as u32;
-        let max_transition_time = self.transition_times.iter().max().unwrap().clone();
-        let min_transition_time = self.transition_times.iter().min().unwrap().clone();
+        let max_transition_time = *self.transition_times.iter().max().unwrap();
+        let min_transition_time = *self.transition_times.iter().min().unwrap();
 
         PerformanceMetrics {
             avg_transition_time,
@@ -848,7 +846,7 @@ impl PerformanceTracker {
 }
 
 /// Extension trait for adding testing to machines
-pub trait MachineTestingExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub trait MachineTestingExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     /// Add testing capabilities to the machine
     fn with_testing(self, config: TestConfig) -> MachineTestRunner<C, E>;
 }
@@ -871,7 +869,7 @@ where
 }
 
 /// Test builder for fluent test creation
-pub struct TestBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub struct TestBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     machine: Machine<C, E>,
     config: TestConfig,
 }

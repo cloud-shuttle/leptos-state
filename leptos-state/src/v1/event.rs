@@ -245,18 +245,27 @@ where
     max_age: Option<std::time::Duration>,
 }
 
-impl<E> EventQueue<E>
+impl<E> Default for EventQueue<E>
 where
     E: StateMachineEvent,
 {
-    /// Creates a new event queue
-    pub fn new() -> Self {
+    fn default() -> Self {
         Self {
             events: Vec::new(),
             max_size: 1000,
             drop_expired: true,
             max_age: Some(std::time::Duration::from_secs(60)),
         }
+    }
+}
+
+impl<E> EventQueue<E>
+where
+    E: StateMachineEvent,
+{
+    /// Creates a new event queue
+    pub fn new() -> Self {
+        Self::default()
     }
     
     /// Creates a queue with custom configuration
@@ -277,12 +286,10 @@ where
         }
         
         // Check if event is expired
-        if self.drop_expired {
-            if let Some(max_age) = self.max_age {
-                if event.is_expired(max_age) {
-                    return Err(EventQueueError::EventExpired);
-                }
-            }
+        if self.drop_expired
+            && let Some(max_age) = self.max_age
+            && event.is_expired(max_age) {
+            return Err(EventQueueError::EventExpired);
         }
         
         self.events.push(event);
@@ -351,6 +358,20 @@ where
     global_handlers: Vec<Box<dyn EventHandlerFn<C, E>>>,
 }
 
+impl<C, E> Default for EventHandler<C, E>
+where
+    C: StateMachineContext,
+    E: StateMachineEvent,
+{
+    fn default() -> Self {
+        Self {
+            queue: EventQueue::new(),
+            handlers: HashMap::new(),
+            global_handlers: Vec::new(),
+        }
+    }
+}
+
 impl<C, E> EventHandler<C, E>
 where
     C: StateMachineContext,
@@ -358,11 +379,7 @@ where
 {
     /// Creates a new event handler
     pub fn new() -> Self {
-        Self {
-            queue: EventQueue::new(),
-            handlers: HashMap::new(),
-            global_handlers: Vec::new(),
-        }
+        Self::default()
     }
     
     /// Registers a handler for a specific event type

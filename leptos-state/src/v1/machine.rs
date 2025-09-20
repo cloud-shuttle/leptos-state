@@ -4,7 +4,7 @@
 
 use super::traits::{StateMachineContext, StateMachineEvent, StateMachineState};
 use super::error::StateMachineError;
-use super::state::{StateNode, StateValue, Transition};
+use super::state::{StateNode, StateValue};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -234,6 +234,7 @@ where
 mod tests {
     use super::*;
     use super::super::traits::{Action, Guard};
+    use super::super::state::Transition;
 
 
     // Test types

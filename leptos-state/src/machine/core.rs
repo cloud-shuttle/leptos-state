@@ -52,13 +52,13 @@ pub trait MachineState {
 }
 
 /// Builder for creating state machines
-pub struct MachineBuilder<C: Send + Sync, E> {
+pub struct MachineBuilder<C: Send + Sync, E: crate::machine::events::Event> {
     states: HashMap<String, StateNode<C, E>>,
     initial: String,
     _phantom: PhantomData<(C, E)>,
 }
 
-impl<C: Clone + Send + Sync + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default> MachineBuilder<C, E> {
+impl<C: Clone + Send + Sync + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default + crate::machine::events::Event> MachineBuilder<C, E> {
     pub fn new() -> Self {
         Self {
             states: HashMap::new(),
@@ -304,7 +304,7 @@ impl<C: Clone + Send + Sync + Default + Debug + 'static, E: Clone + PartialEq + 
     }
 }
 
-impl<C: Clone + 'static + std::fmt::Debug + Send + Sync + Default, E: Clone + 'static + std::fmt::Debug + PartialEq + Send + Sync + Default>
+impl<C: Clone + 'static + std::fmt::Debug + Send + Sync + Default, E: Clone + 'static + std::fmt::Debug + PartialEq + Send + Sync + Default + crate::machine::events::Event>
     Default for MachineBuilder<C, E>
 {
     fn default() -> Self {
@@ -313,7 +313,7 @@ impl<C: Clone + 'static + std::fmt::Debug + Send + Sync + Default, E: Clone + 's
 }
 
 /// State builder for fluent API
-pub struct StateBuilder<C: Send + Sync + Clone + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default> {
+pub struct StateBuilder<C: Send + Sync + Clone + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default + crate::machine::events::Event> {
     machine_builder: MachineBuilder<C, E>,
     current_state: String,
     transitions: Vec<Transition<C, E>>,
@@ -323,7 +323,7 @@ pub struct StateBuilder<C: Send + Sync + Clone + Default + Debug + 'static, E: C
     initial_child: Option<String>,
 }
 
-impl<C: Clone + Send + Sync + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default> StateBuilder<C, E> {
+impl<C: Clone + Send + Sync + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default + crate::machine::events::Event> StateBuilder<C, E> {
     pub fn new(machine_builder: MachineBuilder<C, E>, state_id: String) -> Self {
         Self {
             machine_builder,
@@ -476,7 +476,7 @@ impl<C: Clone + Send + Sync + Default + Debug + 'static, E: Clone + PartialEq + 
 }
 
 /// Builder for child states in hierarchical machines
-pub struct ChildStateBuilder<C: Send + Sync + Clone + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default> {
+pub struct ChildStateBuilder<C: Send + Sync + Clone + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default + crate::machine::events::Event> {
     parent_builder: StateBuilder<C, E>,
     child_id: String,
     transitions: Vec<Transition<C, E>>,
@@ -484,7 +484,7 @@ pub struct ChildStateBuilder<C: Send + Sync + Clone + Default + Debug + 'static,
     exit_actions: Vec<Box<dyn Action<C, E>>>,
 }
 
-impl<C: Clone + Send + Sync + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default> ChildStateBuilder<C, E> {
+impl<C: Clone + Send + Sync + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default + crate::machine::events::Event> ChildStateBuilder<C, E> {
     pub fn new(parent_builder: StateBuilder<C, E>, child_id: String) -> Self {
         Self {
             parent_builder,
@@ -607,7 +607,7 @@ impl<C: Clone + Send + Sync + Default + Debug + 'static, E: Clone + PartialEq + 
 }
 
 /// Transition builder for child states
-pub struct ChildTransitionBuilder<C: Send + Sync + Clone + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default> {
+pub struct ChildTransitionBuilder<C: Send + Sync + Clone + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default + crate::machine::events::Event> {
     child_builder: ChildStateBuilder<C, E>,
     event: E,
     target: String,
@@ -615,7 +615,7 @@ pub struct ChildTransitionBuilder<C: Send + Sync + Clone + Default + Debug + 'st
     actions: Vec<Box<dyn Action<C, E>>>,
 }
 
-impl<C: Clone + Send + Sync + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default> ChildTransitionBuilder<C, E> {
+impl<C: Clone + Send + Sync + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default + crate::machine::events::Event> ChildTransitionBuilder<C, E> {
     pub fn new(child_builder: ChildStateBuilder<C, E>, event: E, target: String) -> Self {
         Self {
             child_builder,
@@ -711,7 +711,7 @@ impl<C: Clone + Send + Sync + Default + Debug + 'static, E: Clone + PartialEq + 
 }
 
 /// Transition builder for fluent API
-pub struct TransitionBuilder<C: Send + Sync + Clone + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default> {
+pub struct TransitionBuilder<C: Send + Sync + Clone + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default + crate::machine::events::Event> {
     state_builder: StateBuilder<C, E>,
     event: E,
     target: String,
@@ -719,7 +719,7 @@ pub struct TransitionBuilder<C: Send + Sync + Clone + Default + Debug + 'static,
     actions: Vec<Box<dyn Action<C, E>>>,
 }
 
-impl<C: Clone + Send + Sync + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default> TransitionBuilder<C, E> {
+impl<C: Clone + Send + Sync + Default + Debug + 'static, E: Clone + PartialEq + Debug + 'static + Send + Sync + Default + crate::machine::events::Event> TransitionBuilder<C, E> {
     pub fn new(state_builder: StateBuilder<C, E>, event: E, target: String) -> Self {
         Self {
             state_builder,
@@ -878,7 +878,7 @@ pub struct Transition<C, E> {
 
 /// Complete machine implementation
 #[derive(Clone)]
-pub struct Machine<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub struct Machine<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + crate::machine::events::Event> {
     states: HashMap<String, StateNode<C, E>>,
     initial: String,
 }
@@ -912,7 +912,7 @@ impl<C: Clone, E: Clone> Clone for StateNode<C, E> {
     }
 }
 
-impl<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> Machine<C, E> {
+impl<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + crate::machine::events::Event> Machine<C, E> {
     /// Get all state IDs in the machine
     pub fn get_states(&self) -> Vec<String> {
         self.states.keys().cloned().collect()
@@ -1075,15 +1075,14 @@ impl<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Se
     }
 
     fn resolve_target_state(&self, target: &str) -> StateValue {
-        if let Some(state_node) = self.states.get(target) {
-            if !state_node.child_states.is_empty() {
-                // This is a compound state, resolve initial child
-                if let Some(initial_child) = &state_node.initial_child {
-                    return StateValue::Compound {
-                        parent: target.to_string(),
-                        child: Box::new(self.resolve_target_state(initial_child)),
-                    };
-                }
+        if let Some(state_node) = self.states.get(target)
+            && !state_node.child_states.is_empty() {
+            // This is a compound state, resolve initial child
+            if let Some(initial_child) = &state_node.initial_child {
+                return StateValue::Compound {
+                    parent: target.to_string(),
+                    child: Box::new(self.resolve_target_state(initial_child)),
+                };
             }
         }
 
@@ -1264,6 +1263,16 @@ mod tests {
         Start,
         Stop,
         Increment,
+    }
+
+    impl crate::machine::events::Event for TestEvent {
+        fn event_type(&self) -> &str {
+            match self {
+                TestEvent::Start => "Start",
+                TestEvent::Stop => "Stop",
+                TestEvent::Increment => "Increment",
+            }
+        }
     }
 
     #[test]

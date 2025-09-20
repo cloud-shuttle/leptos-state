@@ -66,21 +66,12 @@ pub enum AdapterType {
 }
 
 /// Event routing configuration
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct EventRoutingConfig {
     /// Routing rules
     pub rules: Vec<RoutingRule>,
     /// Default route
     pub default_route: Option<String>,
-}
-
-impl Default for EventRoutingConfig {
-    fn default() -> Self {
-        Self {
-            rules: Vec::new(),
-            default_route: None,
-        }
-    }
 }
 
 /// Routing rule for events
@@ -175,7 +166,7 @@ pub enum EventPriority {
 }
 
 /// Integration manager for state machines
-pub struct IntegrationManager<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub struct IntegrationManager<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     config: IntegrationConfig,
     adapters: Arc<RwLock<HashMap<String, Box<dyn IntegrationAdapterTrait + Send + Sync>>>>,
     _event_queue: Arc<Mutex<VecDeque<IntegrationEvent>>>,
@@ -274,10 +265,9 @@ where
         }
 
         // Check source if specified
-        if let Some(source_pattern) = &pattern.source {
-            if !event.source.contains(source_pattern) {
-                return false;
-            }
+        if let Some(source_pattern) = &pattern.source
+            && !event.source.contains(source_pattern) {
+            return false;
         }
 
         true
@@ -285,10 +275,9 @@ where
 
     /// Send event to adapter
     fn send_event(&self, event: &IntegrationEvent, route: &str) -> StateResult<()> {
-        if let Ok(adapters) = self.adapters.read() {
-            if let Some(adapter) = adapters.get(route) {
-                return adapter.send_event(event);
-            }
+        if let Ok(adapters) = self.adapters.read()
+            && let Some(adapter) = adapters.get(route) {
+            return adapter.send_event(event);
         }
 
         Err(StateError::custom(format!(
@@ -471,8 +460,8 @@ pub struct IntegrationMetrics {
     pub retries: usize,
 }
 
-impl IntegrationMetrics {
-    pub fn new() -> Self {
+impl Default for IntegrationMetrics {
+    fn default() -> Self {
         Self {
             incoming_events: 0,
             outgoing_events: 0,
@@ -483,8 +472,14 @@ impl IntegrationMetrics {
     }
 }
 
+impl IntegrationMetrics {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 /// Extension trait for adding integration to machines
-pub trait MachineIntegrationExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub trait MachineIntegrationExt<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     /// Add integration capabilities to the machine
     fn with_integration(self, config: IntegrationConfig) -> IntegrationManager<C, E>;
 }
@@ -500,7 +495,7 @@ where
 }
 
 /// Integration builder for fluent configuration
-pub struct IntegrationBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default> {
+pub struct IntegrationBuilder<C: Send + Sync + Clone + Default + Debug, E: Clone + PartialEq + Debug + Send + Sync + Default + Event> {
     machine: Machine<C, E>,
     config: IntegrationConfig,
 }

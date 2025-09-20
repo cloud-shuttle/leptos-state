@@ -6,7 +6,6 @@
 use leptos_state::{
     machine::{MachineBuilder, MachineState},
     machine::states::StateValue,
-    utils::types::StateResult,
 };
 
 /// Test context for feature combination tests
@@ -32,6 +31,19 @@ pub enum FeatureTestEvent {
 impl Default for FeatureTestEvent {
     fn default() -> Self {
         FeatureTestEvent::Increment
+    }
+}
+
+impl leptos_state::machine::events::Event for FeatureTestEvent {
+    fn event_type(&self) -> &str {
+        match self {
+            FeatureTestEvent::Increment => "Increment",
+            FeatureTestEvent::Decrement => "Decrement",
+            FeatureTestEvent::SetName(_) => "SetName",
+            FeatureTestEvent::Toggle => "Toggle",
+            FeatureTestEvent::Reset => "Reset",
+            FeatureTestEvent::SetMetadata(_, _) => "SetMetadata",
+        }
     }
 }
 

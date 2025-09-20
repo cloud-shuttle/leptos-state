@@ -4,7 +4,6 @@
 //! and will guide the implementation.
 
 use leptos_state::machine::*;
-use leptos_state::bundle_optimization::*;
 
 #[derive(Clone, Debug, PartialEq, Default)]
 struct TestContext {
@@ -18,6 +17,16 @@ enum TestEvent {
     Increment,
     Decrement,
     SetName(String),
+}
+
+impl leptos_state::machine::events::Event for TestEvent {
+    fn event_type(&self) -> &str {
+        match self {
+            TestEvent::Increment => "Increment",
+            TestEvent::Decrement => "Decrement",
+            TestEvent::SetName(_) => "SetName",
+        }
+    }
 }
 
 #[cfg(test)]

@@ -7,7 +7,8 @@
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
-use crate::machine::{Machine, MachineBuilder, Event};
+use crate::machine::Machine;
+use crate::machine::events::Event;
 
 /// Transition cache for optimizing repeated state transitions
 pub struct OptimizationCache<C, E> {
@@ -24,7 +25,8 @@ struct TransitionKey {
 }
 
 #[derive(Debug, Clone)]
-struct TransitionResult {
+#[allow(dead_code)]
+pub struct TransitionResult {
     success: bool,
     transition_time: f64,
 }
@@ -290,7 +292,7 @@ pub struct PerformanceStats {
 pub trait MachineOptimization<C, E>
 where
     C: Clone + Hash + Send + Sync + Default + std::fmt::Debug + 'static,
-    E: Clone + Hash + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static,
+    E: Clone + Hash + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static + Event,
 {
     /// Add transition caching to the machine
     fn with_transition_cache(self, max_size: usize) -> OptimizedMachine<C, E>;
@@ -308,7 +310,7 @@ where
 impl<C, E> MachineOptimization<C, E> for Machine<C, E>
 where
     C: Clone + Hash + Send + Sync + Default + std::fmt::Debug + 'static,
-    E: Clone + Hash + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static,
+    E: Clone + Hash + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static + Event,
 {
     fn with_transition_cache(self, max_size: usize) -> OptimizedMachine<C, E> {
         OptimizedMachine {
@@ -352,10 +354,11 @@ where
 }
 
 /// An optimized machine with various performance enhancements
+#[allow(dead_code)]
 pub struct OptimizedMachine<C, E> 
 where
     C: Clone + Hash + Send + Sync + Default + std::fmt::Debug + 'static,
-    E: Clone + Hash + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static,
+    E: Clone + Hash + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static + Event,
 {
     machine: Machine<C, E>,
     cache: Option<OptimizationCache<C, E>>,
@@ -367,7 +370,7 @@ where
 impl<C, E> OptimizedMachine<C, E>
 where
     C: Clone + Hash + Send + Sync + Default + std::fmt::Debug + 'static,
-    E: Clone + Hash + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static,
+    E: Clone + Hash + Send + Sync + Default + std::fmt::Debug + PartialEq + 'static + Event,
 {
     /// Get performance statistics
     pub fn get_performance_stats(&self) -> Option<PerformanceStats> {

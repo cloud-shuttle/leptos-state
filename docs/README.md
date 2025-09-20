@@ -25,6 +25,7 @@ Welcome to the comprehensive documentation for `leptos-state` - the advanced sta
 - **[🔧 DevTools](user-guide/DEVTOOLS.md)** - Browser DevTools integration
 - **[🔄 Migration](migration/V0_2_TO_V1_0_MIGRATION.md)** - Upgrading from v0.2.x
 - **[🏗️ Architecture](development/ARCHITECTURE.md)** - System design and principles
+- **[📋 Architecture Decisions](adr/README.md)** - ADRs documenting key decisions
 
 ## 📖 **Documentation Structure**
 
@@ -57,6 +58,14 @@ docs/
 │   ├── TESTING.md                      # Testing guide for developers
 │   ├── CONTRIBUTING.md                 # Contribution guidelines
 │   └── RELEASES.md                     # Release process
+├── adr/                               # Architecture Decision Records
+│   ├── README.md                       # ADR overview and template
+│   ├── 001-package-manager-pnpm.md     # Package manager decision
+│   ├── 002-leptos-version-support.md   # Leptos version strategy
+│   ├── 003-rust-latest-practices.md    # Rust coding standards
+│   ├── 004-testing-strategy.md         # Comprehensive testing approach
+│   ├── 005-playwright-testing.md       # Playwright testing strategy
+│   └── 006-competitive-analysis.md     # Competitive analysis approach
 └── examples/                           # Code examples
     ├── README.md                       # Examples overview
     ├── counter/                        # Basic counter example
@@ -81,9 +90,10 @@ docs/
 
 ### **🏗️ For Contributors**
 1. **[Architecture](development/ARCHITECTURE.md)** - System design principles
-2. **[Contributing Guide](../CONTRIBUTING.md)** - How to contribute
-3. **[Testing Guide](development/TESTING.md)** - Development testing
-4. **[Release Process](development/RELEASES.md)** - Release workflow
+2. **[Architecture Decisions](adr/README.md)** - Key architectural decisions
+3. **[Contributing Guide](../CONTRIBUTING.md)** - How to contribute
+4. **[Testing Guide](development/TESTING.md)** - Development testing
+5. **[Release Process](development/RELEASES.md)** - Release workflow
 
 ### **🔄 For Migrators**
 1. **[Migration Guide](migration/V0_2_TO_V1_0_MIGRATION.md)** - v0.2.x to v1.0.0
