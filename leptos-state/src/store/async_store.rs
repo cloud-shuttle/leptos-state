@@ -178,25 +178,52 @@ where
 
 /// Hook for infinite loading stores
 pub fn use_infinite_store<I: InfiniteStore>(
-    _initial_input: I::PageInput,
+    initial_input: I::PageInput,
 ) -> (ReadSignal<I::State>, WriteSignal<I::State>, Box<dyn Fn()>)
 where
     I::Page: serde::Serialize + for<'de> serde::Deserialize<'de>,
 {
     let (state, set_state) = signal(I::loading_state());
     let (loading_more, set_loading_more) = signal(false);
+    let (input_signal, set_input_signal) = signal(initial_input);
 
-    // For now, implement a simplified version without create_resource
-    // In a full implementation, you would use create_resource for async loading
-    let load_more = move || {
-        if !loading_more.get() {
-            set_loading_more.set(true);
-            // Simplified implementation - in a real implementation,
-            // you would use create_resource to handle async loading
-            if let Some(_next_input) = I::next_page_input(&state.get()) {
-                // This would trigger the resource to refetch
-                // For now, we'll just update the loading state
+    // Create resource for async loading using Leptos 0.8.9 API
+    let resource = create_resource(
+        move || input_signal.get(),
+        move |input| async move {
+            if let Some(next_input) = I::next_page_input(&state.get()) {
+                set_input_signal.set(next_input);
+                I::load_page(input).await
+            } else {
+                Ok(I::Page::default())
+            }
+        }
+    );
+
+    // Effect to handle resource state changes
+    create_effect(move |_| {
+        match resource.read() {
+            Some(Ok(page)) => {
                 set_loading_more.set(false);
+                set_state.update(move |current_state| {
+                    I::append_page(current_state, page.clone());
+                });
+            }
+            Some(Err(_error)) => {
+                set_loading_more.set(false);
+                // Handle error state
+            }
+            None => {
+                // Still loading
+            }
+        }
+    });
+
+    let load_more = move || {
+        if !loading_more.get() && I::has_more_pages(&state.get()) {
+            set_loading_more.set(true);
+            if let Some(next_input) = I::next_page_input(&state.get()) {
+                set_input_signal.set(next_input);
             }
         }
     };
