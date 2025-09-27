@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["async_store_provider","use_async_store","use_async_store_actions","use_infinite_store"],"struct":["AsyncStoreActions","CachedAsyncStore","ResourceStore"],"trait":["AsyncStore","InfiniteStore"]};

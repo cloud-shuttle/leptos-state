@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["use_computed","use_store","use_store_actions","use_store_batch","use_store_history","use_store_slice","use_store_with_actions"],"struct":["StoreActions","StoreBatch","StoreHistory"]};

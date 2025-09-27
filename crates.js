@@ -1,0 +1,2 @@
+window.ALL_CRATES = ["analytics_dashboard","codegen_example","compatibility_example","counter_example","history_example","leptos_state","todo_app","traffic_light_example","video_player"];
+//{"start":21,"fragment_lengths":[21,18,24,18,18,15,11,24,15]}

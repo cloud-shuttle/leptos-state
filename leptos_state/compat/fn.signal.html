@@ -1,0 +1,36 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Creates an arena-allocated signal, the basic reactive primitive."><title>signal in leptos_state::compat - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="leptos_state" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../leptos_state/index.html">leptos_<wbr>state</a><span class="version">0.2.2</span></h2></div><div class="sidebar-elems"><div id="rustdoc-modnav"><h2><a href="index.html">In leptos_<wbr>state::<wbr>compat</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">leptos_state</a>::<wbr><a href="index.html">compat</a></div><h1>Function <span class="fn">signal</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"></span></div><pre class="rust item-decl"><code>pub fn signal&lt;T&gt;(value: T) -&gt; (<a class="struct" href="struct.ReadSignal.html" title="struct leptos_state::compat::ReadSignal">ReadSignal</a>&lt;T&gt;, <a class="struct" href="struct.WriteSignal.html" title="struct leptos_state::compat::WriteSignal">WriteSignal</a>&lt;T&gt;)<div class="where">where
+    T: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a> + 'static,</div></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Creates an arena-allocated signal, the basic reactive primitive.</p>
+<p>A signal is a piece of data that may change over time, and notifies other
+code when it has changed. This is the atomic unit of reactivity, which begins all other
+processes of updating.</p>
+<p>Takes the initial value as an argument, and returns a tuple containing a
+<a href="struct.ReadSignal.html" title="struct leptos_state::compat::ReadSignal"><code>ReadSignal</code></a> and a <a href="struct.WriteSignal.html" title="struct leptos_state::compat::WriteSignal"><code>WriteSignal</code></a>.</p>
+<p>This returns an arena-allocated signal, which is <code>Copy</code> and is disposed when its reactive
+<a href="crate::owner::Owner"><code>Owner</code></a> cleans up. For a reference-counted signal that lives
+as long as a reference to it is alive, see [<code>arc_signal</code>].</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>(count, set_count) = signal(<span class="number">0</span>);
+
+<span class="comment">// ✅ calling the getter clones and returns the value
+//    this can be `count()` on nightly
+</span><span class="macro">assert_eq!</span>(count.get(), <span class="number">0</span>);
+
+<span class="comment">// ✅ calling the setter sets the value
+//    this can be `set_count(1)` on nightly
+</span>set_count.set(<span class="number">1</span>);
+<span class="macro">assert_eq!</span>(count.get(), <span class="number">1</span>);
+
+<span class="comment">// ❌ you could call the getter within the setter
+// set_count.set(count.get() + 1);
+
+// ✅ however it's more efficient to use .update() and mutate the value in place
+</span>set_count.update(|count: <span class="kw-2">&amp;mut </span>i32| <span class="kw-2">*</span>count += <span class="number">1</span>);
+<span class="macro">assert_eq!</span>(count.get(), <span class="number">2</span>);
+
+<span class="comment">// ✅ you can create "derived signals" with a Fn() -&gt; T interface
+</span><span class="kw">let </span>double_count = <span class="kw">move </span>|| count.get() * <span class="number">2</span>; <span class="comment">// signals are `Copy` so you can `move` them anywhere
+</span>set_count.set(<span class="number">0</span>);
+<span class="macro">assert_eq!</span>(double_count(), <span class="number">0</span>);
+set_count.set(<span class="number">1</span>);
+<span class="macro">assert_eq!</span>(double_count(), <span class="number">2</span>);</code></pre></div>
+</div></details></section></div></main></body></html>

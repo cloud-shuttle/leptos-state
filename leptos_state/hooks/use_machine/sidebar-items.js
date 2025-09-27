@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["use_composed_machine","use_machine","use_machine_effect","use_machine_history","use_machine_subscription","use_machine_with_context","use_machine_with_instance","use_parallel_machines"],"struct":["ComposedMachineHandle","MachineHandle","MachineHistory","ParallelMachineHandle"]};

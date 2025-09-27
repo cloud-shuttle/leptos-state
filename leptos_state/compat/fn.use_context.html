@@ -1,0 +1,29 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Extracts a context value of type `T` from the reactive system."><title>use_context in leptos_state::compat - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="leptos_state" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../leptos_state/index.html">leptos_<wbr>state</a><span class="version">0.2.2</span></h2></div><div class="sidebar-elems"><div id="rustdoc-modnav"><h2><a href="index.html">In leptos_<wbr>state::<wbr>compat</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">leptos_state</a>::<wbr><a href="index.html">compat</a></div><h1>Function <span class="fn">use_context</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"></span></div><pre class="rust item-decl"><code>pub fn use_context&lt;T&gt;() -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;T&gt;<div class="where">where
+    T: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> + 'static,</div></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Extracts a context value of type <code>T</code> from the reactive system.</p>
+<p>This traverses the reactive ownership graph, beginning from the current reactive
+[<code>Owner</code>] and iterating through its parents, if any. When the value is found, it is cloned.</p>
+<p>The context value should have been provided elsewhere using
+<a href="fn.provide_context.html" title="fn leptos_state::compat::provide_context"><code>provide_context</code></a>.</p>
+<p>This is useful for passing values down to components or functions lower in a
+hierarchy without needs to “prop drill” by passing them through each layer as
+arguments to a function or properties of a component.</p>
+<p>Context works similarly to variable scope: a context that is provided higher in
+the reactive graph can be used lower down, but a context that is provided lower
+in the tree cannot be used higher up.</p>
+<p>While the term “consume” is sometimes used, note that <a href="fn.use_context.html" title="fn leptos_state::compat::use_context"><code>use_context</code></a> clones the value, rather
+than removing it; it is still accessible to other users.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>Effect::new(<span class="kw">move </span>|<span class="kw">_</span>| {
+    provide_context(String::from(<span class="string">"foo"</span>));
+
+    Effect::new(<span class="kw">move </span>|<span class="kw">_</span>| {
+        <span class="comment">// each use_context clones the value
+        </span><span class="kw">let </span>value = use_context::&lt;String&gt;()
+            .expect(<span class="string">"could not find String in context"</span>);
+        <span class="macro">assert_eq!</span>(value, <span class="string">"foo"</span>);
+        <span class="kw">let </span>value2 = use_context::&lt;String&gt;()
+            .expect(<span class="string">"could not find String in context"</span>);
+        <span class="macro">assert_eq!</span>(value2, <span class="string">"foo"</span>);
+    });
+});</code></pre></div>
+</div></details></section></div></main></body></html>

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["create_computed","create_store","load_from_storage","provide_store","provide_store_with_persistence","save_to_storage","use_store_slice"],"struct":["CombinedSelector","FieldSelector","MemoizedSelector","PathSelector","SimpleStore","StoreContext"],"trait":["Store","StoreSlice"]};

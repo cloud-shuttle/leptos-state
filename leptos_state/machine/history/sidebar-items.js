@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["HistoryEvent","HistoryType"],"struct":["HistoryMachine","HistoryState","HistoryTracker"],"trait":["HistoryMachineBuilder"]};

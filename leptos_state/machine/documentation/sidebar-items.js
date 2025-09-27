@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["DocumentationFormat","DocumentationTemplate"],"struct":["DocumentationBuilder","DocumentationConfig","DocumentationData","DocumentationGenerator","DocumentationStyling","GeneratedDocument","TransitionInfo"],"trait":["MachineDocumentationExt"]};

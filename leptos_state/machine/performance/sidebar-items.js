@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["BottleneckType","OptimizationStrategy"],"struct":["CacheKey","CacheStats","CachedTransition","LazyEvaluator","MemoryTracker","OptimizationSuggestion","OptimizedMachine","PerformanceBottleneck","PerformanceBuilder","PerformanceConfig","PerformanceMetrics","PerformanceProfiler","TransitionCache"],"trait":["MachinePerformanceExt"]};
