@@ -3,6 +3,11 @@
 //! Provides finite state machines with hierarchical states, guards, and actions.
 
 pub mod actions;
+pub mod action_core;
+pub mod action_composite;
+pub mod action_control;
+pub mod action_builder;
+pub mod action_executor;
 pub mod builder;
 pub mod child_state_builder;
 pub mod child_transition_builder;
@@ -68,6 +73,11 @@ pub use types::{ContextValue, HistoryEntry, EventRoutingConfig, StateValidationC
 // pub use machine::*;
 // Core machine types
 pub use actions::{ActionBuilder, ActionExecution, ActionExecutor};
+pub use action_core::{Action, FunctionAction, AssignAction, LogAction, LogLevel, PureAction};
+pub use action_composite::{ConditionalAction, SequentialAction, ParallelAction, CompositeAction, CompositeLogic};
+pub use action_control::{RetryAction, RetryBackoff, TimerAction, MetricsAction, TimeoutAction, CircuitBreakerAction};
+pub use action_builder::{ActionBuilder as ActionBuilderCore, ConditionalActionBuilder, ActionExecution as ActionExecutionCore, actions};
+pub use action_executor::{EnhancedActionExecutor, ErrorHandlingStrategy, ActionExecutionStats, ExecutionResult, BatchActionExecutor, ActionScheduler, PrioritizedAction};
 pub use codegen::{CodeGenConfig, CodeGenerator, GeneratedFile, MachineCodeGenExt};
 pub use documentation::{DocumentationConfig, DocumentationGenerator, GeneratedDocument};
 pub use doc_config::{DocumentationConfig as DocConfig, DocumentationFormat, DocumentationTemplate, DocumentationStyling, ColorScheme, DocumentationOptions};
