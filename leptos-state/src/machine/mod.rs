@@ -4,25 +4,41 @@
 
 pub mod actions;
 pub mod builder;
+pub mod child_state_builder;
+pub mod child_transition_builder;
 pub mod codegen;
 pub mod core;
+pub mod core_types;
 pub mod documentation;
 pub mod events;
 pub mod guards;
 pub mod history;
 pub mod integration;
 pub mod machine;
+pub mod machine_builder;
+pub mod machine_state_impl;
 pub mod performance;
 // #[cfg(feature = "serialization")]
 // pub mod persistence;
+pub mod state_builder;
 pub mod states;
 pub mod testing;
+pub mod traits;
+pub mod transition_builder;
 pub mod types;
 // #[cfg(feature = "serialization")]
 // pub mod visualization;
 
 // Re-export core types from new modular structure
-pub use core::{Machine, StateMachine, MachineBuilder, MachineState, StateNode, StateType, MachineError, MachineResult, Guard, Action, MachineConfig, MachineHistory};
+pub use traits::{StateMachine, MachineState};
+pub use machine_builder::MachineBuilder;
+pub use state_builder::StateBuilder;
+pub use child_state_builder::ChildStateBuilder;
+pub use child_transition_builder::ChildTransitionBuilder;
+pub use transition_builder::TransitionBuilder;
+pub use core_types::{StateNode, Transition, Machine};
+pub use machine_state_impl::MachineStateImpl;
+pub use core::{MachineError, MachineResult, Guard, Action, MachineConfig, MachineHistory};
 pub use builder::{MachineBuilderImpl, create_machine_builder};
 pub use types::{ContextValue, HistoryEntry, EventRoutingConfig, StateValidationConfig, PerformanceConfig, IntegrationConfig, CompleteMachineConfig};
 
