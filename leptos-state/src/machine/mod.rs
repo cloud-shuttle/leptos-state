@@ -62,6 +62,13 @@ pub mod transition_builder;
 pub mod types;
 // #[cfg(feature = "serialization")]
 // pub mod visualization;
+pub mod visualization_config;
+pub mod visualization_events;
+pub mod visualization_core;
+pub mod visualization_data;
+pub mod visualization_debug;
+pub mod visualization_monitor;
+pub mod visualization_ext;
 
 // Re-export core types from new modular structure
 pub use traits::{StateMachine, MachineState};
@@ -122,6 +129,13 @@ pub use integration_testing::{IntegrationScenario, IntegrationTestResult, Integr
 pub use test_data_generation::{TestDataGenerator, DefaultTestDataGenerator, MachineTestDataGenerator, DataGenerationStrategy, DataGenerationConfig, TestDataGenerationManager};
 pub use coverage_tracking::{CoverageTracker, CoverageStats, CoverageReport};
 pub use performance_tracking::{PerformanceTracker, PerformanceReport};
+pub use visualization_config::{VisualizationConfig, VisualizationTheme, RenderingOptions, LayoutDirection, ExportFormat};
+pub use visualization_events::{TransitionEvent, GuardResult, ActionResult, StateChangeEvent, PerformanceEvent, ErrorEvent, StateChangeType, PerformanceEventType, ErrorEventType};
+pub use visualization_core::{MachineVisualizer, PerformanceReport as CorePerformanceReport, ErrorSummary};
+pub use visualization_data::{StateDiagram, StateInfo as DataStateInfo, TransitionInfo};
+pub use visualization_debug::{TimeTravelDebugger, TimeTravelPosition, VisualizationStats, Breakpoint, BreakpointType};
+pub use visualization_monitor::{StateMonitor, MonitoringStats, StateInfo as MonitorStateInfo, StateStatus, HealthChecker, HealthCheckResult, HealthStatus};
+pub use visualization_ext::{MachineVisualizationExt, VisualizedMachine, AutoVisualizer, AutoExportSettings};
 pub use test_builder::{TestBuilder, TestSuiteResult, MachineTestingExt};
 // #[cfg(feature = "serialization")]
 // pub use visualization::{MachineVisualizer, VisualizationConfig, VisualizedMachine};
