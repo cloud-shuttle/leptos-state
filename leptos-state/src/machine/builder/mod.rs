@@ -21,7 +21,7 @@ impl<S, E, C> MachineBuilder for MachineBuilderImpl<S, E, C>
 where
     S: Clone + Send + Sync + 'static,
     E: Clone + Send + Sync + 'static + std::hash::Hash + Eq,
-    C: Clone + PartialEq + Send + Sync + 'static,
+    C: Clone + PartialEq + Send + Sync + Default + 'static,
 {
     type State = S;
     type Event = E;
@@ -32,12 +32,13 @@ where
             states: HashMap::new(),
             initial_state: None,
             current_state: None,
+            _phantom: std::marker::PhantomData,
         }
     }
 
     fn state<Name: Into<String>>(mut self, name: Name) -> Self {
         let state_name = name.into();
-        let state = StateNode::new(state_name.clone(), StateType::Atomic);
+        let state = StateNode::new(state_name.clone(), StateType::Atomic, C::default());
         self.states.insert(state_name.clone(), state);
         self.current_state = Some(state_name);
         self
@@ -51,12 +52,13 @@ where
     fn transition<E2, S2>(mut self, from: S2, event: E2, to: S2) -> Self
     where
         S2: Into<String> + Clone,
+        E2: Into<E>,
     {
         let from_state = from.into();
         let to_state = to.into();
 
         if let Some(state) = self.states.get_mut(&from_state) {
-            state.add_transition(event, to_state);
+            state.add_transition(event.into(), to_state);
         }
         self
     }
@@ -86,7 +88,7 @@ pub fn create_machine_builder<S, E, C>() -> MachineBuilderImpl<S, E, C>
 where
     S: Clone + Send + Sync + 'static,
     E: Clone + Send + Sync + 'static + std::hash::Hash + Eq,
-    C: Clone + PartialEq + Send + Sync + 'static,
+    C: Clone + PartialEq + Send + Sync + Default + 'static,
 {
     MachineBuilderImpl::new()
 }

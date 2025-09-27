@@ -8,6 +8,7 @@ use super::*;
 use crate::machine::machine::MachineState;
 
 use std::collections::{HashMap, VecDeque};
+use std::hash::Hash;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
 
@@ -709,7 +710,7 @@ where
 }
 
 /// Performance-optimized state machine
-pub struct OptimizedMachine<C: Send + Sync + Clone + 'static, E> {
+pub struct OptimizedMachine<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     machine: Machine<C, E, C>,
     cache: Arc<TransitionCache<C, E>>,
     profiler: Arc<PerformanceProfiler>,
@@ -719,7 +720,7 @@ pub struct OptimizedMachine<C: Send + Sync + Clone + 'static, E> {
 impl<C: Send + Sync + Clone + 'static, E> OptimizedMachine<C, E>
 where
     C: Clone + std::hash::Hash + Eq + std::fmt::Debug + 'static + Send + Sync,
-    E: Clone + std::hash::Hash + Eq + Event + 'static,
+    E: Clone + std::hash::Hash + Eq + Event + 'static + Send + Sync,
 {
     pub fn new(machine: Machine<C, E, C>, config: PerformanceConfig) -> Self {
         let profiler = Arc::new(PerformanceProfiler::new(config.clone()));
@@ -797,7 +798,7 @@ where
 }
 
 /// Extension trait for adding performance optimization to machines
-pub trait MachinePerformanceExt<C: Send + Sync + Clone + 'static, E> {
+pub trait MachinePerformanceExt<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     /// Add performance optimization capabilities to the machine
     fn with_performance_optimization(self, config: PerformanceConfig) -> OptimizedMachine<C, E>;
 }
@@ -805,7 +806,7 @@ pub trait MachinePerformanceExt<C: Send + Sync + Clone + 'static, E> {
 impl<C: Send + Sync + Clone + 'static, E> MachinePerformanceExt<C, E> for Machine<C, E, C>
 where
     C: Clone + std::hash::Hash + Eq + std::fmt::Debug + 'static,
-    E: Clone + std::hash::Hash + Eq + Event + 'static,
+    E: Clone + std::hash::Hash + Eq + Event + 'static + Send + Sync,
 {
     fn with_performance_optimization(self, config: PerformanceConfig) -> OptimizedMachine<C, E> {
         OptimizedMachine::new(self, config)
@@ -813,7 +814,7 @@ where
 }
 
 /// Performance builder for fluent configuration
-pub struct PerformanceBuilder<C: Send + Sync + Clone + 'static, E> {
+pub struct PerformanceBuilder<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     machine: Machine<C, E, C>,
     config: PerformanceConfig,
 }
@@ -821,7 +822,7 @@ pub struct PerformanceBuilder<C: Send + Sync + Clone + 'static, E> {
 impl<C: Send + Sync + Clone + 'static, E> PerformanceBuilder<C, E>
 where
     C: Clone + std::hash::Hash + Eq + std::fmt::Debug + 'static,
-    E: Clone + std::hash::Hash + Eq + Event + 'static,
+    E: Clone + std::hash::Hash + Eq + Event + 'static + Send + Sync,
 {
     pub fn new(machine: Machine<C, E, C>) -> Self {
         Self {

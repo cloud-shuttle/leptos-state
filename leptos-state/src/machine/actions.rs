@@ -938,3 +938,53 @@ mod tests {
         assert!(execution.execution_time.is_some());
     }
 }
+
+// Implementations of core::Action trait for action types from actions.rs
+impl<C, E, F> crate::machine::core::Action<C, E> for FunctionAction<C, E, F>
+where
+    C: Send + Sync,
+    E: Send + Sync,
+    F: Fn(&mut C, &E) + Send + Sync,
+{
+    fn execute(&self, context: &mut C, event: &E) {
+        (self.func)(context, event);
+    }
+
+    fn name(&self) -> &str {
+        &self.description
+    }
+}
+
+impl<C, E> crate::machine::core::Action<C, E> for LogAction 
+where
+    C: Send + Sync,
+    E: Send + Sync,
+{
+    fn execute(&self, _context: &mut C, _event: &E) {
+        match self.level {
+            LogLevel::Debug => println!("[DEBUG] {}", self.message),
+            LogLevel::Info => println!("[INFO] {}", self.message),
+            LogLevel::Warn => println!("[WARN] {}", self.message),
+            LogLevel::Error => println!("[ERROR] {}", self.message),
+        }
+    }
+
+    fn name(&self) -> &str {
+        &self.message
+    }
+}
+
+impl<C, E, F> crate::machine::core::Action<C, E> for PureAction<F>
+where
+    C: Send + Sync,
+    E: Send + Sync,
+    F: Fn() + Send + Sync,
+{
+    fn execute(&self, _context: &mut C, _event: &E) {
+        (self.func)();
+    }
+
+    fn name(&self) -> &str {
+        &self.description
+    }
+}

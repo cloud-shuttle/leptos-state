@@ -6,6 +6,7 @@
 use super::*;
 use crate::utils::types::{StateError, StateResult};
 use std::collections::{HashMap, VecDeque};
+use std::hash::Hash;
 use std::fmt::Debug;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
@@ -175,7 +176,7 @@ pub enum EventPriority {
 }
 
 /// Integration manager for state machines
-pub struct IntegrationManager<C: Send + Sync + Clone + 'static, E> {
+pub struct IntegrationManager<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     config: IntegrationConfig,
     adapters: Arc<RwLock<HashMap<String, Box<dyn IntegrationAdapterTrait + Send + Sync>>>>,
     _event_queue: Arc<Mutex<VecDeque<IntegrationEvent>>>,
@@ -186,8 +187,8 @@ pub struct IntegrationManager<C: Send + Sync + Clone + 'static, E> {
 
 impl<C, E> IntegrationManager<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + 'static,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + Hash + Eq + 'static,
 {
     pub fn new(machine: Machine<C, E, C>, config: IntegrationConfig) -> Self {
         Self {
@@ -484,15 +485,15 @@ impl IntegrationMetrics {
 }
 
 /// Extension trait for adding integration to machines
-pub trait MachineIntegrationExt<C: Send + Sync + Clone + 'static, E> {
+pub trait MachineIntegrationExt<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     /// Add integration capabilities to the machine
     fn with_integration(self, config: IntegrationConfig) -> IntegrationManager<C, E>;
 }
 
 impl<C, E> MachineIntegrationExt<C, E> for Machine<C, E, C>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + 'static,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + Hash + Eq + 'static,
 {
     fn with_integration(self, config: IntegrationConfig) -> IntegrationManager<C, E> {
         IntegrationManager::new(self, config)
@@ -500,15 +501,15 @@ where
 }
 
 /// Integration builder for fluent configuration
-pub struct IntegrationBuilder<C: Send + Sync + Clone + 'static, E> {
+pub struct IntegrationBuilder<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     machine: Machine<C, E, C>,
     config: IntegrationConfig,
 }
 
 impl<C, E> IntegrationBuilder<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + 'static,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + Hash + Eq + 'static,
 {
     pub fn new(machine: Machine<C, E, C>) -> Self {
         Self {

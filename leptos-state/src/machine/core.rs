@@ -1,5 +1,6 @@
 use crate::machine::states::StateValue;
 use std::collections::HashMap;
+use std::hash::Hash;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
@@ -15,9 +16,9 @@ pub trait StateMachine: Sized + 'static {
 
 /// Main builder trait for constructing state machines
 pub trait MachineBuilder {
-    type State;
-    type Event;
-    type Context;
+    type State: Clone + Send + Sync + 'static;
+    type Event: Clone + Send + Sync + Hash + Eq + 'static;
+    type Context: Clone + Send + Sync + 'static;
 
     fn new() -> Self;
     fn state<Name: Into<String>>(self, name: Name) -> Self;
@@ -30,6 +31,7 @@ pub trait MachineBuilder {
     fn build(self) -> MachineResult<Machine<Self::State, Self::Event, Self::Context>>
     where
         Self::Context: Default,
+        Self: Sized,
     {
         self.build_with_context(Self::Context::default())
     }
@@ -47,7 +49,6 @@ pub trait MachineState {
 }
 
 /// Core Machine implementation
-#[derive(Debug)]
 pub struct Machine<S, E, C>
 where
     S: Clone + Send + Sync + 'static,
@@ -58,8 +59,8 @@ where
     pub states: HashMap<String, StateNode<S, E, C>>,
     pub current_state: String,
     pub context: C,
-    pub guards: HashMap<String, Box<dyn Guard<C>>>,
-    pub actions: HashMap<String, Box<dyn Action<C>>>,
+    pub guards: HashMap<String, Box<dyn Guard<C, E>>>,
+    pub actions: HashMap<String, Box<dyn Action<C, E>>>,
     pub history: MachineHistory,
     pub config: MachineConfig,
     _phantom: PhantomData<(S, E)>,
@@ -96,11 +97,11 @@ where
 
     pub fn transition(&mut self, event: E) -> Result<(), MachineError> {
         let current_state = self.states.get(&self.current_state)
-            .ok_or(MachineError::InvalidState)?;
+            .ok_or_else(|| MachineError::InvalidState(self.current_state.clone()))?;
 
         let next_state = current_state.get_transition(&event)?;
 
-        self.execute_transition(&current_state.name, &next_state)?;
+        self.execute_transition(&current_state.name, &next_state, &event)?;
         self.current_state = next_state.clone();
         self.history.record_transition(&current_state.name, &next_state);
 
@@ -123,28 +124,45 @@ where
         &mut self.context
     }
 
-    fn execute_transition(&mut self, from: &str, to: &str) -> Result<(), MachineError> {
+    /// Get all states in the machine
+    pub fn get_states(&self) -> &HashMap<String, StateNode<S, E, C>> {
+        &self.states
+    }
+
+    /// Get the initial state name
+    pub fn initial_state(&self) -> &str {
+        &self.current_state
+    }
+
+    /// Get the states map (alias for get_states)
+    pub fn states_map(&self) -> &HashMap<String, StateNode<S, E, C>> {
+        &self.states
+    }
+
+    /// Get the initial state ID
+    pub fn initial_state_id(&self) -> &str {
+        &self.current_state
+    }
+
+
+    fn execute_transition(&mut self, from: &str, to: &str, event: &E) -> Result<(), MachineError> {
         // Execute exit actions
         let from_state = self.states.get(from).unwrap();
         for action_name in &from_state.exit_actions {
             let action = self.actions.get(action_name)
                 .ok_or(MachineError::MissingAction(action_name.clone()))?;
-            action.execute(&mut self.context)?;
+            action.execute(&mut self.context, event);
         }
 
-        // Execute transition actions
-        for action_name in &from_state.transition_actions {
-            let action = self.actions.get(action_name)
-                .ok_or(MachineError::MissingAction(action_name.clone()))?;
-            action.execute(&mut self.context)?;
-        }
+        // Note: Transition actions are not implemented in the current design
+        // Only entry and exit actions are supported
 
         // Execute entry actions
         let to_state = self.states.get(to).unwrap();
         for action_name in &to_state.entry_actions {
             let action = self.actions.get(action_name)
                 .ok_or(MachineError::MissingAction(action_name.clone()))?;
-            action.execute(&mut self.context)?;
+            action.execute(&mut self.context, event);
         }
 
         Ok(())
@@ -176,7 +194,7 @@ where
     E: Clone + Send + Sync + 'static + std::hash::Hash + Eq,
     C: Clone + PartialEq + Send + Sync + 'static,
 {
-    pub fn new(name: String, state_type: StateType) -> Self {
+    pub fn new(name: String, state_type: StateType, context: C) -> Self {
         Self {
             name,
             state_type,
@@ -184,6 +202,7 @@ where
             entry_actions: Vec::new(),
             exit_actions: Vec::new(),
             children: HashMap::new(),
+            context,
             parent: None,
             data: None,
         }
@@ -255,14 +274,14 @@ impl MachineHistory {
 }
 
 /// Guard trait for conditional transitions
-pub trait Guard<C>: Send + Sync {
-    fn evaluate(&self, context: &C) -> Result<bool, MachineError>;
+pub trait Guard<C, E>: Send + Sync {
+    fn check(&self, context: &C, event: &E) -> bool;
     fn name(&self) -> &str;
 }
 
 /// Action trait for state changes
-pub trait Action<C>: Send + Sync {
-    fn execute(&self, context: &mut C) -> Result<(), MachineError>;
+pub trait Action<C, E>: Send + Sync {
+    fn execute(&self, context: &mut C, event: &E);
     fn name(&self) -> &str;
 }
 

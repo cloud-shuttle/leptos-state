@@ -10,6 +10,7 @@ use crate::{
     machine::{Machine, MachineState, Transition},
 };
 use std::collections::{HashMap, HashSet, VecDeque};
+use std::hash::Hash;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::time::{Duration, Instant};
@@ -161,7 +162,7 @@ pub struct TestStep {
 }
 
 /// State machine test runner
-pub struct MachineTestRunner<C: Send + Sync + Clone + 'static, E> {
+pub struct MachineTestRunner<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     machine: Machine<C, E, C>,
     config: TestConfig,
     test_data_generator: Box<dyn TestDataGenerator<C, E>>,
@@ -172,7 +173,7 @@ pub struct MachineTestRunner<C: Send + Sync + Clone + 'static, E> {
 impl<C, E> MachineTestRunner<C, E>
 where
     C: Clone + std::fmt::Debug + PartialEq + std::default::Default + Send + Sync + 'static,
-    E: Clone + std::fmt::Debug + PartialEq + std::default::Default + Send + Sync + Event + 'static,
+    E: Clone + std::fmt::Debug + PartialEq + std::default::Default + Send + Sync + Event + 'static + Hash + Eq,
 {
     pub fn new(machine: Machine<C, E, C>, config: TestConfig) -> Self {
         let test_data_generator = Box::new(DefaultTestDataGenerator::new());
@@ -759,7 +760,7 @@ impl CoverageTracker {
         self.actions_executed.insert(action.to_string());
     }
 
-    pub fn calculate_coverage<C: Send + Sync + Clone + 'static + Clone, E: Clone>(
+    pub fn calculate_coverage<C: Send + Sync + Clone + 'static + Clone, E: Clone + Send + Sync + Hash + Eq + 'static>(
         &self,
         machine: &Machine<C, E, C>,
     ) -> TestCoverage {
@@ -848,7 +849,7 @@ impl PerformanceTracker {
 }
 
 /// Extension trait for adding testing to machines
-pub trait MachineTestingExt<C: Send + Sync + Clone + 'static, E> {
+pub trait MachineTestingExt<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     /// Add testing capabilities to the machine
     fn with_testing(self, config: TestConfig) -> MachineTestRunner<C, E>;
 }
@@ -863,6 +864,8 @@ where
         + std::default::Default
         + Send
         + Sync
+        + Hash
+        + Eq
         + 'static,
 {
     fn with_testing(self, config: TestConfig) -> MachineTestRunner<C, E> {
@@ -871,7 +874,7 @@ where
 }
 
 /// Test builder for fluent test creation
-pub struct TestBuilder<C: Send + Sync + Clone + 'static, E> {
+pub struct TestBuilder<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     machine: Machine<C, E, C>,
     config: TestConfig,
 }
@@ -886,6 +889,8 @@ where
         + std::default::Default
         + Send
         + Sync
+        + Hash
+        + Eq
         + 'static,
 {
     pub fn new(machine: Machine<C, E, C>) -> Self {

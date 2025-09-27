@@ -320,8 +320,8 @@ pub struct StateBuilder<C: Send + Sync, E> {
     machine_builder: MachineBuilder<C, E>,
     current_state: String,
     transitions: Vec<Transition<C, E>>,
-    entry_actions: Vec<Box<dyn Action<C>>>,
-    exit_actions: Vec<Box<dyn Action<C>>>,
+    entry_actions: Vec<Box<dyn Action<C, E>>>,
+    exit_actions: Vec<Box<dyn Action<C, E>>>,
     child_states: HashMap<String, StateNode<C, E, C>>,
     initial_child: Option<String>,
 }
@@ -343,12 +343,12 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> StateBuilder<C, E> {
         TransitionBuilder::new(self, event, target.to_string())
     }
 
-    pub fn on_entry<A: Action<C> + 'static>(mut self, action: A) -> Self {
+    pub fn on_entry<A: Action<C, E> + 'static>(mut self, action: A) -> Self {
         self.entry_actions.push(Box::new(action));
         self
     }
 
-    pub fn on_exit<A: Action<C> + 'static>(mut self, action: A) -> Self {
+    pub fn on_exit<A: Action<C, E> + 'static>(mut self, action: A) -> Self {
         self.exit_actions.push(Box::new(action));
         self
     }
@@ -483,8 +483,8 @@ pub struct ChildStateBuilder<C: Send + Sync, E> {
     parent_builder: StateBuilder<C, E>,
     child_id: String,
     transitions: Vec<Transition<C, E>>,
-    entry_actions: Vec<Box<dyn Action<C>>>,
-    exit_actions: Vec<Box<dyn Action<C>>>,
+    entry_actions: Vec<Box<dyn Action<C, E>>>,
+    exit_actions: Vec<Box<dyn Action<C, E>>>,
 }
 
 impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildStateBuilder<C, E> {
@@ -502,12 +502,12 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildStateBuilder<C, 
         ChildTransitionBuilder::new(self, event, target.to_string())
     }
 
-    pub fn on_entry<A: Action<C> + 'static>(mut self, action: A) -> Self {
+    pub fn on_entry<A: Action<C, E> + 'static>(mut self, action: A) -> Self {
         self.entry_actions.push(Box::new(action));
         self
     }
 
-    pub fn on_exit<A: Action<C> + 'static>(mut self, action: A) -> Self {
+    pub fn on_exit<A: Action<C, E> + 'static>(mut self, action: A) -> Self {
         self.exit_actions.push(Box::new(action));
         self
     }
@@ -614,8 +614,8 @@ pub struct ChildTransitionBuilder<C: Send + Sync, E> {
     child_builder: ChildStateBuilder<C, E>,
     event: E,
     target: String,
-    guards: Vec<Box<dyn Guard<C>>>,
-    actions: Vec<Box<dyn Action<C>>>,
+    guards: Vec<Box<dyn Guard<C, E>>>,
+    actions: Vec<Box<dyn Action<C, E>>>,
 }
 
 impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildTransitionBuilder<C, E> {
@@ -629,7 +629,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildTransitionBuilde
         }
     }
 
-    pub fn guard<G: Guard<C> + 'static>(mut self, guard: G) -> Self {
+    pub fn guard<G: Guard<C, E> + 'static>(mut self, guard: G) -> Self {
         self.guards.push(Box::new(guard));
         self
     }
@@ -680,7 +680,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildTransitionBuilde
         self
     }
 
-    pub fn action<A: Action<C> + 'static>(mut self, action: A) -> Self {
+    pub fn action<A: Action<C, E> + 'static>(mut self, action: A) -> Self {
         self.actions.push(Box::new(action));
         self
     }
@@ -718,8 +718,8 @@ pub struct TransitionBuilder<C: Send + Sync, E> {
     state_builder: StateBuilder<C, E>,
     event: E,
     target: String,
-    guards: Vec<Box<dyn Guard<C>>>,
-    actions: Vec<Box<dyn Action<C>>>,
+    guards: Vec<Box<dyn Guard<C, E>>>,
+    actions: Vec<Box<dyn Action<C, E>>>,
 }
 
 impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> TransitionBuilder<C, E> {
@@ -733,7 +733,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> TransitionBuilder<C, 
         }
     }
 
-    pub fn guard<G: Guard<C> + 'static>(mut self, guard: G) -> Self {
+    pub fn guard<G: Guard<C, E> + 'static>(mut self, guard: G) -> Self {
         self.guards.push(Box::new(guard));
         self
     }
@@ -784,7 +784,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> TransitionBuilder<C, 
         self
     }
 
-    pub fn action<A: Action<C> + 'static>(mut self, action: A) -> Self {
+    pub fn action<A: Action<C, E> + 'static>(mut self, action: A) -> Self {
         self.actions.push(Box::new(action));
         self
     }
@@ -865,24 +865,26 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> TransitionBuilder<C, 
 pub struct StateNode<C, E, S> {
     pub id: String,
     pub transitions: Vec<Transition<C, E>>,
-    pub entry_actions: Vec<Box<dyn Action<C>>>,
-    pub exit_actions: Vec<Box<dyn Action<C>>>,
+    pub entry_actions: Vec<Box<dyn Action<C, E>>>,
+    pub exit_actions: Vec<Box<dyn Action<C, E>>>,
     pub child_states: HashMap<String, StateNode<C, E, C>>,
     pub initial_child: Option<String>,
+    _phantom: std::marker::PhantomData<S>,
 }
 
 /// Transition definition
 pub struct Transition<C, E> {
     pub event: E,
     pub target: String,
-    pub guards: Vec<Box<dyn Guard<C>>>,
-    pub actions: Vec<Box<dyn Action<C>>>,
+    pub guards: Vec<Box<dyn Guard<C, E>>>,
+    pub actions: Vec<Box<dyn Action<C, E>>>,
 }
 
 /// Complete machine implementation
 pub struct Machine<C: Send + Sync, E, S> {
     states: HashMap<String, StateNode<C, E, C>>,
     initial: String,
+    _phantom: std::marker::PhantomData<S>,
 }
 
 // Manual Clone implementation for Machine

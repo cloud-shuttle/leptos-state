@@ -81,7 +81,9 @@ impl<
     where
         C: Default,
     {
-        let state = self.base_machine.initial_state();
+        let state_name = self.base_machine.initial_state();
+        let state_value = StateValue::Simple(state_name.to_string());
+        let state = MachineStateImpl::new(state_value, C::default());
         self.history_tracker.record_state(&state);
         state
     }
@@ -255,7 +257,7 @@ impl<C: Clone + PartialEq + Default + Send + Sync + 'static> Default for History
 }
 
 /// Builder extension for adding history states
-pub trait HistoryMachineBuilder<C: Send + Sync + Clone + 'static, E> {
+pub trait HistoryMachineBuilder<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     fn with_history_state(self, id: &str, history_state: HistoryState) -> HistoryMachine<C, E>;
 }
 

@@ -57,7 +57,7 @@ pub enum ProgrammingLanguage {
 }
 
 /// Code generator for state machines
-pub struct CodeGenerator<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct CodeGenerator<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     config: CodeGenConfig,
     machine: Arc<Machine<C, E, C>>,
     generated_files: Arc<RwLock<Vec<GeneratedFile>>>,
@@ -65,7 +65,7 @@ pub struct CodeGenerator<C: Send + Sync + Clone + 'static, E: Clone + Send + Syn
 
 impl<C, E> CodeGenerator<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync + 'static,
+    C: Clone + std::fmt::Debug + Send + Sync + PartialEq + 'static,
     E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + Event + 'static,
 {
     pub fn new(machine: Machine<C, E, C>, config: CodeGenConfig) -> Self {
@@ -185,8 +185,8 @@ where
         code.push_str("#[derive(Debug, Clone, PartialEq)]\n");
         code.push_str("pub enum State {\n");
         let states = self.machine.get_states();
-        for state in states {
-            code.push_str(&format!("    {},\n", state));
+        for (state_name, _state_node) in states {
+            code.push_str(&format!("    {},\n", state_name));
         }
         code.push_str("}\n\n");
 
@@ -294,8 +294,8 @@ where
 
         code.push_str("## States\n\n");
         let states = self.machine.get_states();
-        for state in states {
-            code.push_str(&format!("- **{}**: State description\n", state));
+        for (state_name, _state_node) in states {
+            code.push_str(&format!("- **{}**: State description\n", state_name));
         }
         code.push_str("\n");
 
@@ -354,8 +354,8 @@ where
         // Add enums
         code.push_str("export enum State {\n");
         let states = self.machine.get_states();
-        for state in states {
-            code.push_str(&format!("    {},\n", state));
+        for (state_name, _state_node) in states {
+            code.push_str(&format!("    {},\n", state_name));
         }
         code.push_str("}\n\n");
 
@@ -635,14 +635,14 @@ pub struct TransitionInfo {
 }
 
 /// Extension trait for adding code generation to machines
-pub trait MachineCodeGenExt<C: Send + Sync + Clone, E> {
+pub trait MachineCodeGenExt<C: Send + Sync + Clone + PartialEq, E: Clone + Send + Sync + Hash + Eq + 'static> {
     /// Add code generation capabilities to the machine
     fn with_code_generation(self, config: CodeGenConfig) -> CodeGenerator<C, E>;
 }
 
 impl<C, E> MachineCodeGenExt<C, E> for Machine<C, E, C>
 where
-    C: Clone + std::fmt::Debug + Send + Sync + 'static,
+    C: Clone + std::fmt::Debug + Send + Sync + PartialEq + 'static,
     E: Clone + std::fmt::Debug + Event + Send + Sync + Hash + Eq + 'static,
 {
     fn with_code_generation(self, config: CodeGenConfig) -> CodeGenerator<C, E> {
@@ -651,14 +651,14 @@ where
 }
 
 /// Code generation builder for fluent configuration
-pub struct CodeGenBuilder<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct CodeGenBuilder<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     machine: Machine<C, E, C>,
     pub(crate) config: CodeGenConfig,
 }
 
 impl<C, E> CodeGenBuilder<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync + 'static,
+    C: Clone + std::fmt::Debug + Send + Sync + PartialEq + 'static,
     E: Clone + std::fmt::Debug + Event + Send + Sync + Hash + Eq + 'static,
 {
     pub fn new(machine: Machine<C, E, C>) -> Self {
