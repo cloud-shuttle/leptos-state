@@ -18,6 +18,13 @@ pub mod machine;
 pub mod machine_builder;
 pub mod machine_state_impl;
 pub mod performance;
+pub mod performance_config;
+pub mod performance_metrics;
+pub mod performance_profiler;
+pub mod cache_system;
+pub mod lazy_evaluation;
+pub mod optimized_machine;
+pub mod performance_builder;
 // #[cfg(feature = "serialization")]
 // pub mod persistence;
 pub mod state_builder;
@@ -63,6 +70,13 @@ pub use guards::{GuardBuilder, GuardEvaluation, GuardEvaluator};
 pub use history::{HistoryMachine, HistoryTracker, HistoryType};
 pub use integration::{IntegrationAdapter, IntegrationManager};
 pub use performance::{OptimizedMachine, PerformanceProfiler};
+pub use performance_config::{PerformanceConfig, OptimizationStrategy, OptimizationParameters};
+pub use performance_metrics::{PerformanceMetrics, PerformanceBottleneck, BottleneckType, OptimizationSuggestion, PerformanceAnalysis};
+pub use performance_profiler::{PerformanceProfiler as PerfProfiler, PerformanceReport};
+pub use cache_system::{CacheStats, MemoryTracker, TransitionCache, CacheKey, CachedTransition};
+pub use lazy_evaluation::{LazyEvaluator, Lazy, LazyResult, LazyWithMetadata, PerformanceLazy};
+pub use optimized_machine::{OptimizedMachine as PerfOptimizedMachine, OptimizationLevel, MachinePerformanceExt};
+pub use performance_builder::{PerformanceBuilder, PerformanceOptimizationExt, PerformancePresets};
 // #[cfg(feature = "serialization")]
 // pub use persistence::{MachinePersistence, PersistenceConfig, PersistentMachine};
 pub use testing::{MachineTestRunner, TestCase, TestConfig, TestResult};
