@@ -1,0 +1,20 @@
+[package]
+name = "video-player"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+leptos = { workspace = true, features = ["csr"] }
+uuid = { workspace = true, features = ["v4", "js"] }
+wasm-bindgen = { workspace = true }
+console_error_panic_hook = { workspace = true }
+console_log = "1.0"
+log = "0.4"
+web-sys = "0.3"
+js-sys = "0.3"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"

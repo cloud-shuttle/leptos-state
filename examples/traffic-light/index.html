@@ -5,117 +5,17 @@
     <title>Traffic Light Example - Leptos State</title>
     <link rel="stylesheet" href="styles.css" />
 </head>
-        <body>
-            <div class="container">
-                <h1>🚦 Traffic Light Example - Leptos State</h1>
-                
-                <div class="traffic-light">
-                    <div class="light red" id="red-light"></div>
-                    <div class="light yellow" id="yellow-light"></div>
-                    <div class="light green" id="green-light"></div>
-                </div>
-                
-                <div class="state-display" data-testid="current-state-display">Red</div>
-                <div class="state-display" data-testid="current-state">Red</div>
-                
-                <div class="controls">
-                    <button class="btn-primary" data-testid="timer">Timer</button>
-                    <button class="btn-warning" data-testid="pedestrian">Pedestrian Request</button>
-                    <button class="btn-danger" data-testid="emergency">Emergency Stop</button>
-                    <button class="btn-secondary" data-testid="reset">Reset</button>
-                </div>
-                
-                <div class="status-section">
-                    <div class="status-item">
-                        <span class="status-label">Current State:</span>
-                        <span class="status-value" data-testid="current-state-value">Red</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">Pedestrian Waiting:</span>
-                        <span class="status-value" data-testid="pedestrian-waiting">No</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">Emergency Mode:</span>
-                        <span class="status-value" data-testid="emergency-mode">No</span>
-                    </div>
-                </div>
-            </div>
-
-            <script>
-                // Simple JavaScript to make the traffic light interactive
-                console.log('Script loading...');
-                
-                let currentState = 'Red';
-                let pedestrianWaiting = false;
-                let emergencyMode = false;
-                let stateIndex = 0;
-                const states = ['Red', 'Yellow', 'Green'];
-                
-                // Wait for DOM to be ready
-                document.addEventListener('DOMContentLoaded', function() {
-                    console.log('DOM loaded, setting up event listeners...');
-                    
-                    const stateDisplay = document.querySelector('[data-testid="current-state-display"]');
-                    const stateValue = document.querySelector('[data-testid="current-state-value"]');
-                    const pedestrianStatus = document.querySelector('[data-testid="pedestrian-waiting"]');
-                    const emergencyStatus = document.querySelector('[data-testid="emergency-mode"]');
-                    const timerBtn = document.querySelector('[data-testid="timer"]');
-                    const pedestrianBtn = document.querySelector('[data-testid="pedestrian"]');
-                    const emergencyBtn = document.querySelector('[data-testid="emergency"]');
-                    const resetBtn = document.querySelector('[data-testid="reset"]');
-                    
-                    console.log('Elements found:', {
-                        stateDisplay: !!stateDisplay,
-                        stateValue: !!stateValue,
-                        pedestrianStatus: !!pedestrianStatus,
-                        emergencyStatus: !!emergencyStatus,
-                        timerBtn: !!timerBtn,
-                        pedestrianBtn: !!pedestrianBtn,
-                        emergencyBtn: !!emergencyBtn,
-                        resetBtn: !!resetBtn
-                    });
-
-                    function updateDisplay() {
-                        stateDisplay.textContent = currentState;
-                        stateValue.textContent = currentState;
-                        pedestrianStatus.textContent = pedestrianWaiting ? 'Yes' : 'No';
-                        emergencyStatus.textContent = emergencyMode ? 'Yes' : 'No';
-                    }
-
-                    timerBtn.addEventListener('click', () => {
-                        console.log('Timer button clicked');
-                        if (!emergencyMode) {
-                            stateIndex = (stateIndex + 1) % states.length;
-                            currentState = states[stateIndex];
-                            console.log('State changed to:', currentState);
-                            updateDisplay();
-                        }
-                    });
-
-                    pedestrianBtn.addEventListener('click', () => {
-                        console.log('Pedestrian button clicked');
-                        pedestrianWaiting = !pedestrianWaiting;
-                        console.log('Pedestrian waiting:', pedestrianWaiting);
-                        updateDisplay();
-                    });
-
-                    emergencyBtn.addEventListener('click', () => {
-                        emergencyMode = true;
-                        currentState = 'Red';
-                        stateIndex = 0;
-                        updateDisplay();
-                    });
-
-                    resetBtn.addEventListener('click', () => {
-                        currentState = 'Red';
-                        stateIndex = 0;
-                        pedestrianWaiting = false;
-                        emergencyMode = false;
-                        updateDisplay();
-                    });
-                    
-                    console.log('Event listeners set up successfully');
-                });
-            </script>
-        </body>
+<body>
+    <div id="app"></div>
+    <script type="module">
+        import init, { main } from './pkg/traffic_light_example.js';
+        
+        async function run() {
+            await init();
+            main();
+        }
+        
+        run().catch(console.error);
+    </script>
+</body>
 </html>

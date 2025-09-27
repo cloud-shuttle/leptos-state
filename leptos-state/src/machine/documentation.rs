@@ -4,7 +4,7 @@
 //! for state machines, including multiple formats, templates, and diagrams.
 
 use super::*;
-use crate::machine::visualization::ExportFormat;
+// use crate::machine::visualization::ExportFormat;
 use crate::utils::types::{StateError, StateResult};
 use std::collections::HashMap;
 use std::fs;
@@ -281,11 +281,11 @@ where
         // Diagrams
         if self.config.include_diagrams {
             markdown.push_str("## State Diagram\n\n");
-            if let Ok(diagram) = self.machine.export_diagram(ExportFormat::Mermaid) {
-                markdown.push_str("```mermaid\n");
-                markdown.push_str(&diagram);
-                markdown.push_str("\n```\n\n");
-            }
+            // if let Ok(diagram) = self.machine.export_diagram(ExportFormat::Mermaid) {
+            //     markdown.push_str("```mermaid\n");
+            //     markdown.push_str(&diagram);
+            //     markdown.push_str("\n```\n\n");
+            // }
         }
 
         Ok(markdown)
@@ -382,13 +382,13 @@ where
         // Diagrams
         if self.config.include_diagrams {
             html.push_str("    <h2>State Diagram</h2>\n");
-            if let Ok(diagram) = self.machine.export_diagram(ExportFormat::Mermaid) {
-                html.push_str("    <pre><code class=\"mermaid\">\n");
-                html.push_str(&diagram);
-                html.push_str("\n    </code></pre>\n");
-                html.push_str("    <script src=\"https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js\"></script>\n");
-                html.push_str("    <script>mermaid.initialize({startOnLoad:true});</script>\n");
-            }
+            // if let Ok(diagram) = self.machine.export_diagram(ExportFormat::Mermaid) {
+            //     html.push_str("    <pre><code class=\"mermaid\">\n");
+            //     html.push_str(&diagram);
+            //     html.push_str("\n    </code></pre>\n");
+            //     html.push_str("    <script src=\"https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js\"></script>\n");
+            // }
+            html.push_str("    <script>mermaid.initialize({startOnLoad:true});</script>\n");
         }
 
         // Footer

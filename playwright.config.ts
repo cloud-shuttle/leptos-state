@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './tests/playwright',
+  testDir: './tests/web/playwright/wasm-examples',
   fullyParallel: false, // Disable parallel to prevent hanging
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

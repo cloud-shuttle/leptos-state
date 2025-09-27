@@ -4,7 +4,7 @@ dist = "dist"
 public_url = "./"
 
 [watch]
-watch = ["src", "index.html"]
+watch = ["src", "index.html", "src/styles.css"]
 
 [serve]
 address = "127.0.0.1"
@@ -20,3 +20,8 @@ command_arguments = ["build", "--target", "wasm32-unknown-unknown", "--package",
 stage = "post_build"
 command = "wasm-bindgen"
 command_arguments = ["../../target/wasm32-unknown-unknown/debug/todo_app.wasm", "--out-dir", "dist", "--target", "web"]
+
+[[hooks]]
+stage = "post_build"
+command = "sh"
+command_arguments = ["-c", "cp ../../examples/todo-app/src/styles.css ../../examples/todo-app/dist/"]

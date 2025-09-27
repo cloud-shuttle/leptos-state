@@ -5,58 +5,17 @@
     <title>Counter Example - Leptos State</title>
     <link rel="stylesheet" href="styles.css" />
 </head>
-        <body>
-            <div class="container">
-                <h1>🚀 Counter Example - Leptos State</h1>
-                
-                <div class="counter-section">
-                    <div class="counter-display" data-testid="counter">0</div>
-                    <div class="button-group">
-                        <button class="btn-primary" data-testid="increment">+</button>
-                        <button class="btn-secondary" data-testid="decrement">-</button>
-                        <button class="btn-danger" data-testid="reset">Reset</button>
-                    </div>
-                </div>
-                
-                <div class="user-section">
-                    <h3>User Settings</h3>
-                    <input type="text" placeholder="Enter your name" data-testid="name-input" />
-                    <div class="user-display" data-testid="user-display">Guest</div>
-                </div>
-            </div>
-
-            <script>
-                // Simple JavaScript to make the counter interactive
-                let counter = 0;
-                const counterDisplay = document.querySelector('[data-testid="counter"]');
-                const incrementBtn = document.querySelector('[data-testid="increment"]');
-                const decrementBtn = document.querySelector('[data-testid="decrement"]');
-                const resetBtn = document.querySelector('[data-testid="reset"]');
-                const nameInput = document.querySelector('[data-testid="name-input"]');
-                const userDisplay = document.querySelector('[data-testid="user-display"]');
-
-                function updateCounter() {
-                    counterDisplay.textContent = counter;
-                }
-
-                incrementBtn.addEventListener('click', () => {
-                    counter++;
-                    updateCounter();
-                });
-
-                decrementBtn.addEventListener('click', () => {
-                    counter--;
-                    updateCounter();
-                });
-
-                resetBtn.addEventListener('click', () => {
-                    counter = 0;
-                    updateCounter();
-                });
-
-                nameInput.addEventListener('input', (e) => {
-                    userDisplay.textContent = e.target.value || 'Guest';
-                });
-            </script>
-        </body>
+<body>
+    <div id="app"></div>
+    <script type="module">
+        import init, { main } from './pkg/counter_example.js';
+        
+        async function run() {
+            await init();
+            main();
+        }
+        
+        run().catch(console.error);
+    </script>
+</body>
 </html>

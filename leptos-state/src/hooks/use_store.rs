@@ -6,6 +6,12 @@ pub fn use_store<S: Store>() -> (ReadSignal<S::State>, WriteSignal<S::State>) {
     S::use_store()
 }
 
+/// Hook to access a store's state and actions (README-compatible API)
+pub fn use_store_with_actions<S: Store>() -> (ReadSignal<S::State>, StoreActions<S::State>) {
+    let (state, set_state) = S::use_store();
+    (state, StoreActions::new(set_state))
+}
+
 /// Hook to access a computed slice of store state
 pub fn use_store_slice<S: Store, Slice: StoreSlice<S>>() -> Memo<Slice::Output> {
     crate::store::use_store_slice::<S, Slice>()

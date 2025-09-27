@@ -11,10 +11,12 @@ pub mod history;
 pub mod integration;
 pub mod machine;
 pub mod performance;
-pub mod persistence;
+// #[cfg(feature = "serialization")]
+// pub mod persistence;
 pub mod states;
 pub mod testing;
-pub mod visualization;
+// #[cfg(feature = "serialization")]
+// pub mod visualization;
 
 pub use machine::*;
 // Core machine types
@@ -26,6 +28,8 @@ pub use guards::{Guard, GuardBuilder, GuardEvaluation, GuardEvaluator};
 pub use history::{HistoryMachine, HistoryTracker, HistoryType};
 pub use integration::{IntegrationAdapter, IntegrationConfig, IntegrationManager};
 pub use performance::{OptimizedMachine, PerformanceConfig, PerformanceProfiler};
-pub use persistence::{MachinePersistence, PersistenceConfig, PersistentMachine};
+// #[cfg(feature = "serialization")]
+// pub use persistence::{MachinePersistence, PersistenceConfig, PersistentMachine};
 pub use testing::{MachineTestRunner, TestCase, TestConfig, TestResult};
-pub use visualization::{MachineVisualizer, VisualizationConfig, VisualizedMachine};
+// #[cfg(feature = "serialization")]
+// pub use visualization::{MachineVisualizer, VisualizationConfig, VisualizedMachine};

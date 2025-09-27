@@ -1,0 +1,22 @@
+[build]
+target = "index.html"
+dist = "dist"
+public_url = "./"
+
+[watch]
+watch = ["src", "index.html"]
+
+[serve]
+address = "127.0.0.1"
+port = 8082
+open = false
+
+[[hooks]]
+stage = "pre_build"
+command = "cargo"
+command_arguments = ["build", "--target", "wasm32-unknown-unknown", "--package", "video-player", "--manifest-path", "../../Cargo.toml"]
+
+[[hooks]]
+stage = "post_build"
+command = "wasm-bindgen"
+command_arguments = ["../../target/wasm32-unknown-unknown/debug/video_player.wasm", "--out-dir", "dist", "--target", "web"]

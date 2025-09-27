@@ -15,15 +15,6 @@
 </head>
 <body>
     <div id="app"></div>
-    <script type="module">
-        import init, { main } from './pkg/todo_app.js';
-        
-        async function run() {
-            await init();
-            main();
-        }
-        
-        run().catch(console.error);
-    </script>
+    <link data-trunk rel="rust" data-bin="todo-app" />
 </body>
 </html>

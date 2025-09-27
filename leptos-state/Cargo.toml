@@ -39,9 +39,9 @@ insta = { workspace = true }
 console_error_panic_hook = { workspace = true }
 
 [features]
-default = []
-persist = ["serde", "serde_json"]
-visualization = ["serde", "serde_json"]
+default = ["serde", "serde_json", "serialization"]
+persist = ["serde", "serde_json", "serialization"]
+visualization = ["serde", "serde_json", "serialization"]
 testing = []
 performance = []
 integration = []

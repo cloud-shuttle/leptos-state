@@ -1,4 +1,4 @@
-use leptos::prelude::{event_target_value, ClassAttribute, ElementChild, Get, OnAttribute, Update};
+use leptos::prelude::{event_target_value, ClassAttribute, CustomAttribute, ElementChild, Get, OnAttribute, Update};
 use leptos::*;
 use leptos_state::hooks::use_store::{use_computed, use_store};
 use leptos_state::store::provide_store;
@@ -8,12 +8,13 @@ use leptos_state::{create_store, mount_to_body, Store};
 pub struct CounterState {
     count: i32,
     step: i32,
+    user_name: String,
 }
 
 create_store!(
     CounterStore,
     CounterState,
-    CounterState { count: 0, step: 1 }
+    CounterState { count: 0, step: 1, user_name: "Guest".to_string() }
 );
 
 #[component]
@@ -37,16 +38,21 @@ fn Counter() -> impl IntoView {
         set_state.update(|s| s.step = value);
     };
 
+    let set_name = move |ev| {
+        let value = event_target_value(&ev);
+        set_state.update(|s| s.user_name = value);
+    };
+
     view! {
         <div class="counter">
             <h1>"Counter Example"</h1>
             <div class="counter-display">
-                <span class="count">{move || state.get().count}</span>
+                <span class="count" data-testid="counter">{move || state.get().count}</span>
             </div>
             <div class="controls">
-                <button on:click=decrement>"-"</button>
-                <button on:click=increment>"+"</button>
-                <button on:click=reset>"Reset"</button>
+                <button data-testid="decrement" on:click=decrement>"-"</button>
+                <button data-testid="increment" on:click=increment>"+"</button>
+                <button data-testid="reset" on:click=reset>"Reset"</button>
             </div>
             <div class="step-control">
                 <label>
@@ -58,6 +64,21 @@ fn Counter() -> impl IntoView {
                         min="1"
                     />
                 </label>
+            </div>
+            <div class="user-control">
+                <label>
+                    "Your Name: "
+                    <input
+                        data-testid="name-input"
+                        type="text"
+                        value=move || state.get().user_name.clone()
+                        on:input=set_name
+                        placeholder="Enter your name"
+                    />
+                </label>
+                <div data-testid="user-display" class="user-display">
+                    {move || state.get().user_name.clone()}
+                </div>
             </div>
         </div>
     }

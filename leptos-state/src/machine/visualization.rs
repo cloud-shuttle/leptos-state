@@ -715,10 +715,8 @@ where
     C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
     E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug,
 {
-    fn with_visualization(self, _config: VisualizationConfig) -> VisualizedMachine<C, E> {
-        // TODO: This method is temporarily disabled because Machine doesn't implement Clone
-        // This would need to be addressed in a future iteration
-        panic!("Visualization not available - Machine doesn't implement Clone")
+    fn with_visualization(self, config: VisualizationConfig) -> VisualizedMachine<C, E> {
+        VisualizedMachine::new(self, config)
     }
 }
 
@@ -735,9 +733,6 @@ where
     C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
     E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug,
 {
-    // TODO: This method is temporarily disabled because Machine doesn't implement Clone
-    // This would need to be addressed in a future iteration
-    /*
     pub fn new(machine: Machine<C, E>, config: VisualizationConfig) -> Self {
         let visualizer = Arc::new(MachineVisualizer::new(machine.clone(), config.clone()));
         let monitor = Arc::new(StateMonitor::new(visualizer.clone(), config.clone()));
@@ -749,7 +744,6 @@ where
             config,
         }
     }
-    */
 
     /// Get the underlying machine
     pub fn machine(&self) -> &Machine<C, E> {

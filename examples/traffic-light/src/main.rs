@@ -1,4 +1,4 @@
-use leptos::prelude::{ClassAttribute, ElementChild, Get, OnAttribute};
+use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, Get, OnAttribute};
 use leptos::*;
 use leptos_state::machine::states::StateValue;
 use leptos_state::*;
@@ -103,13 +103,20 @@ fn TrafficLight() -> impl IntoView {
     let machine = use_machine::<TrafficMachine>();
 
     let machine_current = machine.clone();
-    let current_light = move || {
-        let state = machine_current.current();
-        match state {
-            StateValue::Simple(s) => s,
-            _ => "unknown".to_string(),
-        }
-    };
+           let current_light = move || {
+               let state = machine_current.current();
+               match state {
+                   StateValue::Simple(s) => {
+                       match s.as_str() {
+                           "red" => "Red".to_string(),
+                           "yellow" => "Yellow".to_string(),
+                           "green" => "Green".to_string(),
+                           _ => s.to_string(),
+                       }
+                   },
+                   _ => "unknown".to_string(),
+               }
+           };
 
     let is_red = machine.create_matcher("red".to_string());
     let is_yellow = machine.create_matcher("yellow".to_string());
@@ -144,17 +151,17 @@ fn TrafficLight() -> impl IntoView {
             </div>
 
             <div class="status">
-                <p>"Current State: " <strong>{current_light}</strong></p>
+                <p>"Current State: " <strong data-testid="current-state">{current_light}</strong></p>
                 <p>"Pedestrian Waiting: "
-                    <strong>{move || if machine.get_context().pedestrian_waiting { "Yes" } else { "No" }}</strong>
+                    <strong data-testid="pedestrian-waiting">{move || if machine.get_context().pedestrian_waiting { "Yes" } else { "No" }}</strong>
                 </p>
             </div>
 
             <div class="controls">
-                <button on:click=next_timer>"Next (Timer)"</button>
-                <button on:click=request_pedestrian>"Pedestrian Request"</button>
-                <button on:click=emergency_stop>"Emergency Stop"</button>
-                <button on:click=reset>"Reset"</button>
+                <button data-testid="timer" on:click=next_timer>"Next (Timer)"</button>
+                <button data-testid="pedestrian" on:click=request_pedestrian>"Pedestrian Request"</button>
+                <button data-testid="emergency" on:click=emergency_stop>"Emergency Stop"</button>
+                <button data-testid="reset" on:click=reset>"Reset"</button>
             </div>
         </div>
     }

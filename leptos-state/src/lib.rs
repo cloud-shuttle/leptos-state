@@ -46,13 +46,13 @@ pub mod utils;
 // Re-export commonly used items
 // Store types
 pub use store::{
-    create_computed, provide_store, use_store_slice, LoggerMiddleware, MiddlewareChain, Store,
+    create_computed, create_store, provide_store, use_store_slice, LoggerMiddleware, MiddlewareChain, Store,
     StoreContext, StoreSlice, ValidationMiddleware,
 };
 // Machine types
 pub use machine::{Machine, MachineBuilder, MachineState, StateMachine};
 // Hook types
-pub use hooks::{use_machine, use_machine_history, use_store};
+pub use hooks::{use_machine, use_machine_history, use_machine_with_instance, use_store, use_store_with_actions};
 // Utility types
 pub use utils::{LogLevel, StateError, StateResult};
 // Compatibility layer

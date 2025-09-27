@@ -666,25 +666,93 @@ impl LocalStorage {
 }
 
 impl MachineStorage for LocalStorage {
-    fn save(&self, _key: &str, _data: &str) -> StateResult<()> {
-        // TODO: Implement localStorage when web-sys features are properly configured
-        tracing::warn!("LocalStorage not yet implemented - web-sys features need configuration");
-        Ok(())
+    fn save(&self, key: &str, data: &str) -> StateResult<()> {
+        #[cfg(target_arch = "wasm32")]
+        {
+            use web_sys::window;
+            if let Some(window) = window() {
+                if let Ok(Some(storage)) = window.local_storage() {
+                    storage.set_item(key, data)
+                        .map_err(|e| StateError::new(&format!("Failed to save to localStorage: {:?}", e)))?;
+                    return Ok(());
+                }
+            }
+            Err(StateError::new("localStorage not available"))
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            // For non-WASM targets, use file-based storage
+            let storage_path = format!("./storage/{}.json", key);
+            if let Err(e) = std::fs::create_dir_all("./storage") {
+                return Err(StateError::new(&format!("Failed to create storage directory: {}", e)));
+            }
+            std::fs::write(&storage_path, data)
+                .map_err(|e| StateError::new(&format!("Failed to write to file: {}", e)))?;
+            Ok(())
+        }
     }
 
-    fn load(&self, _key: &str) -> StateResult<String> {
-        // TODO: Implement localStorage when web-sys features are properly configured
-        Err(StateError::new("LocalStorage not yet implemented"))
+    fn load(&self, key: &str) -> StateResult<String> {
+        #[cfg(target_arch = "wasm32")]
+        {
+            use web_sys::window;
+            if let Some(window) = window() {
+                if let Ok(Some(storage)) = window.local_storage() {
+                    if let Ok(Some(data)) = storage.get_item(key) {
+                        return Ok(data);
+                    }
+                }
+            }
+            Err(StateError::new("localStorage not available or key not found"))
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            // For non-WASM targets, use file-based storage
+            let storage_path = format!("./storage/{}.json", key);
+            std::fs::read_to_string(&storage_path)
+                .map_err(|e| StateError::new(&format!("Failed to read from file: {}", e)))
+        }
+
+    fn delete(&self, key: &str) -> StateResult<()> {
+        #[cfg(target_arch = "wasm32")]
+        {
+            use web_sys::window;
+            if let Some(window) = window() {
+                if let Ok(Some(storage)) = window.local_storage() {
+                    storage.remove_item(key)
+                        .map_err(|e| StateError::new(&format!("Failed to delete from localStorage: {:?}", e)))?;
+                    return Ok(());
+                }
+            }
+            Err(StateError::new("localStorage not available"))
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            // For non-WASM targets, use file-based storage
+            let storage_path = format!("./storage/{}.json", key);
+            std::fs::remove_file(&storage_path)
+                .map_err(|e| StateError::new(&format!("Failed to delete file: {}", e)))?;
+            Ok(())
+        }
     }
 
-    fn delete(&self, _key: &str) -> StateResult<()> {
-        // TODO: Implement localStorage when web-sys features are properly configured
-        Ok(())
-    }
-
-    fn exists(&self, _key: &str) -> bool {
-        // TODO: Implement localStorage when web-sys features are properly configured
-        false
+    fn exists(&self, key: &str) -> bool {
+        #[cfg(target_arch = "wasm32")]
+        {
+            use web_sys::window;
+            if let Some(window) = window() {
+                if let Ok(Some(storage)) = window.local_storage() {
+                    return storage.get_item(key).map_or(false, |item| item.is_some());
+                }
+            }
+            false
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            // For non-WASM targets, use file-based storage
+            let storage_path = format!("./storage/{}.json", key);
+            std::path::Path::new(&storage_path).exists()
+        }
     }
 }
 

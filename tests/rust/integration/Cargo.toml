@@ -9,6 +9,11 @@ leptos-state = { path = "../../../leptos-state" }
 wasm-bindgen-test = { workspace = true }
 console_error_panic_hook = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
+futures = "0.3"
+proptest = { workspace = true }
+web-sys = { workspace = true }
+js-sys = { workspace = true }
 
 [target.wasm32-unknown-unknown.dependencies]
 wasm-bindgen-test = { workspace = true }
