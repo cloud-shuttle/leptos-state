@@ -4,8 +4,8 @@ use crate::machine::states::StateValue;
 /// Concrete implementation of machine state
 #[derive(Debug, Clone, PartialEq)]
 pub struct MachineStateImpl<C: Send + Sync> {
-    value: StateValue,
-    context: C,
+    pub value: StateValue,
+    pub context: C,
 }
 
 impl<C: Send + Sync + 'static> MachineState for MachineStateImpl<C> {

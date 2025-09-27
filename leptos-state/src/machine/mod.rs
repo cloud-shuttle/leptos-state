@@ -43,7 +43,7 @@ pub use builder::{MachineBuilderImpl, create_machine_builder};
 pub use types::{ContextValue, HistoryEntry, EventRoutingConfig, StateValidationConfig, PerformanceConfig, IntegrationConfig, CompleteMachineConfig};
 
 // Legacy compatibility - re-export from old modules for now
-pub use machine::*;
+// pub use machine::*;
 // Core machine types
 pub use actions::{ActionBuilder, ActionExecution, ActionExecutor};
 pub use codegen::{CodeGenConfig, CodeGenerator, GeneratedFile, MachineCodeGenExt};

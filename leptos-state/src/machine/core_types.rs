@@ -11,7 +11,7 @@ pub struct StateNode<C, E, S> {
     pub exit_actions: Vec<Box<dyn Action<C, E>>>,
     pub child_states: HashMap<String, StateNode<C, E, C>>,
     pub initial_child: Option<String>,
-    _phantom: std::marker::PhantomData<S>,
+    pub _phantom: std::marker::PhantomData<S>,
 }
 
 /// Transition definition
@@ -24,9 +24,9 @@ pub struct Transition<C, E> {
 
 /// Complete machine implementation
 pub struct Machine<C: Send + Sync, E, S> {
-    states: HashMap<String, StateNode<C, E, C>>,
-    initial: String,
-    _phantom: std::marker::PhantomData<S>,
+    pub states: HashMap<String, StateNode<C, E, C>>,
+    pub initial: String,
+    pub _phantom: std::marker::PhantomData<S>,
 }
 
 // Manual Clone implementation for Transition since trait objects can't be cloned
@@ -67,7 +67,7 @@ impl<C: Clone + Send + Sync, E: Clone> Clone for Machine<C, E, C> {
     }
 }
 
-impl<C: Send + Sync + Clone, E: Clone> Machine<C, E, C> {
+impl<C: Send + Sync + Clone + 'static, E: Clone> Machine<C, E, C> {
     /// Get all state IDs in the machine
     pub fn get_states(&self) -> Vec<String> {
         self.states.keys().cloned().collect()
@@ -117,7 +117,7 @@ impl<C: Send + Sync + Clone, E: Clone> Machine<C, E, C> {
     where
         E: PartialEq,
     {
-        match &state.value {
+        match &state.value() {
             StateValue::Simple(id) => self.transition_simple(state, id, event),
             StateValue::Compound { parent, child } => {
                 self.transition_hierarchical(state, parent, child, event)
@@ -125,7 +125,7 @@ impl<C: Send + Sync + Clone, E: Clone> Machine<C, E, C> {
             StateValue::Parallel(states) => {
                 // Handle parallel states by transitioning each active region
                 let mut new_states = Vec::new();
-                let mut context = state.context.clone();
+                let mut context = state.context().clone();
 
                 for parallel_state in states {
                     let temp_state = MachineStateImpl {
@@ -133,8 +133,8 @@ impl<C: Send + Sync + Clone, E: Clone> Machine<C, E, C> {
                         context: context.clone(),
                     };
                     let transitioned = self.transition(&temp_state, event.clone());
-                    new_states.push(transitioned.value);
-                    context = transitioned.context;
+                    new_states.push(transitioned.value().clone());
+                    context = transitioned.context().clone();
                 }
 
                 MachineStateImpl {
@@ -162,10 +162,10 @@ impl<C: Send + Sync + Clone, E: Clone> Machine<C, E, C> {
                     let guards_pass = transition
                         .guards
                         .iter()
-                        .all(|guard| guard.check(&state.context, &event));
+                        .all(|guard| guard.check(state.context(), &event));
 
                     if guards_pass {
-                        let mut new_context = state.context.clone();
+                        let mut new_context = state.context().clone();
 
                         // Execute transition actions
                         for action in &transition.actions {
@@ -209,19 +209,19 @@ impl<C: Send + Sync + Clone, E: Clone> Machine<C, E, C> {
         // First try child state transitions
         let child_state = MachineStateImpl {
             value: (*child).clone(),
-            context: state.context.clone(),
+            context: state.context().clone(),
         };
 
         let child_transitioned = self.transition(&child_state, event.clone());
 
         // If child transitioned, update the compound state
-        if child_transitioned.value != (*child).clone() {
+        if child_transitioned.value() != child {
             return MachineStateImpl {
                 value: StateValue::Compound {
                     parent: parent_id.to_string(),
-                    child: Box::new(child_transitioned.value),
+                    child: Box::new(child_transitioned.value().clone()),
                 },
-                context: child_transitioned.context,
+                context: child_transitioned.context().clone(),
             };
         }
 

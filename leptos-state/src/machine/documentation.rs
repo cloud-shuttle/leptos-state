@@ -220,7 +220,7 @@ where
         // States
         markdown.push_str("## States\n\n");
         let states = self.machine.get_states();
-        for (state_name, _state_node) in states {
+        for state_name in states {
             markdown.push_str(&format!("### {}\n\n", state_name));
             markdown.push_str("State description and behavior.\n\n");
         }
@@ -341,7 +341,7 @@ where
         // States
         html.push_str("    <h2>States</h2>\n");
         let states = self.machine.get_states();
-        for (state_name, _state_node) in states {
+        for state_name in states {
             html.push_str(&format!("    <div class=\"state\">\n"));
             html.push_str(&format!("        <h3>{}</h3>\n", state_name));
             html.push_str("        <p>State description and behavior.</p>\n");
@@ -426,7 +426,7 @@ where
         // States
         asciidoc.push_str("== States\n\n");
         let states = self.machine.get_states();
-        for (state_name, _state_node) in states {
+        for state_name in states {
             asciidoc.push_str(&format!("=== {}\n\n", state_name));
             asciidoc.push_str("State description and behavior.\n\n");
         }
@@ -472,7 +472,7 @@ where
         rst.push_str("States\n");
         rst.push_str("------\n\n");
         let states = self.machine.get_states();
-        for (state_name, _state_node) in states {
+        for state_name in states {
             rst.push_str(&format!("{}\n", state_name));
             rst.push_str(&format!("{}\n", "~".repeat(state_name.len())));
             rst.push_str("State description and behavior.\n\n");
@@ -495,7 +495,7 @@ where
     fn generate_json_documentation(&self) -> StateResult<String> {
         let _doc = DocumentationData {
             title: "State Machine Documentation".to_string(),
-            states: self.machine.get_states().keys().cloned().collect(),
+            states: self.machine.get_states(),
             events: self.get_machine_events(),
             transitions: self.get_machine_transitions(),
             generated_at: std::time::SystemTime::now()
@@ -519,7 +519,7 @@ where
     fn generate_yaml_documentation(&self) -> StateResult<String> {
         let _doc = DocumentationData {
             title: "State Machine Documentation".to_string(),
-            states: self.machine.get_states().keys().cloned().collect(),
+            states: self.machine.get_states(),
             events: self.get_machine_events(),
             transitions: self.get_machine_transitions(),
             generated_at: std::time::SystemTime::now()
@@ -562,7 +562,7 @@ where
 
         // Replace placeholders with actual data
         rendered = rendered.replace("{{title}}", "State Machine Documentation");
-        rendered = rendered.replace("{{states}}", &self.machine.get_states().keys().cloned().collect::<Vec<String>>().join(", "));
+        rendered = rendered.replace("{{states}}", &self.machine.get_states().join(", "));
         rendered = rendered.replace("{{events}}", &self.get_machine_events().join(", "));
 
         Ok(rendered)

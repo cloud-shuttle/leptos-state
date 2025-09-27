@@ -3,11 +3,11 @@ use std::collections::HashMap;
 
 /// Builder for child states in hierarchical machines
 pub struct ChildStateBuilder<C: Send + Sync, E: Send + Sync> {
-    parent_builder: StateBuilder<C, E>,
-    child_id: String,
-    transitions: Vec<Transition<C, E>>,
-    entry_actions: Vec<Box<dyn Action<C, E>>>,
-    exit_actions: Vec<Box<dyn Action<C, E>>>,
+    pub parent_builder: StateBuilder<C, E>,
+    pub child_id: String,
+    pub transitions: Vec<Transition<C, E>>,
+    pub entry_actions: Vec<Box<dyn Action<C, E>>>,
+    pub exit_actions: Vec<Box<dyn Action<C, E>>>,
 }
 
 impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildStateBuilder<C, E> {

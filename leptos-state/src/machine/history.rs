@@ -2,7 +2,7 @@
 
 use super::*;
 use crate::machine::states::StateValue;
-use crate::machine::machine::MachineState;
+use crate::machine::traits::MachineState;
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -81,17 +81,13 @@ impl<
     where
         C: Default,
     {
-        let state_name = self.base_machine.initial_state();
-        let state_value = StateValue::Simple(state_name.to_string());
-        let state = MachineStateImpl::new(state_value, C::default());
+        let state = self.base_machine.initial_state();
         self.history_tracker.record_state(&state);
         state
     }
 
     pub fn initial_with_context(&self, context: C) -> MachineStateImpl<C> {
-        let state_name = self.base_machine.initial_state();
-        let state_value = StateValue::Simple(state_name.to_string());
-        let state = MachineStateImpl::new(state_value, context);
+        let state = self.base_machine.initial_with_context(context);
         self.history_tracker.record_state(&state);
         state
     }

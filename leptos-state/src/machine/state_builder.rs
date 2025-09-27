@@ -3,13 +3,13 @@ use std::collections::HashMap;
 
 /// State builder for fluent API
 pub struct StateBuilder<C: Send + Sync, E: Send + Sync> {
-    machine_builder: MachineBuilder<C, E>,
-    current_state: String,
-    transitions: Vec<Transition<C, E>>,
-    entry_actions: Vec<Box<dyn Action<C, E>>>,
-    exit_actions: Vec<Box<dyn Action<C, E>>>,
-    child_states: HashMap<String, StateNode<C, E, C>>,
-    initial_child: Option<String>,
+    pub machine_builder: MachineBuilder<C, E>,
+    pub current_state: String,
+    pub transitions: Vec<Transition<C, E>>,
+    pub entry_actions: Vec<Box<dyn Action<C, E>>>,
+    pub exit_actions: Vec<Box<dyn Action<C, E>>>,
+    pub child_states: HashMap<String, StateNode<C, E, C>>,
+    pub initial_child: Option<String>,
 }
 
 impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBuilder<C, E> {

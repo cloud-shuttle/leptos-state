@@ -185,7 +185,7 @@ where
         code.push_str("#[derive(Debug, Clone, PartialEq)]\n");
         code.push_str("pub enum State {\n");
         let states = self.machine.get_states();
-        for (state_name, _state_node) in states {
+        for state_name in states {
             code.push_str(&format!("    {},\n", state_name));
         }
         code.push_str("}\n\n");
@@ -294,7 +294,7 @@ where
 
         code.push_str("## States\n\n");
         let states = self.machine.get_states();
-        for (state_name, _state_node) in states {
+        for state_name in states {
             code.push_str(&format!("- **{}**: State description\n", state_name));
         }
         code.push_str("\n");
@@ -354,7 +354,7 @@ where
         // Add enums
         code.push_str("export enum State {\n");
         let states = self.machine.get_states();
-        for (state_name, _state_node) in states {
+        for state_name in states {
             code.push_str(&format!("    {},\n", state_name));
         }
         code.push_str("}\n\n");

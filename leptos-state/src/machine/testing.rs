@@ -220,7 +220,7 @@ where
 
                 // Record coverage before transition
                 if let Some(ref mut tracker) = self.coverage_tracker {
-                    tracker.record_state(current_state);
+                    tracker.record_state(&current_state.value.to_string());
                 }
 
                 // Perform transition - need to convert String back to E
@@ -237,8 +237,8 @@ where
                 // Record test step
                 test_path.push(TestStep {
                     event: step.event,
-                    from_state: current_state.to_string(),
-                    to_state: new_state.to_string(),
+                    from_state: current_state.value.to_string(),
+                    to_state: new_state.value.to_string(),
                     context_before: format!("{:?}", "placeholder_context"),
                     context_after: format!("{:?}", "placeholder_context"),
                     guards_evaluated: step.guards_evaluated.clone(),
@@ -517,12 +517,12 @@ where
 
             if let Some(state_node) = self.machine.states_map().get(&current_state) {
                 for transition in &state_node.transitions {
-                    let next_state = transition.1.clone(); // transition is (event, target)
+                    let next_state = transition.target.clone();
                     if !visited.contains(&next_state) {
                         visited.insert(next_state.clone());
                         parent.insert(
                             next_state.clone(),
-                            (current_state.clone(), transition.0.clone()), // transition is (event, target)
+                            (current_state.clone(), transition.event.clone()),
                         );
                         queue.push_back(next_state.clone());
                     }
@@ -591,10 +591,10 @@ where
 
         if let Some(state_node) = self.machine.states_map().get(state) {
             for transition in &state_node.transitions {
-                current_path.push(transition.0.clone()); // transition is (event, target)
+                current_path.push(transition.event.clone());
                 paths.push(current_path.clone());
 
-                let target_state = transition.1.clone(); // transition is (event, target)
+                let target_state = transition.target.clone();
                 if !visited.contains(&target_state) {
                     visited.insert(target_state.clone());
                     self.dfs_find_paths(&target_state, visited, current_path, paths);

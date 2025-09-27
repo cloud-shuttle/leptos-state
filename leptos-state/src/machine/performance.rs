@@ -5,7 +5,7 @@
 //! profiling, and optimization strategies.
 
 use super::*;
-use crate::machine::machine::MachineState;
+// use crate::machine::machine::MachineState;
 
 use std::collections::{HashMap, VecDeque};
 use std::hash::Hash;
@@ -740,16 +740,16 @@ where
 
         // Check cache first
         let cache_key = CacheKey::new(
-            current.value().to_string(),
+            current.value.to_string(),
             event.clone(),
-            current.context(),
+            &current.context,
         );
 
         let result = if let Some(cached_result) = self.cache.get(&cache_key) {
             cached_result
         } else {
             // Perform the actual transition
-            let _transition_result = self.machine.transition(event.clone());
+            let _transition_result = self.machine.transition(current, event.clone());
             
             // For now, return the current state since transition doesn't return a new state
             // In a real implementation, this would need to be properly implemented
@@ -882,8 +882,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::machine::states::StateValue;
+use super::*;
+use crate::machine::states::StateValue;
+use crate::machine::traits::MachineState;
     // use crate::machine::*;
 
     #[derive(Debug, Clone, PartialEq, Hash, Eq, Default)]

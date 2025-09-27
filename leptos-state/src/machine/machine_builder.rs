@@ -22,8 +22,8 @@ use crate::machine::performance::{
 
 /// Builder for creating state machines
 pub struct MachineBuilder<C: Send + Sync, E: Send + Sync> {
-    states: HashMap<String, StateNode<C, E, C>>,
-    initial: String,
+    pub states: HashMap<String, StateNode<C, E, C>>,
+    pub initial: String,
     _phantom: PhantomData<(C, E)>,
 }
 
