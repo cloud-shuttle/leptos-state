@@ -80,6 +80,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Machine
         Machine {
             states: self.states,
             initial: self.initial,
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -435,6 +436,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBu
             exit_actions: self.exit_actions,
             child_states: self.child_states,
             initial_child: self.initial_child,
+            _phantom: std::marker::PhantomData,
         };
 
         self.machine_builder
@@ -454,6 +456,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBu
             exit_actions: self.exit_actions,
             child_states: self.child_states,
             initial_child: self.initial_child,
+            _phantom: std::marker::PhantomData,
         };
 
         let mut builder = self.machine_builder;
@@ -470,6 +473,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBu
             exit_actions: self.exit_actions,
             child_states: self.child_states,
             initial_child: self.initial_child,
+            _phantom: std::marker::PhantomData,
         };
 
         let mut builder = self.machine_builder;
@@ -583,6 +587,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildSt
             exit_actions: self.exit_actions,
             child_states: HashMap::new(),
             initial_child: None,
+            _phantom: std::marker::PhantomData,
         };
 
         let mut parent = self.parent_builder;
@@ -601,6 +606,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildSt
             exit_actions: self.exit_actions,
             child_states: HashMap::new(),
             initial_child: None,
+            _phantom: std::marker::PhantomData,
         };
 
         let mut parent = self.parent_builder;
@@ -637,7 +643,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildTr
     /// Add a function-based guard
     pub fn guard_fn<F>(mut self, func: F) -> Self
     where
-        F: Fn(&C, &E) -> bool + 'static,
+        F: Fn(&C, &E) -> bool + Send + Sync + 'static,
     {
         self.guards.push(Box::new(guards::FunctionGuard::new(func)));
         self
@@ -646,8 +652,8 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildTr
     /// Add a field equality guard
     pub fn guard_field_equals<T, F>(mut self, field_extractor: F, expected_value: T) -> Self
     where
-        F: Fn(&C) -> T + 'static,
-        T: PartialEq + 'static,
+        F: Fn(&C) -> T + Send + Sync + 'static,
+        T: PartialEq + Send + Sync + 'static,
     {
         self.guards.push(Box::new(guards::FieldEqualityGuard::new(
             field_extractor,
@@ -659,8 +665,8 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildTr
     /// Add a range guard
     pub fn guard_field_range<T, F>(mut self, field_extractor: F, min: T, max: T) -> Self
     where
-        F: Fn(&C) -> T + 'static,
-        T: PartialOrd + 'static,
+        F: Fn(&C) -> T + Send + Sync + 'static,
+        T: PartialOrd + Send + Sync + 'static,
     {
         self.guards
             .push(Box::new(guards::RangeGuard::new(field_extractor, min, max)));
@@ -714,7 +720,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildTr
 }
 
 /// Transition builder for fluent API
-pub struct TransitionBuilder<C: Send + Sync, E> {
+pub struct TransitionBuilder<C: Send + Sync, E: Send + Sync> {
     state_builder: StateBuilder<C, E>,
     event: E,
     target: String,
@@ -722,7 +728,7 @@ pub struct TransitionBuilder<C: Send + Sync, E> {
     actions: Vec<Box<dyn Action<C, E>>>,
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> TransitionBuilder<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> TransitionBuilder<C, E> {
     pub fn new(state_builder: StateBuilder<C, E>, event: E, target: String) -> Self {
         Self {
             state_builder,
@@ -741,7 +747,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> TransitionBuilder<C, 
     /// Add a function-based guard
     pub fn guard_fn<F>(mut self, func: F) -> Self
     where
-        F: Fn(&C, &E) -> bool + 'static,
+        F: Fn(&C, &E) -> bool + Send + Sync + 'static,
     {
         self.guards.push(Box::new(guards::FunctionGuard::new(func)));
         self
@@ -750,8 +756,8 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> TransitionBuilder<C, 
     /// Add a field equality guard
     pub fn guard_field_equals<T, F>(mut self, field_extractor: F, expected_value: T) -> Self
     where
-        F: Fn(&C) -> T + 'static,
-        T: PartialEq + 'static,
+        F: Fn(&C) -> T + Send + Sync + 'static,
+        T: PartialEq + Send + Sync + 'static,
     {
         self.guards.push(Box::new(guards::FieldEqualityGuard::new(
             field_extractor,
@@ -763,8 +769,8 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> TransitionBuilder<C, 
     /// Add a range guard
     pub fn guard_field_range<T, F>(mut self, field_extractor: F, min: T, max: T) -> Self
     where
-        F: Fn(&C) -> T + 'static,
-        T: PartialOrd + 'static,
+        F: Fn(&C) -> T + Send + Sync + 'static,
+        T: PartialOrd + Send + Sync + 'static,
     {
         self.guards
             .push(Box::new(guards::RangeGuard::new(field_extractor, min, max)));
@@ -912,6 +918,7 @@ impl<C: Clone, E: Clone> Clone for StateNode<C, E, C> {
             exit_actions: Vec::new(),
             child_states: self.child_states.clone(),
             initial_child: self.initial_child.clone(),
+            _phantom: std::marker::PhantomData,
         }
     }
 }
@@ -922,6 +929,7 @@ impl<C: Clone + Send + Sync, E: Clone> Clone for Machine<C, E, C> {
         Self {
             states: self.states.clone(),
             initial: self.initial.clone(),
+            _phantom: std::marker::PhantomData,
         }
     }
 }

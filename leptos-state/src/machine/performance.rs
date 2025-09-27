@@ -735,7 +735,7 @@ where
     }
 
     /// Perform an optimized transition
-    pub fn transition(&self, current: &MachineStateImpl<C>, event: E) -> MachineStateImpl<C> {
+    pub fn transition(&mut self, current: &MachineStateImpl<C>, event: E) -> MachineStateImpl<C> {
         let start_time = Instant::now();
 
         // Check cache first
