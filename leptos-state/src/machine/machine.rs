@@ -24,8 +24,8 @@ use crate::machine::performance::{
 };
 // #[cfg(feature = "persist")]
 // use crate::machine::persistence::{MachinePersistenceExt, PersistenceConfig, PersistentMachine};
-#[cfg(feature = "testing")]
-use crate::machine::testing::{DataStrategy, MachineTestRunner, MachineTestingExt, TestConfig};
+// #[cfg(feature = "testing")]
+// use crate::machine::testing::{DataStrategy, MachineTestRunner, MachineTestingExt, TestConfig};
 // #[cfg(feature = "visualization")]
 // use crate::machine::visualization::{
 //     ExportFormat, MachineVisualizationExt, VisualizationConfig, VisualizedMachine,

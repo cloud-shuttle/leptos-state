@@ -679,7 +679,15 @@ impl ActionExecution {
             errors: Vec::new(),
         }
     }
+}
 
+impl Default for ActionExecution {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl ActionExecution {
     pub fn add_action(&mut self, description: String, executed: bool) {
         self.action_descriptions.push(description);
         if !executed {

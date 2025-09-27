@@ -19,8 +19,8 @@ pub enum StateEvent {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum State {
-    playing,
     idle,
+    playing,
 }
 
 pub struct StateMachine {

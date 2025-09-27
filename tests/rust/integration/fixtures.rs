@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use leptos_state::*;
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
 pub struct TestState {
     pub count: i32,
     pub name: String,

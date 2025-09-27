@@ -11,7 +11,7 @@ pub fn use_machine<M: StateMachine>() -> MachineHandle<M> {
     });
 
     MachineHandle {
-        state: state.into(),
+        state,
         send,
         context: Memo::new(move |_| state.get().context().clone()),
         value: Memo::new(move |_| state.get().value().clone()),
@@ -28,7 +28,7 @@ pub fn use_machine_with_instance<M: StateMachine>(
         set_state.update(|s| *s = M::transition(s, event));
     });
 
-    (state.into(), send)
+    (state, send)
 }
 
 /// Hook to create a machine with initial context

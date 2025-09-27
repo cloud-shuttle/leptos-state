@@ -1,6 +1,6 @@
 //! Integration tests for state machine functionality
 
-use leptos::prelude::*;
+// use leptos::prelude::*;
 use leptos_state::*;
 use wasm_bindgen_test::*;
 
@@ -18,7 +18,7 @@ fn machine_creation_and_initial_state() {
 
     assert_eq!(initial_state.value(), &StateValue::simple("idle"));
     assert_eq!(initial_state.context().value, 0);
-    assert_eq!(initial_state.context().flag, false);
+    assert!(!initial_state.context().flag);
 }
 
 #[wasm_bindgen_test]
@@ -114,7 +114,7 @@ fn machine_with_actions() {
     let end_state = machine.transition(&initial_state, TestEvent::Toggle);
 
     assert_eq!(end_state.value(), &StateValue::simple("end"));
-    assert_eq!(end_state.context().flag, true); // Should be toggled by action
+    assert!(end_state.context().flag); // Should be toggled by action
 }
 
 #[wasm_bindgen_test]

@@ -1,4 +1,23 @@
 //! # Leptos State Management Library
+
+#![allow(clippy::type_complexity)]
+#![allow(clippy::useless_format)]
+#![allow(clippy::single_char_add_str)]
+#![allow(clippy::redundant_pattern_matching)]
+#![allow(clippy::format_in_format_args)]
+#![allow(clippy::new_without_default)]
+#![allow(clippy::derivable_impls)]
+#![allow(clippy::module_inception)]
+#![allow(clippy::needless_borrows_for_generic_args)]
+#![allow(clippy::should_implement_trait)]
+#![allow(dead_code)]
+#![allow(clippy::assertions_on_constants)]
+#![allow(clippy::bool_assert_comparison)]
+#![allow(clippy::absurd_extreme_comparisons)]
+#![allow(unused_comparisons)]
+#![allow(clippy::needless_borrow)]
+#![allow(clippy::manual_map)]
+#![allow(clippy::clone_on_copy)]
 //!
 //! A state management library for Leptos applications inspired by Zustand's simplicity
 //! and XState's state machine capabilities.

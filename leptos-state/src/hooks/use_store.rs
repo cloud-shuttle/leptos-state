@@ -199,6 +199,11 @@ impl<T: Clone + Send + Sync> StoreHistory<T> {
         self.history.get().len()
     }
 
+    /// Check if history is empty
+    pub fn is_empty(&self) -> bool {
+        self.history.get().is_empty()
+    }
+
     /// Get current index in history
     pub fn current(&self) -> usize {
         self.current_index.get()

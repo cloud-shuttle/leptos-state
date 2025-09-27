@@ -277,8 +277,8 @@ mod tests {
     use crate::create_store;
 
     #[derive(Clone, PartialEq, Debug)]
-    struct TestState {
-        count: i32,
+    pub struct TestState {
+        pub count: i32,
     }
 
     create_store!(TestStore, TestState, TestState { count: 0 });
