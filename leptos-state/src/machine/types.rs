@@ -117,7 +117,7 @@ impl Context {
 }
 
 /// Values that can be stored in machine context
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ContextValue {
     String(String),
     Number(f64),

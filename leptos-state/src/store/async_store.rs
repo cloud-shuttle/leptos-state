@@ -195,7 +195,7 @@ where
                 set_input_signal.set(next_input);
                 I::load_page(input).await
             } else {
-                Ok(I::Page::default())
+                Ok(Default::default())
             }
         }
     );

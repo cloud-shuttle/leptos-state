@@ -163,7 +163,7 @@ mod tests {
         value: i32,
     }
 
-    #[derive(Clone, Debug, PartialEq)]
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
     enum TestEvent {
         Next,
         Previous,
