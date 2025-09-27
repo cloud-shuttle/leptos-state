@@ -191,7 +191,7 @@ where
 
             // Create resource for async loading using simplified API
             // Using simplified create_resource to avoid closure trait issues
-            let resource_handle = create_resource(
+            let resource_handle: crate::compat::resources::Resource<_, I::State> = create_resource(
                 initial_input.clone(),
                 |input| {
                     // Simplified implementation that doesn't rely on async closures

@@ -52,13 +52,13 @@ pub trait MachineState {
 }
 
 /// Builder for creating state machines
-pub struct MachineBuilder<C: Send + Sync, E> {
+pub struct MachineBuilder<C: Send + Sync, E: Send + Sync> {
     states: HashMap<String, StateNode<C, E, C>>,
     initial: String,
     _phantom: PhantomData<(C, E)>,
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> MachineBuilder<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> MachineBuilder<C, E> {
     pub fn new() -> Self {
         Self {
             states: HashMap::new(),
@@ -307,7 +307,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> MachineBuilder<C, E> 
     }
 }
 
-impl<C: Clone + 'static + std::fmt::Debug + Send + Sync, E: Clone + 'static + std::fmt::Debug>
+impl<C: Clone + 'static + std::fmt::Debug + Send + Sync, E: Clone + 'static + std::fmt::Debug + Send + Sync>
     Default for MachineBuilder<C, E>
 {
     fn default() -> Self {
@@ -316,7 +316,7 @@ impl<C: Clone + 'static + std::fmt::Debug + Send + Sync, E: Clone + 'static + st
 }
 
 /// State builder for fluent API
-pub struct StateBuilder<C: Send + Sync, E> {
+pub struct StateBuilder<C: Send + Sync, E: Send + Sync> {
     machine_builder: MachineBuilder<C, E>,
     current_state: String,
     transitions: Vec<Transition<C, E>>,
@@ -326,7 +326,7 @@ pub struct StateBuilder<C: Send + Sync, E> {
     initial_child: Option<String>,
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> StateBuilder<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBuilder<C, E> {
     pub fn new(machine_builder: MachineBuilder<C, E>, state_id: String) -> Self {
         Self {
             machine_builder,
@@ -356,7 +356,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> StateBuilder<C, E> {
     /// Add a function-based entry action
     pub fn on_entry_fn<F>(mut self, func: F) -> Self
     where
-        F: Fn(&mut C, &E) + 'static,
+        F: Fn(&mut C, &E) + Send + Sync + 'static,
     {
         self.entry_actions
             .push(Box::new(actions::FunctionAction::new(func)));
@@ -366,7 +366,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> StateBuilder<C, E> {
     /// Add a function-based exit action
     pub fn on_exit_fn<F>(mut self, func: F) -> Self
     where
-        F: Fn(&mut C, &E) + 'static,
+        F: Fn(&mut C, &E) + Send + Sync + 'static,
     {
         self.exit_actions
             .push(Box::new(actions::FunctionAction::new(func)));
@@ -398,7 +398,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> StateBuilder<C, E> {
     /// Add a pure entry action (no context modification)
     pub fn on_entry_pure<F>(mut self, func: F) -> Self
     where
-        F: Fn() + 'static,
+        F: Fn() + Send + Sync + 'static,
     {
         self.entry_actions
             .push(Box::new(actions::PureAction::new(func)));
@@ -408,7 +408,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> StateBuilder<C, E> {
     /// Add a pure exit action (no context modification)
     pub fn on_exit_pure<F>(mut self, func: F) -> Self
     where
-        F: Fn() + 'static,
+        F: Fn() + Send + Sync + 'static,
     {
         self.exit_actions
             .push(Box::new(actions::PureAction::new(func)));
@@ -479,7 +479,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> StateBuilder<C, E> {
 }
 
 /// Builder for child states in hierarchical machines
-pub struct ChildStateBuilder<C: Send + Sync, E> {
+pub struct ChildStateBuilder<C: Send + Sync, E: Send + Sync> {
     parent_builder: StateBuilder<C, E>,
     child_id: String,
     transitions: Vec<Transition<C, E>>,
@@ -487,7 +487,7 @@ pub struct ChildStateBuilder<C: Send + Sync, E> {
     exit_actions: Vec<Box<dyn Action<C, E>>>,
 }
 
-impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildStateBuilder<C, E> {
+impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildStateBuilder<C, E> {
     pub fn new(parent_builder: StateBuilder<C, E>, child_id: String) -> Self {
         Self {
             parent_builder,
@@ -515,7 +515,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildStateBuilder<C, 
     /// Add a function-based entry action
     pub fn on_entry_fn<F>(mut self, func: F) -> Self
     where
-        F: Fn(&mut C, &E) + 'static,
+        F: Fn(&mut C, &E) + Send + Sync + 'static,
     {
         self.entry_actions
             .push(Box::new(actions::FunctionAction::new(func)));
@@ -525,7 +525,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildStateBuilder<C, 
     /// Add a function-based exit action
     pub fn on_exit_fn<F>(mut self, func: F) -> Self
     where
-        F: Fn(&mut C, &E) + 'static,
+        F: Fn(&mut C, &E) + Send + Sync + 'static,
     {
         self.exit_actions
             .push(Box::new(actions::FunctionAction::new(func)));
@@ -557,7 +557,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildStateBuilder<C, 
     /// Add a pure entry action (no context modification)
     pub fn on_entry_pure<F>(mut self, func: F) -> Self
     where
-        F: Fn() + 'static,
+        F: Fn() + Send + Sync + 'static,
     {
         self.entry_actions
             .push(Box::new(actions::PureAction::new(func)));
@@ -567,7 +567,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildStateBuilder<C, 
     /// Add a pure exit action (no context modification)
     pub fn on_exit_pure<F>(mut self, func: F) -> Self
     where
-        F: Fn() + 'static,
+        F: Fn() + Send + Sync + 'static,
     {
         self.exit_actions
             .push(Box::new(actions::PureAction::new(func)));
@@ -610,7 +610,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildStateBuilder<C, 
 }
 
 /// Transition builder for child states
-pub struct ChildTransitionBuilder<C: Send + Sync, E> {
+pub struct ChildTransitionBuilder<C: Send + Sync, E: Send + Sync> {
     child_builder: ChildStateBuilder<C, E>,
     event: E,
     target: String,
@@ -618,7 +618,7 @@ pub struct ChildTransitionBuilder<C: Send + Sync, E> {
     actions: Vec<Box<dyn Action<C, E>>>,
 }
 
-impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildTransitionBuilder<C, E> {
+impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildTransitionBuilder<C, E> {
     pub fn new(child_builder: ChildStateBuilder<C, E>, event: E, target: String) -> Self {
         Self {
             child_builder,
@@ -833,7 +833,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> TransitionBuilder<C, 
     /// Finish the current transition and add an exit function to the current state
     pub fn on_exit_fn<F>(self, func: F) -> StateBuilder<C, E>
     where
-        F: Fn(&mut C, &E) + 'static,
+        F: Fn(&mut C, &E) + Send + Sync + 'static,
     {
         let transition = Transition {
             event: self.event,

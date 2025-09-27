@@ -100,10 +100,11 @@ where
             .ok_or_else(|| MachineError::InvalidState(self.current_state.clone()))?;
 
         let next_state = current_state.get_transition(&event)?;
+        let current_state_name = current_state.name.clone();
 
-        self.execute_transition(&current_state.name, &next_state, &event)?;
+        self.execute_transition(&current_state_name, &next_state, &event)?;
         self.current_state = next_state.clone();
-        self.history.record_transition(&current_state.name, &next_state);
+        self.history.record_transition(&current_state_name, &next_state);
 
         Ok(())
     }

@@ -3,7 +3,6 @@
 //! Provides version-agnostic APIs for Leptos resources across different versions.
 //! This layer uses a simplified approach that avoids problematic APIs.
 
-use leptos::prelude::*;
 
 /// Simple resource struct for compatibility
 pub struct Resource<S, T> {

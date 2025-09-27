@@ -8,7 +8,7 @@ use std::marker::PhantomData;
 use std::sync::Arc;
 
 /// Trait for transition guards
-pub trait Guard<C, E> {
+pub trait GuardEvaluator<C, E>: Send + Sync {
     /// Check if the transition should be allowed
     fn check(&self, context: &C, event: &E) -> bool;
 
@@ -44,9 +44,11 @@ where
     }
 }
 
-impl<C, E, F> Guard<C, E> for FunctionGuard<C, E, F>
+impl<C, E, F> GuardEvaluator<C, E> for FunctionGuard<C, E, F>
 where
-    F: Fn(&C, &E) -> bool,
+    C: Send + Sync,
+    E: Send + Sync,
+    F: Fn(&C, &E) -> bool + Send + Sync,
 {
     fn check(&self, context: &C, event: &E) -> bool {
         (self.func)(context, event)
@@ -60,7 +62,10 @@ where
 /// Always true guard (allow all transitions)
 pub struct AlwaysGuard;
 
-impl<C, E> Guard<C, E> for AlwaysGuard {
+impl<C, E> GuardEvaluator<C, E> for AlwaysGuard
+where
+    C: Send + Sync,
+    E: Send + Sync, {
     fn check(&self, _context: &C, _event: &E) -> bool {
         true
     }
@@ -73,7 +78,10 @@ impl<C, E> Guard<C, E> for AlwaysGuard {
 /// Never true guard (block all transitions)
 pub struct NeverGuard;
 
-impl<C, E> Guard<C, E> for NeverGuard {
+impl<C, E> GuardEvaluator<C, E> for NeverGuard
+where
+    C: Send + Sync,
+    E: Send + Sync, {
     fn check(&self, _context: &C, _event: &E) -> bool {
         false
     }
@@ -85,21 +93,24 @@ impl<C, E> Guard<C, E> for NeverGuard {
 
 /// And guard - all child guards must pass
 pub struct AndGuard<C, E> {
-    guards: Vec<Box<dyn Guard<C, E>>>,
+    guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
 }
 
 impl<C, E> AndGuard<C, E> {
-    pub fn new(guards: Vec<Box<dyn Guard<C, E>>>) -> Self {
+    pub fn new(guards: Vec<Box<dyn GuardEvaluator<C, E>>>) -> Self {
         Self { guards }
     }
 
-    pub fn add_guard(mut self, guard: Box<dyn Guard<C, E>>) -> Self {
+    pub fn add_guard(mut self, guard: Box<dyn GuardEvaluator<C, E>>) -> Self {
         self.guards.push(guard);
         self
     }
 }
 
-impl<C, E> Guard<C, E> for AndGuard<C, E> {
+impl<C, E> GuardEvaluator<C, E> for AndGuard<C, E>
+where
+    C: Send + Sync,
+    E: Send + Sync, {
     fn check(&self, context: &C, event: &E) -> bool {
         self.guards.iter().all(|guard| guard.check(context, event))
     }
@@ -111,21 +122,24 @@ impl<C, E> Guard<C, E> for AndGuard<C, E> {
 
 /// Or guard - any child guard must pass
 pub struct OrGuard<C, E> {
-    guards: Vec<Box<dyn Guard<C, E>>>,
+    guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
 }
 
 impl<C, E> OrGuard<C, E> {
-    pub fn new(guards: Vec<Box<dyn Guard<C, E>>>) -> Self {
+    pub fn new(guards: Vec<Box<dyn GuardEvaluator<C, E>>>) -> Self {
         Self { guards }
     }
 
-    pub fn add_guard(mut self, guard: Box<dyn Guard<C, E>>) -> Self {
+    pub fn add_guard(mut self, guard: Box<dyn GuardEvaluator<C, E>>) -> Self {
         self.guards.push(guard);
         self
     }
 }
 
-impl<C, E> Guard<C, E> for OrGuard<C, E> {
+impl<C, E> GuardEvaluator<C, E> for OrGuard<C, E>
+where
+    C: Send + Sync,
+    E: Send + Sync, {
     fn check(&self, context: &C, event: &E) -> bool {
         self.guards.iter().any(|guard| guard.check(context, event))
     }
@@ -137,16 +151,19 @@ impl<C, E> Guard<C, E> for OrGuard<C, E> {
 
 /// Not guard - inverts the result of the child guard
 pub struct NotGuard<C, E> {
-    guard: Box<dyn Guard<C, E>>,
+    guard: Box<dyn GuardEvaluator<C, E>>,
 }
 
 impl<C, E> NotGuard<C, E> {
-    pub fn new(guard: Box<dyn Guard<C, E>>) -> Self {
+    pub fn new(guard: Box<dyn GuardEvaluator<C, E>>) -> Self {
         Self { guard }
     }
 }
 
-impl<C, E> Guard<C, E> for NotGuard<C, E> {
+impl<C, E> GuardEvaluator<C, E> for NotGuard<C, E>
+where
+    C: Send + Sync,
+    E: Send + Sync, {
     fn check(&self, context: &C, event: &E) -> bool {
         !self.guard.check(context, event)
     }
@@ -184,10 +201,12 @@ where
     }
 }
 
-impl<C, E, T, F> Guard<C, E> for FieldEqualityGuard<C, E, T, F>
+impl<C, E, T, F> GuardEvaluator<C, E> for FieldEqualityGuard<C, E, T, F>
 where
-    F: Fn(&C) -> T,
-    T: PartialEq,
+    C: Send + Sync,
+    E: Send + Sync,
+    T: Send + Sync + PartialEq,
+    F: Fn(&C) -> T + Send + Sync,
 {
     fn check(&self, context: &C, _event: &E) -> bool {
         (self.field_extractor)(context) == self.expected_value
@@ -228,10 +247,12 @@ where
     }
 }
 
-impl<C, E, T, F> Guard<C, E> for RangeGuard<C, E, T, F>
+impl<C, E, T, F> GuardEvaluator<C, E> for RangeGuard<C, E, T, F>
 where
-    F: Fn(&C) -> T,
-    T: PartialOrd,
+    C: Send + Sync,
+    E: Send + Sync,
+    T: Send + Sync + PartialOrd,
+    F: Fn(&C) -> T + Send + Sync,
 {
     fn check(&self, context: &C, _event: &E) -> bool {
         let value = (self.field_extractor)(context);
@@ -258,9 +279,10 @@ impl<C, E> EventTypeGuard<C, E> {
     }
 }
 
-impl<C, E> Guard<C, E> for EventTypeGuard<C, E>
+impl<C, E> GuardEvaluator<C, E> for EventTypeGuard<C, E>
 where
-    E: Event,
+    C: Send + Sync,
+    E: Send + Sync + Event,
 {
     fn check(&self, _context: &C, event: &E) -> bool {
         event.event_type() == self.expected_type
@@ -286,7 +308,10 @@ impl<C, E> StateGuard<C, E> {
     }
 }
 
-impl<C, E> Guard<C, E> for StateGuard<C, E> {
+impl<C, E> GuardEvaluator<C, E> for StateGuard<C, E>
+where
+    C: Send + Sync,
+    E: Send + Sync, {
     fn check(&self, _context: &C, _event: &E) -> bool {
         // This would need access to current state, which requires additional context
         // For now, we'll use a placeholder implementation
@@ -323,7 +348,10 @@ impl<C, E> TimeGuard<C, E> {
     }
 }
 
-impl<C, E> Guard<C, E> for TimeGuard<C, E> {
+impl<C, E> GuardEvaluator<C, E> for TimeGuard<C, E>
+where
+    C: Send + Sync,
+    E: Send + Sync, {
     fn check(&self, _context: &C, _event: &E) -> bool {
         let now = std::time::Instant::now();
         if let Ok(mut last) = self.last_transition.lock() {
@@ -365,7 +393,10 @@ impl<C, E> CounterGuard<C, E> {
     }
 }
 
-impl<C, E> Guard<C, E> for CounterGuard<C, E> {
+impl<C, E> GuardEvaluator<C, E> for CounterGuard<C, E>
+where
+    C: Send + Sync,
+    E: Send + Sync, {
     fn check(&self, _context: &C, _event: &E) -> bool {
         if let Ok(mut count) = self.current_count.lock() {
             if *count < self.max_count {
@@ -386,7 +417,7 @@ impl<C, E> Guard<C, E> for CounterGuard<C, E> {
 
 /// Composite guard that combines multiple guards with custom logic
 pub struct CompositeGuard<C, E> {
-    guards: Vec<Box<dyn Guard<C, E>>>,
+    guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
     logic: CompositeLogic,
 }
 
@@ -407,18 +438,21 @@ impl<C, E> CompositeGuard<C, E> {
         }
     }
 
-    pub fn add_guard(mut self, guard: Box<dyn Guard<C, E>>) -> Self {
+    pub fn add_guard(mut self, guard: Box<dyn GuardEvaluator<C, E>>) -> Self {
         self.guards.push(guard);
         self
     }
 
-    pub fn with_guards(mut self, guards: Vec<Box<dyn Guard<C, E>>>) -> Self {
+    pub fn with_guards(mut self, guards: Vec<Box<dyn GuardEvaluator<C, E>>>) -> Self {
         self.guards.extend(guards);
         self
     }
 }
 
-impl<C, E> Guard<C, E> for CompositeGuard<C, E> {
+impl<C, E> GuardEvaluator<C, E> for CompositeGuard<C, E>
+where
+    C: Send + Sync,
+    E: Send + Sync, {
     fn check(&self, context: &C, event: &E) -> bool {
         let results: Vec<bool> = self
             .guards
@@ -447,40 +481,44 @@ impl<C, E> Guard<C, E> for CompositeGuard<C, E> {
 }
 
 /// Builder for complex guard combinations
-pub struct GuardBuilder<C, E> {
+pub struct GuardBuilder<C, E> 
+where
+    C: Send + Sync,
+    E: Send + Sync,
+{
     _phantom: std::marker::PhantomData<(C, E)>,
 }
 
-impl<C: 'static + std::fmt::Debug, E: 'static + Event + std::fmt::Debug> GuardBuilder<C, E> {
+impl<C: 'static + std::fmt::Debug + Send + Sync, E: 'static + Event + std::fmt::Debug + Send + Sync> GuardBuilder<C, E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 
-    pub fn always() -> Box<dyn Guard<C, E>> {
+    pub fn always() -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(AlwaysGuard)
     }
 
-    pub fn never() -> Box<dyn Guard<C, E>> {
+    pub fn never() -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(NeverGuard)
     }
 
-    pub fn and(guards: Vec<Box<dyn Guard<C, E>>>) -> Box<dyn Guard<C, E>> {
+    pub fn and(guards: Vec<Box<dyn GuardEvaluator<C, E>>>) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(AndGuard::new(guards))
     }
 
-    pub fn or(guards: Vec<Box<dyn Guard<C, E>>>) -> Box<dyn Guard<C, E>> {
+    pub fn or(guards: Vec<Box<dyn GuardEvaluator<C, E>>>) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(OrGuard::new(guards))
     }
 
-    pub fn not(guard: Box<dyn Guard<C, E>>) -> Box<dyn Guard<C, E>> {
+    pub fn not(guard: Box<dyn GuardEvaluator<C, E>>) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(NotGuard::new(guard))
     }
 
-    pub fn function<F>(func: F) -> Box<dyn Guard<C, E>>
+    pub fn function<F>(func: F) -> Box<dyn GuardEvaluator<C, E>>
     where
-        F: Fn(&C, &E) -> bool + 'static,
+        F: Fn(&C, &E) -> bool + Send + Sync + 'static,
     {
         Box::new(FunctionGuard::new(func))
     }
@@ -488,50 +526,50 @@ impl<C: 'static + std::fmt::Debug, E: 'static + Event + std::fmt::Debug> GuardBu
     pub fn function_with_description<F>(
         func: F,
         description: impl Into<String>,
-    ) -> Box<dyn Guard<C, E>>
+    ) -> Box<dyn GuardEvaluator<C, E>>
     where
-        F: Fn(&C, &E) -> bool + 'static,
+        F: Fn(&C, &E) -> bool + Send + Sync + 'static,
     {
         Box::new(FunctionGuard::new(func).with_description(description))
     }
 
-    pub fn field_equals<T, F>(field_extractor: F, expected_value: T) -> Box<dyn Guard<C, E>>
+    pub fn field_equals<T, F>(field_extractor: F, expected_value: T) -> Box<dyn GuardEvaluator<C, E>>
     where
-        F: Fn(&C) -> T + 'static,
-        T: PartialEq + 'static,
+        F: Fn(&C) -> T + Send + Sync + 'static,
+        T: PartialEq + Send + Sync + 'static,
     {
         Box::new(FieldEqualityGuard::new(field_extractor, expected_value))
     }
 
-    pub fn field_in_range<T, F>(field_extractor: F, min: T, max: T) -> Box<dyn Guard<C, E>>
+    pub fn field_in_range<T, F>(field_extractor: F, min: T, max: T) -> Box<dyn GuardEvaluator<C, E>>
     where
-        F: Fn(&C) -> T + 'static,
-        T: PartialOrd + 'static,
+        F: Fn(&C) -> T + Send + Sync + 'static,
+        T: PartialOrd + Send + Sync + 'static,
     {
         Box::new(RangeGuard::new(field_extractor, min, max))
     }
 
-    pub fn event_type(expected_type: impl Into<String>) -> Box<dyn Guard<C, E>> {
+    pub fn event_type(expected_type: impl Into<String>) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(EventTypeGuard::<C, E>::new(expected_type))
     }
 
-    pub fn state(expected_state: impl Into<String>) -> Box<dyn Guard<C, E>> {
+    pub fn state(expected_state: impl Into<String>) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(StateGuard::<C, E>::new(expected_state))
     }
 
-    pub fn time_limit(duration: std::time::Duration) -> Box<dyn Guard<C, E>> {
+    pub fn time_limit(duration: std::time::Duration) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(TimeGuard::<C, E>::new(duration))
     }
 
-    pub fn time_limit_seconds(seconds: u64) -> Box<dyn Guard<C, E>> {
+    pub fn time_limit_seconds(seconds: u64) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(TimeGuard::<C, E>::from_seconds(seconds))
     }
 
-    pub fn time_limit_millis(millis: u64) -> Box<dyn Guard<C, E>> {
+    pub fn time_limit_millis(millis: u64) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(TimeGuard::<C, E>::from_millis(millis))
     }
 
-    pub fn max_transitions(max_count: usize) -> Box<dyn Guard<C, E>> {
+    pub fn max_transitions(max_count: usize) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(CounterGuard::<C, E>::new(max_count))
     }
 
@@ -540,7 +578,7 @@ impl<C: 'static + std::fmt::Debug, E: 'static + Event + std::fmt::Debug> GuardBu
     }
 }
 
-impl<C: 'static + std::fmt::Debug, E: 'static + Event + std::fmt::Debug> Default
+impl<C: 'static + std::fmt::Debug + Send + Sync, E: 'static + Event + std::fmt::Debug + Send + Sync> Default
     for GuardBuilder<C, E>
 {
     fn default() -> Self {
@@ -575,11 +613,11 @@ impl GuardEvaluation {
 }
 
 /// Extension trait for evaluating guards with detailed results
-pub trait GuardEvaluator<C, E> {
+pub trait GuardBatchEvaluator<C, E> {
     fn evaluate_guards(&self, context: &C, event: &E) -> GuardEvaluation;
 }
 
-impl<C, E> GuardEvaluator<C, E> for Vec<Box<dyn Guard<C, E>>> {
+impl<C, E> GuardBatchEvaluator<C, E> for Vec<Box<dyn GuardEvaluator<C, E>>> {
     fn evaluate_guards(&self, context: &C, event: &E) -> GuardEvaluation {
         let mut evaluation = GuardEvaluation::new();
 
@@ -913,5 +951,198 @@ mod tests {
 
         assert!(!evaluation_fail.passed);
         assert_eq!(evaluation_fail.failed_guards.len(), 1);
+    }
+}
+
+// Implement core::Guard trait for guard types
+impl<C, E, F> crate::machine::core::Guard<C, E> for FunctionGuard<C, E, F>
+where
+    C: Send + Sync,
+    E: Send + Sync,
+    F: Fn(&C, &E) -> bool + Send + Sync,
+{
+    fn check(&self, context: &C, event: &E) -> bool {
+        (self.func)(context, event)
+    }
+
+    fn name(&self) -> &str {
+        &self.description
+    }
+}
+
+impl<C, E> crate::machine::core::Guard<C, E> for AlwaysGuard
+where
+    C: Send + Sync,
+    E: Send + Sync,
+{
+    fn check(&self, _context: &C, _event: &E) -> bool {
+        true
+    }
+
+    fn name(&self) -> &str {
+        "Always"
+    }
+}
+
+impl<C, E> crate::machine::core::Guard<C, E> for NeverGuard
+where
+    C: Send + Sync,
+    E: Send + Sync,
+{
+    fn check(&self, _context: &C, _event: &E) -> bool {
+        false
+    }
+
+    fn name(&self) -> &str {
+        "Never"
+    }
+}
+
+impl<C, E> crate::machine::core::Guard<C, E> for AndGuard<C, E>
+where
+    C: Send + Sync,
+    E: Send + Sync,
+{
+    fn check(&self, context: &C, event: &E) -> bool {
+        self.guards.iter().all(|guard| guard.check(context, event))
+    }
+
+    fn name(&self) -> &str {
+        "And"
+    }
+}
+
+impl<C, E> crate::machine::core::Guard<C, E> for OrGuard<C, E>
+where
+    C: Send + Sync,
+    E: Send + Sync,
+{
+    fn check(&self, context: &C, event: &E) -> bool {
+        self.guards.iter().any(|guard| guard.check(context, event))
+    }
+
+    fn name(&self) -> &str {
+        "Or"
+    }
+}
+
+impl<C, E> crate::machine::core::Guard<C, E> for NotGuard<C, E>
+where
+    C: Send + Sync,
+    E: Send + Sync,
+{
+    fn check(&self, context: &C, event: &E) -> bool {
+        !self.guard.check(context, event)
+    }
+
+    fn name(&self) -> &str {
+        "Not"
+    }
+}
+
+impl<C, E, T, F> crate::machine::core::Guard<C, E> for FieldEqualityGuard<C, E, T, F>
+where
+    C: Send + Sync,
+    E: Send + Sync,
+    T: PartialEq + Send + Sync,
+    F: Fn(&C) -> T + Send + Sync,
+{
+    fn check(&self, context: &C, _event: &E) -> bool {
+        (self.field_extractor)(context) == self.expected_value
+    }
+
+    fn name(&self) -> &str {
+        "FieldEquality"
+    }
+}
+
+impl<C, E, T, F> crate::machine::core::Guard<C, E> for RangeGuard<C, E, T, F>
+where
+    C: Send + Sync,
+    E: Send + Sync,
+    T: PartialOrd + Send + Sync,
+    F: Fn(&C) -> T + Send + Sync,
+{
+    fn check(&self, context: &C, _event: &E) -> bool {
+        let value = (self.field_extractor)(context);
+        value >= self.min && value <= self.max
+    }
+
+    fn name(&self) -> &str {
+        "Range"
+    }
+}
+
+impl<C, E> crate::machine::core::Guard<C, E> for EventTypeGuard<C, E>
+where
+    C: Send + Sync,
+    E: Send + Sync,
+{
+    fn check(&self, _context: &C, event: &E) -> bool {
+        // This is a simplified implementation - in practice you'd need to compare event types
+        true
+    }
+
+    fn name(&self) -> &str {
+        "EventType"
+    }
+}
+
+impl<C, E> crate::machine::core::Guard<C, E> for StateGuard<C, E>
+where
+    C: Send + Sync,
+    E: Send + Sync,
+{
+    fn check(&self, _context: &C, _event: &E) -> bool {
+        // This is a simplified implementation - in practice you'd need to check current state
+        true
+    }
+
+    fn name(&self) -> &str {
+        "State"
+    }
+}
+
+impl<C, E> crate::machine::core::Guard<C, E> for TimeGuard<C, E>
+where
+    C: Send + Sync,
+    E: Send + Sync,
+{
+    fn check(&self, _context: &C, _event: &E) -> bool {
+        // This is a simplified implementation - in practice you'd need to check timing
+        true
+    }
+
+    fn name(&self) -> &str {
+        "Time"
+    }
+}
+
+impl<C, E> crate::machine::core::Guard<C, E> for CounterGuard<C, E>
+where
+    C: Send + Sync,
+    E: Send + Sync,
+{
+    fn check(&self, _context: &C, _event: &E) -> bool {
+        // This is a simplified implementation - in practice you'd need to check counter
+        true
+    }
+
+    fn name(&self) -> &str {
+        "Counter"
+    }
+}
+
+impl<C, E> crate::machine::core::Guard<C, E> for CompositeGuard<C, E>
+where
+    C: Send + Sync,
+    E: Send + Sync,
+{
+    fn check(&self, context: &C, event: &E) -> bool {
+        self.guards.iter().all(|guard| guard.check(context, event))
+    }
+
+    fn name(&self) -> &str {
+        "Composite"
     }
 }
