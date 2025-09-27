@@ -14,6 +14,28 @@ pub trait StateMachine: Sized + 'static {
     fn transition(state: &Self::State, event: Self::Event) -> Self::State;
 }
 
+/// Main builder trait for constructing state machines
+pub trait MachineBuilder {
+    type State;
+    type Event;
+    type Context;
+
+    fn new() -> Self;
+    fn state<Name: Into<String>>(self, name: Name) -> Self;
+    fn initial<Name: Into<String>>(self, state: Name) -> Self;
+    fn transition<E, S>(self, from: S, event: E, to: S) -> Self
+    where
+        S: Into<String> + Clone,
+        E: Into<Self::Event>;
+    fn build_with_context(self, context: Self::Context) -> MachineResult<Machine<Self::State, Self::Event, Self::Context>>;
+    fn build(self) -> MachineResult<Machine<Self::State, Self::Event, Self::Context>>
+    where
+        Self::Context: Default,
+    {
+        self.build_with_context(Self::Context::default())
+    }
+}
+
 /// Trait for machine states
 pub trait MachineState {
     type Context: Send + Sync + 'static;

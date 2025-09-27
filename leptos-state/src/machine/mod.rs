@@ -22,8 +22,8 @@ pub mod types;
 // pub mod visualization;
 
 // Re-export core types from new modular structure
-pub use core::{Machine, StateMachine, MachineState, StateNode, StateType, MachineError, MachineResult, Guard, Action, Context, MachineConfig, MachineHistory};
-pub use builder::{MachineBuilder, MachineBuilderImpl, create_machine_builder};
+pub use core::{Machine, StateMachine, MachineBuilder, MachineState, StateNode, StateType, MachineError, MachineResult, Guard, Action, Context, MachineConfig, MachineHistory};
+pub use builder::{MachineBuilderImpl, create_machine_builder};
 pub use types::{ContextValue, HistoryEntry, EventRoutingConfig, StateValidationConfig, PerformanceConfig, IntegrationConfig, CompleteMachineConfig};
 
 // Legacy compatibility - re-export from old modules for now

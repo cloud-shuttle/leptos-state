@@ -181,16 +181,16 @@ pub fn use_infinite_store<I: InfiniteStore>(
     initial_input: I::PageInput,
 ) -> (ReadSignal<I::State>, WriteSignal<I::State>, Box<dyn Fn()>)
 where
-    I::Page: serde::Serialize + for<'de> serde::Deserialize<'de>,
+    I::Page: serde::Serialize + for<'de> serde::Deserialize<'de> + Default,
+    I::PageInput: Send + Sync + 'static,
 {
     let (state, set_state) = signal(I::loading_state());
     let (loading_more, set_loading_more) = signal(false);
     let (input_signal, set_input_signal) = signal(initial_input);
 
     // Create resource for async loading using Leptos 0.8.9 API
-    // Note: create_resource may not be available in Leptos 0.8.9
-    // Using a simplified approach with local resource or effect-based loading
-    let resource_handle = create_local_resource(
+    // Using create_resource with correct signature for Leptos 0.8.9
+    let resource_handle = create_resource(
         move || input_signal.get(),
         move |input| async move {
             if let Some(next_input) = I::next_page_input(&state.get()) {
