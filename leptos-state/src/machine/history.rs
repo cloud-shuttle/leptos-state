@@ -2,6 +2,7 @@
 
 use super::*;
 use crate::machine::states::StateValue;
+use crate::machine::machine::MachineState;
 use std::collections::HashMap;
 
 /// Type of history state
@@ -302,7 +303,7 @@ mod tests {
         count: i32,
     }
 
-    #[derive(Debug, Clone, PartialEq)]
+    #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     enum TestEvent {
         Start,
         Stop,

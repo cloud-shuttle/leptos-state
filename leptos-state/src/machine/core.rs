@@ -301,6 +301,7 @@ macro_rules! machine_transition {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::machine::machine::MachineState;
 
     #[derive(Clone, Debug, PartialEq)]
     struct TestState {

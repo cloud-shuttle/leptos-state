@@ -5,6 +5,7 @@
 //! profiling, and optimization strategies.
 
 use super::*;
+use crate::machine::machine::MachineState;
 
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex, RwLock};

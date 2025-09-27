@@ -15,6 +15,12 @@ pub trait MachineBuilder {
         S: Into<String> + Clone,
         E: Into<Self::Event>;
     fn build_with_context(self, context: Self::Context) -> MachineResult<Machine<Self::State, Self::Event, Self::Context>>;
+    fn build(self) -> MachineResult<Machine<Self::State, Self::Event, Self::Context>>
+    where
+        Self::Context: Default,
+    {
+        self.build_with_context(Self::Context::default())
+    }
 }
 
 /// Fluent builder for creating state machines
@@ -157,6 +163,7 @@ macro_rules! machine {
 mod tests {
     use super::*;
     use crate::machine::core::{StateType, StateNode};
+    use crate::machine::machine::MachineState;
 
     #[derive(Clone, Debug, PartialEq)]
     struct TestState {

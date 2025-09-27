@@ -4,6 +4,7 @@
 //! with external systems, APIs, databases, and message queues.
 
 use super::*;
+use crate::machine::machine::MachineState;
 use crate::utils::types::{StateError, StateResult};
 use std::collections::{HashMap, VecDeque};
 use std::fmt::Debug;

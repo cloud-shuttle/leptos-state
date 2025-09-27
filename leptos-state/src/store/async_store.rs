@@ -188,7 +188,9 @@ where
     let (input_signal, set_input_signal) = signal(initial_input);
 
     // Create resource for async loading using Leptos 0.8.9 API
-    let resource = create_resource(
+    // Note: create_resource may not be available in Leptos 0.8.9
+    // Using a simplified approach with local resource or effect-based loading
+    let resource_handle = create_local_resource(
         move || input_signal.get(),
         move |input| async move {
             if let Some(next_input) = I::next_page_input(&state.get()) {
@@ -202,7 +204,7 @@ where
 
     // Effect to handle resource state changes
     create_effect(move |_| {
-        match resource.read() {
+        match resource_handle.read() {
             Some(Ok(page)) => {
                 set_loading_more.set(false);
                 set_state.update(move |current_state| {
