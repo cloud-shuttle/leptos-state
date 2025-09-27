@@ -5,6 +5,8 @@
 //! This approach avoids the complexity of version-specific APIs and
 //! provides a stable interface for users.
 
+pub mod resources;
+
 // Re-export the most commonly used Leptos functions directly
 pub use leptos::prelude::{
     memo,

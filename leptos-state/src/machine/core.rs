@@ -1,5 +1,4 @@
 use crate::machine::states::StateValue;
-use crate::StateResult;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::marker::PhantomData;
@@ -166,6 +165,7 @@ where
     pub entry_actions: Vec<String>,
     pub exit_actions: Vec<String>,
     pub children: HashMap<String, StateNode<S, E, C>>,
+    pub context: C,
     pub parent: Option<String>,
     pub data: Option<S>,
 }
@@ -219,7 +219,7 @@ pub enum StateType {
 }
 
 /// Machine configuration
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct MachineConfig {
     pub strict_mode: bool,
     pub auto_cleanup: bool,

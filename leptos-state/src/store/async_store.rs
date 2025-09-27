@@ -1,6 +1,7 @@
 //! Async store integration with Leptos Resources
 
 use leptos::prelude::*;
+use crate::compat::resources::create_resource;
 
 use crate::store::Store;
 use crate::utils::{StateError, StateResult};
@@ -188,22 +189,22 @@ where
     let (loading_more, set_loading_more) = signal(false);
     let (input_signal, set_input_signal) = signal(initial_input);
 
-    // Create resource for async loading using Leptos 0.8.9 API
-    // Using create_resource with correct signature for Leptos 0.8.9
-    let resource_handle = create_resource(
-        move || input_signal.get(),
-        move |input| async move {
-            if let Some(next_input) = I::next_page_input(&state.get()) {
-                set_input_signal.set(next_input);
-                I::load_page(input).await
-            } else {
-                Ok(Default::default())
-            }
-        }
-    );
+            // Create resource for async loading using Leptos 0.8.9 API
+            // Using create_resource with correct signature for Leptos 0.8.9
+            let resource_handle = create_resource(
+                move || input_signal.get(),
+                move |input| async move {
+                    if let Some(next_input) = I::next_page_input(&state.get()) {
+                        set_input_signal.set(next_input);
+                        I::load_page(input).await
+                    } else {
+                        Ok(Default::default())
+                    }
+                }
+            );
 
     // Effect to handle resource state changes
-    create_effect(move |_| {
+    Effect::new(move |_| {
         match resource_handle.read() {
             Some(Ok(page)) => {
                 set_loading_more.set(false);

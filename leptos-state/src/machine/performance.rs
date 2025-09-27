@@ -528,13 +528,13 @@ impl MemoryTracker {
 }
 
 /// Transition cache for performance optimization
-pub struct TransitionCache<C: Send + Sync, E> {
+pub struct TransitionCache<C: Send + Sync + Clone + 'static, E> {
     cache: Arc<RwLock<HashMap<CacheKey<C, E>, CachedTransition<C>>>>,
     config: PerformanceConfig,
     profiler: Arc<PerformanceProfiler>,
 }
 
-impl<C: Send + Sync, E> TransitionCache<C, E>
+impl<C: Send + Sync + Clone + 'static, E> TransitionCache<C, E>
 where
     C: Clone + std::hash::Hash + Eq + Send + Sync,
     E: Clone + std::hash::Hash + Eq,
@@ -622,14 +622,14 @@ where
 
 /// Cache key for transitions
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
-pub struct CacheKey<C: Send + Sync, E> {
+pub struct CacheKey<C: Send + Sync + Clone + 'static, E> {
     pub from_state: String,
     pub event: E,
     pub context_hash: u64, // Simplified hash of context
     _phantom: PhantomData<C>,
 }
 
-impl<C: Send + Sync, E> CacheKey<C, E>
+impl<C: Send + Sync + Clone + 'static, E> CacheKey<C, E>
 where
     C: Clone + std::hash::Hash,
     E: Clone,
@@ -653,13 +653,13 @@ where
 
 /// Cached transition result
 #[derive(Debug, Clone)]
-pub struct CachedTransition<C: Send + Sync> {
+pub struct CachedTransition<C: Send + Sync + Clone + 'static> {
     pub result: MachineStateImpl<C>,
     pub timestamp: Instant,
     pub ttl: Duration,
 }
 
-impl<C: Send + Sync> CachedTransition<C> {
+impl<C: Send + Sync + Clone + 'static> CachedTransition<C> {
     pub fn is_valid(&self) -> bool {
         self.timestamp.elapsed() < self.ttl
     }
@@ -709,19 +709,19 @@ where
 }
 
 /// Performance-optimized state machine
-pub struct OptimizedMachine<C: Send + Sync, E> {
-    machine: Machine<C, E>,
+pub struct OptimizedMachine<C: Send + Sync + Clone + 'static, E> {
+    machine: Machine<C, E, C>,
     cache: Arc<TransitionCache<C, E>>,
     profiler: Arc<PerformanceProfiler>,
     config: PerformanceConfig,
 }
 
-impl<C: Send + Sync, E> OptimizedMachine<C, E>
+impl<C: Send + Sync + Clone + 'static, E> OptimizedMachine<C, E>
 where
     C: Clone + std::hash::Hash + Eq + std::fmt::Debug + 'static + Send + Sync,
     E: Clone + std::hash::Hash + Eq + Event + 'static,
 {
-    pub fn new(machine: Machine<C, E>, config: PerformanceConfig) -> Self {
+    pub fn new(machine: Machine<C, E, C>, config: PerformanceConfig) -> Self {
         let profiler = Arc::new(PerformanceProfiler::new(config.clone()));
         let cache = Arc::new(TransitionCache::new(config.clone(), profiler.clone()));
 
@@ -786,7 +786,7 @@ where
     }
 
     /// Get the underlying machine
-    pub fn machine(&self) -> &Machine<C, E> {
+    pub fn machine(&self) -> &Machine<C, E, C> {
         &self.machine
     }
 
@@ -797,12 +797,12 @@ where
 }
 
 /// Extension trait for adding performance optimization to machines
-pub trait MachinePerformanceExt<C: Send + Sync, E> {
+pub trait MachinePerformanceExt<C: Send + Sync + Clone + 'static, E> {
     /// Add performance optimization capabilities to the machine
     fn with_performance_optimization(self, config: PerformanceConfig) -> OptimizedMachine<C, E>;
 }
 
-impl<C: Send + Sync, E> MachinePerformanceExt<C, E> for Machine<C, E>
+impl<C: Send + Sync + Clone + 'static, E> MachinePerformanceExt<C, E> for Machine<C, E, C>
 where
     C: Clone + std::hash::Hash + Eq + std::fmt::Debug + 'static,
     E: Clone + std::hash::Hash + Eq + Event + 'static,
@@ -813,17 +813,17 @@ where
 }
 
 /// Performance builder for fluent configuration
-pub struct PerformanceBuilder<C: Send + Sync, E> {
-    machine: Machine<C, E>,
+pub struct PerformanceBuilder<C: Send + Sync + Clone + 'static, E> {
+    machine: Machine<C, E, C>,
     config: PerformanceConfig,
 }
 
-impl<C: Send + Sync, E> PerformanceBuilder<C, E>
+impl<C: Send + Sync + Clone + 'static, E> PerformanceBuilder<C, E>
 where
     C: Clone + std::hash::Hash + Eq + std::fmt::Debug + 'static,
     E: Clone + std::hash::Hash + Eq + Event + 'static,
 {
-    pub fn new(machine: Machine<C, E>) -> Self {
+    pub fn new(machine: Machine<C, E, C>) -> Self {
         Self {
             machine,
             config: PerformanceConfig::default(),

@@ -53,7 +53,7 @@ pub trait MachineState {
 
 /// Builder for creating state machines
 pub struct MachineBuilder<C: Send + Sync, E> {
-    states: HashMap<String, StateNode<C, E>>,
+    states: HashMap<String, StateNode<C, E, C>>,
     initial: String,
     _phantom: PhantomData<(C, E)>,
 }
@@ -76,7 +76,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> MachineBuilder<C, E> 
         self
     }
 
-    pub fn build(self) -> Machine<C, E> {
+    pub fn build(self) -> Machine<C, E, C> {
         Machine {
             states: self.states,
             initial: self.initial,
@@ -86,7 +86,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> MachineBuilder<C, E> 
     // TODO: Implement persistence features
     // #[cfg(feature = "persist")]
     // /// Build a machine with persistence capabilities
-    // pub fn build_with_persistence(self, config: PersistenceConfig) -> PersistentMachine<C, E>
+    // pub fn build_with_persistence(self, config: PersistenceConfig) -> PersistentMachine<C, E, C>
     // where
     //     C: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
     //     E: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
@@ -96,7 +96,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> MachineBuilder<C, E> 
 
     // #[cfg(feature = "persist")]
     // /// Build a machine with default persistence settings
-    // pub fn build_persistent(self) -> PersistentMachine<C, E>
+    // pub fn build_persistent(self) -> PersistentMachine<C, E, C>
     // where
     //     C: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
     //     E: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
@@ -114,7 +114,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> MachineBuilder<C, E> 
     // TODO: Implement visualization features
     // #[cfg(feature = "visualization")]
     // /// Build a machine with visualization capabilities
-    // pub fn build_with_visualization(self, config: VisualizationConfig) -> VisualizedMachine<C, E>
+    // pub fn build_with_visualization(self, config: VisualizationConfig) -> VisualizedMachine<C, E, C>
     // where
     //     C: Clone + serde::Serialize,
     //     E: Clone + serde::Serialize,
@@ -124,7 +124,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> MachineBuilder<C, E> 
 
     // #[cfg(feature = "visualization")]
     // /// Build a machine with default visualization settings
-    // pub fn build_visualized(self) -> VisualizedMachine<C, E>
+    // pub fn build_visualized(self) -> VisualizedMachine<C, E, C>
     // where
     //     C: Clone + serde::Serialize,
     //     E: Clone + serde::Serialize,
@@ -180,7 +180,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> MachineBuilder<C, E> 
     pub fn build_with_performance_optimization(
         self,
         config: PerformanceConfig,
-    ) -> OptimizedMachine<C, E>
+    ) -> OptimizedMachine<C, E, C>
     where
         C: Clone + std::hash::Hash + Eq + std::fmt::Debug,
         E: Clone + std::hash::Hash + Eq + Event,
@@ -190,7 +190,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> MachineBuilder<C, E> 
 
     #[cfg(feature = "performance")]
     /// Build a machine with default performance optimization settings
-    pub fn build_optimized(self) -> OptimizedMachine<C, E>
+    pub fn build_optimized(self) -> OptimizedMachine<C, E, C>
     where
         C: Clone + std::hash::Hash + Eq + std::fmt::Debug,
         E: Clone + std::hash::Hash + Eq + Event,
@@ -320,9 +320,9 @@ pub struct StateBuilder<C: Send + Sync, E> {
     machine_builder: MachineBuilder<C, E>,
     current_state: String,
     transitions: Vec<Transition<C, E>>,
-    entry_actions: Vec<Box<dyn Action<C, E>>>,
-    exit_actions: Vec<Box<dyn Action<C, E>>>,
-    child_states: HashMap<String, StateNode<C, E>>,
+    entry_actions: Vec<Box<dyn Action<C>>>,
+    exit_actions: Vec<Box<dyn Action<C>>>,
+    child_states: HashMap<String, StateNode<C, E, C>>,
     initial_child: Option<String>,
 }
 
@@ -343,12 +343,12 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> StateBuilder<C, E> {
         TransitionBuilder::new(self, event, target.to_string())
     }
 
-    pub fn on_entry<A: Action<C, E> + 'static>(mut self, action: A) -> Self {
+    pub fn on_entry<A: Action<C> + 'static>(mut self, action: A) -> Self {
         self.entry_actions.push(Box::new(action));
         self
     }
 
-    pub fn on_exit<A: Action<C, E> + 'static>(mut self, action: A) -> Self {
+    pub fn on_exit<A: Action<C> + 'static>(mut self, action: A) -> Self {
         self.exit_actions.push(Box::new(action));
         self
     }
@@ -461,7 +461,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> StateBuilder<C, E> {
         builder.initial(state_id)
     }
 
-    pub fn build(self) -> Machine<C, E> {
+    pub fn build(self) -> Machine<C, E, C> {
         // Finish current state
         let state_node = StateNode {
             id: self.current_state.clone(),
@@ -483,8 +483,8 @@ pub struct ChildStateBuilder<C: Send + Sync, E> {
     parent_builder: StateBuilder<C, E>,
     child_id: String,
     transitions: Vec<Transition<C, E>>,
-    entry_actions: Vec<Box<dyn Action<C, E>>>,
-    exit_actions: Vec<Box<dyn Action<C, E>>>,
+    entry_actions: Vec<Box<dyn Action<C>>>,
+    exit_actions: Vec<Box<dyn Action<C>>>,
 }
 
 impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildStateBuilder<C, E> {
@@ -502,12 +502,12 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildStateBuilder<C, 
         ChildTransitionBuilder::new(self, event, target.to_string())
     }
 
-    pub fn on_entry<A: Action<C, E> + 'static>(mut self, action: A) -> Self {
+    pub fn on_entry<A: Action<C> + 'static>(mut self, action: A) -> Self {
         self.entry_actions.push(Box::new(action));
         self
     }
 
-    pub fn on_exit<A: Action<C, E> + 'static>(mut self, action: A) -> Self {
+    pub fn on_exit<A: Action<C> + 'static>(mut self, action: A) -> Self {
         self.exit_actions.push(Box::new(action));
         self
     }
@@ -614,8 +614,8 @@ pub struct ChildTransitionBuilder<C: Send + Sync, E> {
     child_builder: ChildStateBuilder<C, E>,
     event: E,
     target: String,
-    guards: Vec<Box<dyn Guard<C, E>>>,
-    actions: Vec<Box<dyn Action<C, E>>>,
+    guards: Vec<Box<dyn Guard<C>>>,
+    actions: Vec<Box<dyn Action<C>>>,
 }
 
 impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildTransitionBuilder<C, E> {
@@ -629,7 +629,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildTransitionBuilde
         }
     }
 
-    pub fn guard<G: Guard<C, E> + 'static>(mut self, guard: G) -> Self {
+    pub fn guard<G: Guard<C> + 'static>(mut self, guard: G) -> Self {
         self.guards.push(Box::new(guard));
         self
     }
@@ -680,7 +680,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + 'static> ChildTransitionBuilde
         self
     }
 
-    pub fn action<A: Action<C, E> + 'static>(mut self, action: A) -> Self {
+    pub fn action<A: Action<C> + 'static>(mut self, action: A) -> Self {
         self.actions.push(Box::new(action));
         self
     }
@@ -718,8 +718,8 @@ pub struct TransitionBuilder<C: Send + Sync, E> {
     state_builder: StateBuilder<C, E>,
     event: E,
     target: String,
-    guards: Vec<Box<dyn Guard<C, E>>>,
-    actions: Vec<Box<dyn Action<C, E>>>,
+    guards: Vec<Box<dyn Guard<C>>>,
+    actions: Vec<Box<dyn Action<C>>>,
 }
 
 impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> TransitionBuilder<C, E> {
@@ -733,7 +733,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> TransitionBuilder<C, 
         }
     }
 
-    pub fn guard<G: Guard<C, E> + 'static>(mut self, guard: G) -> Self {
+    pub fn guard<G: Guard<C> + 'static>(mut self, guard: G) -> Self {
         self.guards.push(Box::new(guard));
         self
     }
@@ -784,7 +784,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> TransitionBuilder<C, 
         self
     }
 
-    pub fn action<A: Action<C, E> + 'static>(mut self, action: A) -> Self {
+    pub fn action<A: Action<C> + 'static>(mut self, action: A) -> Self {
         self.actions.push(Box::new(action));
         self
     }
@@ -847,7 +847,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> TransitionBuilder<C, 
         state_builder.on_exit_fn(func)
     }
 
-    pub fn build(self) -> Machine<C, E> {
+    pub fn build(self) -> Machine<C, E, C> {
         let transition = Transition {
             event: self.event,
             target: self.target,
@@ -862,12 +862,12 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> TransitionBuilder<C, 
 }
 
 /// State node in the machine definition
-pub struct StateNode<C, E> {
+pub struct StateNode<C, E, S> {
     pub id: String,
     pub transitions: Vec<Transition<C, E>>,
-    pub entry_actions: Vec<Box<dyn Action<C, E>>>,
-    pub exit_actions: Vec<Box<dyn Action<C, E>>>,
-    pub child_states: HashMap<String, StateNode<C, E>>,
+    pub entry_actions: Vec<Box<dyn Action<C>>>,
+    pub exit_actions: Vec<Box<dyn Action<C>>>,
+    pub child_states: HashMap<String, StateNode<C, E, C>>,
     pub initial_child: Option<String>,
 }
 
@@ -875,13 +875,13 @@ pub struct StateNode<C, E> {
 pub struct Transition<C, E> {
     pub event: E,
     pub target: String,
-    pub guards: Vec<Box<dyn Guard<C, E>>>,
-    pub actions: Vec<Box<dyn Action<C, E>>>,
+    pub guards: Vec<Box<dyn Guard<C>>>,
+    pub actions: Vec<Box<dyn Action<C>>>,
 }
 
 /// Complete machine implementation
-pub struct Machine<C: Send + Sync, E> {
-    states: HashMap<String, StateNode<C, E>>,
+pub struct Machine<C: Send + Sync, E, S> {
+    states: HashMap<String, StateNode<C, E, C>>,
     initial: String,
 }
 
@@ -901,7 +901,7 @@ impl<C: Clone, E: Clone> Clone for Transition<C, E> {
 }
 
 // Manual Clone implementation for StateNode since Action trait objects can't be cloned
-impl<C: Clone, E: Clone> Clone for StateNode<C, E> {
+impl<C: Clone, E: Clone> Clone for StateNode<C, E, C> {
     fn clone(&self) -> Self {
         Self {
             id: self.id.clone(),
@@ -915,7 +915,7 @@ impl<C: Clone, E: Clone> Clone for StateNode<C, E> {
 }
 
 // Manual Clone implementation for Machine
-impl<C: Clone + Send + Sync, E: Clone> Clone for Machine<C, E> {
+impl<C: Clone + Send + Sync, E: Clone> Clone for Machine<C, E, C> {
     fn clone(&self) -> Self {
         Self {
             states: self.states.clone(),
@@ -924,7 +924,7 @@ impl<C: Clone + Send + Sync, E: Clone> Clone for Machine<C, E> {
     }
 }
 
-impl<C: Send + Sync + Clone, E: Clone> Machine<C, E> {
+impl<C: Send + Sync + Clone, E: Clone> Machine<C, E, C> {
     /// Get all state IDs in the machine
     pub fn get_states(&self) -> Vec<String> {
         self.states.keys().cloned().collect()
@@ -936,7 +936,7 @@ impl<C: Send + Sync + Clone, E: Clone> Machine<C, E> {
     }
 
     /// Get a reference to the states map
-    pub fn states_map(&self) -> &HashMap<String, StateNode<C, E>> {
+    pub fn states_map(&self) -> &HashMap<String, StateNode<C, E, C>> {
         &self.states
     }
 

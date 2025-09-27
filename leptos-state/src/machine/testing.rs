@@ -161,8 +161,8 @@ pub struct TestStep {
 }
 
 /// State machine test runner
-pub struct MachineTestRunner<C: Send + Sync, E> {
-    machine: Machine<C, E>,
+pub struct MachineTestRunner<C: Send + Sync + Clone + 'static, E> {
+    machine: Machine<C, E, C>,
     config: TestConfig,
     test_data_generator: Box<dyn TestDataGenerator<C, E>>,
     coverage_tracker: Option<CoverageTracker>,
@@ -174,7 +174,7 @@ where
     C: Clone + std::fmt::Debug + PartialEq + std::default::Default + Send + Sync + 'static,
     E: Clone + std::fmt::Debug + PartialEq + std::default::Default + Send + Sync + Event + 'static,
 {
-    pub fn new(machine: Machine<C, E>, config: TestConfig) -> Self {
+    pub fn new(machine: Machine<C, E, C>, config: TestConfig) -> Self {
         let test_data_generator = Box::new(DefaultTestDataGenerator::new());
         let coverage_tracker = if config.track_coverage {
             Some(CoverageTracker::new())
@@ -759,9 +759,9 @@ impl CoverageTracker {
         self.actions_executed.insert(action.to_string());
     }
 
-    pub fn calculate_coverage<C: Send + Sync + Clone, E: Clone>(
+    pub fn calculate_coverage<C: Send + Sync + Clone + 'static + Clone, E: Clone>(
         &self,
-        machine: &Machine<C, E>,
+        machine: &Machine<C, E, C>,
     ) -> TestCoverage {
         let total_states = machine.states_map().len();
         let total_transitions: usize = machine
@@ -848,12 +848,12 @@ impl PerformanceTracker {
 }
 
 /// Extension trait for adding testing to machines
-pub trait MachineTestingExt<C: Send + Sync, E> {
+pub trait MachineTestingExt<C: Send + Sync + Clone + 'static, E> {
     /// Add testing capabilities to the machine
     fn with_testing(self, config: TestConfig) -> MachineTestRunner<C, E>;
 }
 
-impl<C, E> MachineTestingExt<C, E> for Machine<C, E>
+impl<C, E> MachineTestingExt<C, E> for Machine<C, E, C>
 where
     C: Clone + std::fmt::Debug + PartialEq + std::default::Default + Send + Sync + 'static,
     E: Clone
@@ -871,8 +871,8 @@ where
 }
 
 /// Test builder for fluent test creation
-pub struct TestBuilder<C: Send + Sync, E> {
-    machine: Machine<C, E>,
+pub struct TestBuilder<C: Send + Sync + Clone + 'static, E> {
+    machine: Machine<C, E, C>,
     config: TestConfig,
 }
 
@@ -888,7 +888,7 @@ where
         + Sync
         + 'static,
 {
-    pub fn new(machine: Machine<C, E>) -> Self {
+    pub fn new(machine: Machine<C, E, C>) -> Self {
         Self {
             machine,
             config: TestConfig::default(),

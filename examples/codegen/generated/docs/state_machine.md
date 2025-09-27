@@ -6,8 +6,8 @@ This state machine was automatically generated.
 
 ## States
 
-- **playing**: State description
 - **idle**: State description
+- **playing**: State description
 
 ## Events
 

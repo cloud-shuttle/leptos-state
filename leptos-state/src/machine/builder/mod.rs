@@ -1,4 +1,4 @@
-use crate::machine::core::{Machine, StateNode, StateType, MachineError, MachineResult};
+use crate::machine::core::{Machine, StateNode, StateType, MachineError, MachineResult, MachineBuilder};
 use std::collections::HashMap;
 
 // MachineBuilder trait is now defined in core.rs to avoid conflicts
@@ -14,6 +14,7 @@ where
     states: HashMap<String, StateNode<S, E, C>>,
     initial_state: Option<String>,
     current_state: Option<String>,
+    _phantom: std::marker::PhantomData<C>,
 }
 
 impl<S, E, C> MachineBuilder for MachineBuilderImpl<S, E, C>
@@ -47,7 +48,7 @@ where
         self
     }
 
-    fn transition<S2>(mut self, from: S2, event: E, to: S2) -> Self
+    fn transition<E2, S2>(mut self, from: S2, event: E2, to: S2) -> Self
     where
         S2: Into<String> + Clone,
     {

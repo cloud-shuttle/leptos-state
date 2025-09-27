@@ -4,7 +4,6 @@
 //! with external systems, APIs, databases, and message queues.
 
 use super::*;
-use crate::machine::machine::MachineState;
 use crate::utils::types::{StateError, StateResult};
 use std::collections::{HashMap, VecDeque};
 use std::fmt::Debug;
@@ -176,13 +175,13 @@ pub enum EventPriority {
 }
 
 /// Integration manager for state machines
-pub struct IntegrationManager<C: Send + Sync, E> {
+pub struct IntegrationManager<C: Send + Sync + Clone + 'static, E> {
     config: IntegrationConfig,
     adapters: Arc<RwLock<HashMap<String, Box<dyn IntegrationAdapterTrait + Send + Sync>>>>,
     _event_queue: Arc<Mutex<VecDeque<IntegrationEvent>>>,
     metrics: Arc<RwLock<IntegrationMetrics>>,
     #[allow(dead_code)]
-    machine: Arc<Machine<C, E>>,
+    machine: Arc<Machine<C, E, C>>,
 }
 
 impl<C, E> IntegrationManager<C, E>
@@ -190,7 +189,7 @@ where
     C: Clone + std::fmt::Debug + Send + Sync,
     E: Clone + std::fmt::Debug + Event + Send + Sync,
 {
-    pub fn new(machine: Machine<C, E>, config: IntegrationConfig) -> Self {
+    pub fn new(machine: Machine<C, E, C>, config: IntegrationConfig) -> Self {
         Self {
             config,
             adapters: Arc::new(RwLock::new(HashMap::new())),
@@ -485,12 +484,12 @@ impl IntegrationMetrics {
 }
 
 /// Extension trait for adding integration to machines
-pub trait MachineIntegrationExt<C: Send + Sync, E> {
+pub trait MachineIntegrationExt<C: Send + Sync + Clone + 'static, E> {
     /// Add integration capabilities to the machine
     fn with_integration(self, config: IntegrationConfig) -> IntegrationManager<C, E>;
 }
 
-impl<C, E> MachineIntegrationExt<C, E> for Machine<C, E>
+impl<C, E> MachineIntegrationExt<C, E> for Machine<C, E, C>
 where
     C: Clone + std::fmt::Debug + Send + Sync,
     E: Clone + std::fmt::Debug + Event + Send + Sync,
@@ -501,8 +500,8 @@ where
 }
 
 /// Integration builder for fluent configuration
-pub struct IntegrationBuilder<C: Send + Sync, E> {
-    machine: Machine<C, E>,
+pub struct IntegrationBuilder<C: Send + Sync + Clone + 'static, E> {
+    machine: Machine<C, E, C>,
     config: IntegrationConfig,
 }
 
@@ -511,7 +510,7 @@ where
     C: Clone + std::fmt::Debug + Send + Sync,
     E: Clone + std::fmt::Debug + Event + Send + Sync,
 {
-    pub fn new(machine: Machine<C, E>) -> Self {
+    pub fn new(machine: Machine<C, E, C>) -> Self {
         Self {
             machine,
             config: IntegrationConfig::default(),

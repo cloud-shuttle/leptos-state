@@ -22,21 +22,21 @@ pub mod types;
 // pub mod visualization;
 
 // Re-export core types from new modular structure
-pub use core::{Machine, StateMachine, MachineBuilder, MachineState, StateNode, StateType, MachineError, MachineResult, Guard, Action, Context, MachineConfig, MachineHistory};
+pub use core::{Machine, StateMachine, MachineBuilder, MachineState, StateNode, StateType, MachineError, MachineResult, Guard, Action, MachineConfig, MachineHistory};
 pub use builder::{MachineBuilderImpl, create_machine_builder};
 pub use types::{ContextValue, HistoryEntry, EventRoutingConfig, StateValidationConfig, PerformanceConfig, IntegrationConfig, CompleteMachineConfig};
 
 // Legacy compatibility - re-export from old modules for now
 pub use machine::*;
 // Core machine types
-pub use actions::{Action, ActionBuilder, ActionExecution, ActionExecutor};
+pub use actions::{ActionBuilder, ActionExecution, ActionExecutor};
 pub use codegen::{CodeGenConfig, CodeGenerator, GeneratedFile, MachineCodeGenExt};
 pub use documentation::{DocumentationConfig, DocumentationGenerator, GeneratedDocument};
 pub use events::Event;
-pub use guards::{Guard, GuardBuilder, GuardEvaluation, GuardEvaluator};
+pub use guards::{GuardBuilder, GuardEvaluation, GuardEvaluator};
 pub use history::{HistoryMachine, HistoryTracker, HistoryType};
-pub use integration::{IntegrationAdapter, IntegrationConfig, IntegrationManager};
-pub use performance::{OptimizedMachine, PerformanceConfig, PerformanceProfiler};
+pub use integration::{IntegrationAdapter, IntegrationManager};
+pub use performance::{OptimizedMachine, PerformanceProfiler};
 // #[cfg(feature = "serialization")]
 // pub use persistence::{MachinePersistence, PersistenceConfig, PersistentMachine};
 pub use testing::{MachineTestRunner, TestCase, TestConfig, TestResult};

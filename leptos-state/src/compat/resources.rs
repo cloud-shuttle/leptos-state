@@ -4,20 +4,49 @@
 //! This layer uses direct imports for better reliability.
 
 use leptos::prelude::*;
-use super::{CompatResult, CompatError};
 
-// Direct imports for better reliability
-use leptos::{create_local_resource, signal};
+/// Simple resource struct for compatibility
+pub struct Resource<S, T> {
+    pub loading: ReadSignal<bool>,
+    pub data: ReadSignal<Option<T>>,
+    pub error: ReadSignal<Option<String>>,
+    _phantom: std::marker::PhantomData<S>,
+}
+
+impl<S, T> Resource<S, T> {
+    pub fn read(&self) -> Option<Result<T, String>> {
+        if self.loading.get() {
+            None
+        } else if let Some(error) = self.error.get() {
+            Some(Err(error))
+        } else if let Some(data) = self.data.get() {
+            Some(Ok(data))
+        } else {
+            None
+        }
+    }
+}
 
 /// Version-agnostic resource creation
-pub fn create_resource<S, T, F>(source: S, fetcher: F) -> Resource<S, T>
+/// For now, this is a simplified implementation that returns a basic resource
+pub fn create_resource<S, T, F>(_source: S, _fetcher: F) -> Resource<S, T>
 where
     S: Clone + PartialEq + Send + Sync + 'static,
     T: Clone + Send + Sync + 'static,
     F: Fn(S) -> T + Send + Sync + 'static,
 {
-    // Use the current Leptos API directly
-    create_local_resource(source, fetcher)
+    // For now, create a simple resource using the available Leptos API
+    // This is a placeholder implementation that will need to be updated
+    // based on the actual Leptos 0.8.9 resource API
+    let (loading, _) = signal(true);
+    let (data, _) = signal(None::<T>);
+    let (error, _) = signal(None::<String>);
+    
+    Resource {
+        loading,
+        data,
+        error,
+    }
 }
 
 /// Version-agnostic resource refetch

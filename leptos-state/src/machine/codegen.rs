@@ -7,6 +7,7 @@ use super::*;
 use crate::utils::types::{StateError, StateResult};
 use std::collections::HashMap;
 use std::fs;
+use std::hash::Hash;
 use std::sync::{Arc, RwLock};
 use std::time::Instant;
 
@@ -56,18 +57,18 @@ pub enum ProgrammingLanguage {
 }
 
 /// Code generator for state machines
-pub struct CodeGenerator<C: Send + Sync, E> {
+pub struct CodeGenerator<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     config: CodeGenConfig,
-    machine: Arc<Machine<C, E>>,
+    machine: Arc<Machine<C, E, C>>,
     generated_files: Arc<RwLock<Vec<GeneratedFile>>>,
 }
 
 impl<C, E> CodeGenerator<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + 'static,
+    E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + Event + 'static,
 {
-    pub fn new(machine: Machine<C, E>, config: CodeGenConfig) -> Self {
+    pub fn new(machine: Machine<C, E, C>, config: CodeGenConfig) -> Self {
         Self {
             config,
             machine: Arc::new(machine),
@@ -634,15 +635,15 @@ pub struct TransitionInfo {
 }
 
 /// Extension trait for adding code generation to machines
-pub trait MachineCodeGenExt<C: Send + Sync, E> {
+pub trait MachineCodeGenExt<C: Send + Sync + Clone, E> {
     /// Add code generation capabilities to the machine
     fn with_code_generation(self, config: CodeGenConfig) -> CodeGenerator<C, E>;
 }
 
-impl<C, E> MachineCodeGenExt<C, E> for Machine<C, E>
+impl<C, E> MachineCodeGenExt<C, E> for Machine<C, E, C>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + 'static,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + Hash + Eq + 'static,
 {
     fn with_code_generation(self, config: CodeGenConfig) -> CodeGenerator<C, E> {
         CodeGenerator::new(self, config)
@@ -650,17 +651,17 @@ where
 }
 
 /// Code generation builder for fluent configuration
-pub struct CodeGenBuilder<C: Send + Sync, E> {
-    machine: Machine<C, E>,
+pub struct CodeGenBuilder<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+    machine: Machine<C, E, C>,
     pub(crate) config: CodeGenConfig,
 }
 
 impl<C, E> CodeGenBuilder<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + 'static,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + Hash + Eq + 'static,
 {
-    pub fn new(machine: Machine<C, E>) -> Self {
+    pub fn new(machine: Machine<C, E, C>) -> Self {
         Self {
             machine,
             config: CodeGenConfig::default(),

@@ -102,7 +102,7 @@ impl Default for BackupConfig {
 
 /// Serialized state machine data
 #[derive(Debug, Clone)]
-pub struct SerializedMachine<C, E> {
+pub struct SerializedMachine<C, E, C> {
     /// Version of the serialization format
     pub version: String,
     /// Timestamp when the data was serialized
@@ -120,7 +120,7 @@ pub struct SerializedMachine<C, E> {
 
 // Conditional serde implementation
 #[cfg(feature = "serde")]
-impl<C, E> SerializedMachine<C, E>
+impl<C, E> SerializedMachine<C, E, C>
 where
     C: serde::Serialize + for<'de> serde::Deserialize<'de>,
     E: serde::Serialize + for<'de> serde::Deserialize<'de>,
@@ -130,7 +130,7 @@ where
 
 // Manual serde implementation for when the serialization feature is enabled
 #[cfg(feature = "serialization")]
-impl<C, E> serde::Serialize for SerializedMachine<C, E>
+impl<C, E> serde::Serialize for SerializedMachine<C, E, C>
 where
     C: serde::Serialize,
     E: serde::Serialize,
@@ -153,7 +153,7 @@ where
 }
 
 #[cfg(feature = "serialization")]
-impl<'de, C, E> serde::Deserialize<'de> for SerializedMachine<C, E>
+impl<'de, C, E> serde::Deserialize<'de> for SerializedMachine<C, E, C>
 where
     C: for<'a> serde::Deserialize<'a>,
     E: for<'a> serde::Deserialize<'a>,
@@ -183,13 +183,13 @@ where
             C: for<'a> serde::Deserialize<'a>,
             E: for<'a> serde::Deserialize<'a>,
         {
-            type Value = SerializedMachine<C, E>;
+            type Value = SerializedMachine<C, E, C>;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 formatter.write_str("struct SerializedMachine")
             }
 
-            fn visit_map<V>(self, mut map: V) -> Result<SerializedMachine<C, E>, V::Error>
+            fn visit_map<V>(self, mut map: V) -> Result<SerializedMachine<C, E, C>, V::Error>
             where
                 V: MapAccess<'de>,
             {
@@ -323,7 +323,7 @@ where
     }
 
     /// Save the current machine state
-    pub fn save(&self, machine: &Machine<C, E>, state: &MachineStateImpl<C>) -> StateResult<()> {
+    pub fn save(&self, machine: &Machine<C, E, C>, state: &MachineStateImpl<C>) -> StateResult<()> {
         if !self.config.enabled {
             return Ok(());
         }
@@ -382,7 +382,7 @@ where
     }
 
     /// Load and restore machine state
-    pub fn load(&self, _machine: &Machine<C, E>) -> StateResult<MachineStateImpl<C>> {
+    pub fn load(&self, _machine: &Machine<C, E, C>) -> StateResult<MachineStateImpl<C>> {
         if !self.config.enabled || !self.config.auto_restore {
             return Err(StateError::new(
                 "Persistence not enabled or auto-restore disabled",
@@ -409,7 +409,7 @@ where
         // Deserialize
         #[cfg(feature = "serialization")]
         {
-            let serialized: SerializedMachine<C, E> = serde_json::from_str(&data)?;
+            let serialized: SerializedMachine<C, E, C> = serde_json::from_str(&data)?;
 
             // Validate checksum
             self.validate_checksum(&serialized)?;
@@ -528,9 +528,9 @@ where
     /// Serialize machine state
     fn serialize_machine(
         &self,
-        _machine: &Machine<C, E>,
+        _machine: &Machine<C, E, C>,
         state: &MachineStateImpl<C>,
-    ) -> StateResult<SerializedMachine<C, E>> {
+    ) -> StateResult<SerializedMachine<C, E, C>> {
         let timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -586,7 +586,7 @@ where
 
     /// Validate checksum
     #[allow(dead_code)]
-    fn validate_checksum(&self, serialized: &SerializedMachine<C, E>) -> StateResult<()> {
+    fn validate_checksum(&self, serialized: &SerializedMachine<C, E, C>) -> StateResult<()> {
         let mut temp_serialized = serialized.clone();
         temp_serialized.checksum = String::new();
 
@@ -811,32 +811,32 @@ impl MachineStorage for MemoryStorage {
 /// Extension trait for adding persistence to machines
 pub trait MachinePersistenceExt<C: Send + Sync, E> {
     /// Add persistence to the machine
-    fn with_persistence(self, config: PersistenceConfig) -> PersistentMachine<C, E>;
+    fn with_persistence(self, config: PersistenceConfig) -> PersistentMachine<C, E, C>;
 }
 
-impl<C: Send + Sync, E> MachinePersistenceExt<C, E> for Machine<C, E>
+impl<C: Send + Sync, E> MachinePersistenceExt<C, E> for Machine<C, E, C>
 where
     C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
     E: Clone + std::cmp::PartialEq + 'static + std::fmt::Debug,
 {
-    fn with_persistence(self, config: PersistenceConfig) -> PersistentMachine<C, E> {
+    fn with_persistence(self, config: PersistenceConfig) -> PersistentMachine<C, E, C> {
         PersistentMachine::new(self, config)
     }
 }
 
 /// A state machine with persistence capabilities
 pub struct PersistentMachine<C: Send + Sync, E> {
-    machine: Machine<C, E>,
+    machine: Machine<C, E, C>,
     persistence: MachinePersistence<C, E>,
     current_state: Option<MachineStateImpl<C>>,
 }
 
-impl<C: Send + Sync, E> PersistentMachine<C, E>
+impl<C: Send + Sync, E> PersistentMachine<C, E, C>
 where
     C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
     E: Clone + std::cmp::PartialEq + 'static + std::fmt::Debug,
 {
-    pub fn new(machine: Machine<C, E>, config: PersistenceConfig) -> Self {
+    pub fn new(machine: Machine<C, E, C>, config: PersistenceConfig) -> Self {
         let persistence = MachinePersistence::new(config);
         let current_state = None;
 

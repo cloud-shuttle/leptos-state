@@ -124,7 +124,7 @@ pub struct MachineVisualizer<C: Send + Sync, E> {
     transitions: Arc<Mutex<VecDeque<TransitionEvent<C, E>>>>,
     snapshots: Arc<Mutex<VecDeque<MachineSnapshot<C, E>>>>,
     current_state: Arc<Mutex<Option<MachineStateImpl<C>>>>,
-    machine: Arc<Machine<C, E>>,
+    machine: Arc<Machine<C, E, C>>,
     start_time: Instant,
 }
 
@@ -133,7 +133,7 @@ where
     C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
     E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug,
 {
-    pub fn new(machine: Machine<C, E>, config: VisualizationConfig) -> Self {
+    pub fn new(machine: Machine<C, E, C>, config: VisualizationConfig) -> Self {
         Self {
             config,
             transitions: Arc::new(Mutex::new(VecDeque::new())),
@@ -371,7 +371,7 @@ where
 
 /// State diagram representation for export
 pub struct StateDiagram<'a, C: Send + Sync, E> {
-    pub machine: &'a Machine<C, E>,
+    pub machine: &'a Machine<C, E, C>,
     pub current_state: Option<MachineStateImpl<C>>,
     pub recent_transitions: Vec<TransitionEvent<C, E>>,
     pub recent_snapshots: Vec<MachineSnapshot<C, E>>,
@@ -707,33 +707,33 @@ pub struct StateInfo<C: Send + Sync, E> {
 /// Extension trait for adding visualization to machines
 pub trait MachineVisualizationExt<C: Send + Sync, E> {
     /// Add visualization capabilities to the machine
-    fn with_visualization(self, config: VisualizationConfig) -> VisualizedMachine<C, E>;
+    fn with_visualization(self, config: VisualizationConfig) -> VisualizedMachine<C, E, C>;
 }
 
-impl<C: Send + Sync, E> MachineVisualizationExt<C, E> for Machine<C, E>
+impl<C: Send + Sync, E> MachineVisualizationExt<C, E> for Machine<C, E, C>
 where
     C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
     E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug,
 {
-    fn with_visualization(self, config: VisualizationConfig) -> VisualizedMachine<C, E> {
+    fn with_visualization(self, config: VisualizationConfig) -> VisualizedMachine<C, E, C> {
         VisualizedMachine::new(self, config)
     }
 }
 
 /// A state machine with visualization capabilities
 pub struct VisualizedMachine<C: Send + Sync, E> {
-    machine: Machine<C, E>,
+    machine: Machine<C, E, C>,
     visualizer: Arc<MachineVisualizer<C, E>>,
     monitor: Arc<StateMonitor<C, E>>,
     config: VisualizationConfig,
 }
 
-impl<C: Send + Sync, E> VisualizedMachine<C, E>
+impl<C: Send + Sync, E> VisualizedMachine<C, E, C>
 where
     C: Clone + std::default::Default + 'static + std::fmt::Debug + Send + Sync,
     E: Clone + std::cmp::PartialEq + events::Event + 'static + std::fmt::Debug,
 {
-    pub fn new(machine: Machine<C, E>, config: VisualizationConfig) -> Self {
+    pub fn new(machine: Machine<C, E, C>, config: VisualizationConfig) -> Self {
         let visualizer = Arc::new(MachineVisualizer::new(machine.clone(), config.clone()));
         let monitor = Arc::new(StateMonitor::new(visualizer.clone(), config.clone()));
 
@@ -746,7 +746,7 @@ where
     }
 
     /// Get the underlying machine
-    pub fn machine(&self) -> &Machine<C, E> {
+    pub fn machine(&self) -> &Machine<C, E, C> {
         &self.machine
     }
 

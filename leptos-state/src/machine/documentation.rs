@@ -8,6 +8,7 @@ use super::*;
 use crate::utils::types::{StateError, StateResult};
 use std::collections::HashMap;
 use std::fs;
+use std::hash::Hash;
 
 use std::sync::{Arc, RwLock};
 use std::time::Instant;
@@ -131,19 +132,19 @@ impl Default for DocumentationStyling {
 }
 
 /// Documentation generator for state machines
-pub struct DocumentationGenerator<C: Send + Sync, E> {
+pub struct DocumentationGenerator<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     config: DocumentationConfig,
-    machine: Arc<Machine<C, E>>,
+    machine: Arc<Machine<C, E, C>>,
     templates: Arc<RwLock<HashMap<String, String>>>,
     generated_docs: Arc<RwLock<Vec<GeneratedDocument>>>,
 }
 
 impl<C, E> DocumentationGenerator<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + 'static,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + Hash + Eq + 'static,
 {
-    pub fn new(machine: Machine<C, E>, config: DocumentationConfig) -> Self {
+    pub fn new(machine: Machine<C, E, C>, config: DocumentationConfig) -> Self {
         Self {
             config,
             machine: Arc::new(machine),
@@ -743,15 +744,15 @@ pub struct DocumentationData {
 }
 
 /// Extension trait for adding documentation to machines
-pub trait MachineDocumentationExt<C: Send + Sync, E> {
+pub trait MachineDocumentationExt<C: Send + Sync + Clone + 'static, E> {
     /// Add documentation generation capabilities to the machine
     fn with_documentation(self, config: DocumentationConfig) -> DocumentationGenerator<C, E>;
 }
 
-impl<C, E> MachineDocumentationExt<C, E> for Machine<C, E>
+impl<C, E> MachineDocumentationExt<C, E> for Machine<C, E, C>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + 'static,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + Hash + Eq + 'static,
 {
     fn with_documentation(self, config: DocumentationConfig) -> DocumentationGenerator<C, E> {
         DocumentationGenerator::new(self, config)
@@ -759,17 +760,17 @@ where
 }
 
 /// Documentation builder for fluent configuration
-pub struct DocumentationBuilder<C: Send + Sync, E> {
-    machine: Machine<C, E>,
+pub struct DocumentationBuilder<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+    machine: Machine<C, E, C>,
     config: DocumentationConfig,
 }
 
 impl<C, E> DocumentationBuilder<C, E>
 where
-    C: Clone + std::fmt::Debug + Send + Sync,
-    E: Clone + std::fmt::Debug + Event + Send + Sync,
+    C: Clone + std::fmt::Debug + Send + Sync + 'static,
+    E: Clone + std::fmt::Debug + Event + Send + Sync + Hash + Eq + 'static,
 {
-    pub fn new(machine: Machine<C, E>) -> Self {
+    pub fn new(machine: Machine<C, E, C>) -> Self {
         Self {
             machine,
             config: DocumentationConfig::default(),
