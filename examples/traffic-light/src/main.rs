@@ -103,20 +103,18 @@ fn TrafficLight() -> impl IntoView {
     let machine = use_machine::<TrafficMachine>();
 
     let machine_current = machine.clone();
-           let current_light = move || {
-               let state = machine_current.current();
-               match state {
-                   StateValue::Simple(s) => {
-                       match s.as_str() {
-                           "red" => "Red".to_string(),
-                           "yellow" => "Yellow".to_string(),
-                           "green" => "Green".to_string(),
-                           _ => s.to_string(),
-                       }
-                   },
-                   _ => "unknown".to_string(),
-               }
-           };
+    let current_light = move || {
+        let state = machine_current.current();
+        match state {
+            StateValue::Simple(s) => match s.as_str() {
+                "red" => "Red".to_string(),
+                "yellow" => "Yellow".to_string(),
+                "green" => "Green".to_string(),
+                _ => s.to_string(),
+            },
+            _ => "unknown".to_string(),
+        }
+    };
 
     let is_red = machine.create_matcher("red".to_string());
     let is_yellow = machine.create_matcher("yellow".to_string());

@@ -1,7 +1,7 @@
 use leptos::*;
 use wasm_bindgen::prelude::*;
 
-use console_error_panic_hook;
+// use console_error_panic_hook;
 
 mod simple_todo;
 use simple_todo::SimpleTodoApp;

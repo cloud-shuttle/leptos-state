@@ -883,7 +883,7 @@ where
 mod tests {
     use super::*;
     use crate::machine::states::StateValue;
-    use crate::machine::*;
+    // use crate::machine::*;
 
     #[derive(Debug, Clone, PartialEq, Hash, Eq, Default)]
     struct TestContext {

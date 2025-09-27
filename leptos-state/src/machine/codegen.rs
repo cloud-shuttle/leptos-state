@@ -710,7 +710,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::machine::*;
+    // use crate::machine::*;
 
     #[derive(Debug, Clone, PartialEq)]
     struct TestContext {

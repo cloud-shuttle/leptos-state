@@ -1,4 +1,6 @@
-use leptos::prelude::{event_target_value, ClassAttribute, CustomAttribute, ElementChild, Get, OnAttribute, Update};
+use leptos::prelude::{
+    event_target_value, ClassAttribute, CustomAttribute, ElementChild, Get, OnAttribute, Update,
+};
 use leptos::*;
 use leptos_state::hooks::use_store::{use_computed, use_store};
 use leptos_state::store::provide_store;
@@ -14,7 +16,11 @@ pub struct CounterState {
 create_store!(
     CounterStore,
     CounterState,
-    CounterState { count: 0, step: 1, user_name: "Guest".to_string() }
+    CounterState {
+        count: 0,
+        step: 1,
+        user_name: "Guest".to_string()
+    }
 );
 
 #[component]

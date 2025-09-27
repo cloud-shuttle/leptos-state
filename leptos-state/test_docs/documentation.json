@@ -1,8 +1,8 @@
 {
   "title": "State Machine Documentation",
   "states": [
-    "counting",
-    "idle"
+    "idle",
+    "counting"
   ],
   "events": [
     "start",
@@ -26,5 +26,5 @@
       "event": "stop"
     }
   ],
-  "generated_at": 1758949308
+  "generated_at": 1758968774
 }

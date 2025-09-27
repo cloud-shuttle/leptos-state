@@ -117,7 +117,8 @@ impl StateValue {
                 format!("{}.{}", parent, child.to_dot_notation())
             }
             StateValue::Parallel(states) => {
-                let state_strings: Vec<String> = states.iter().map(|s| s.to_dot_notation()).collect();
+                let state_strings: Vec<String> =
+                    states.iter().map(|s| s.to_dot_notation()).collect();
                 format!("[{}]", state_strings.join(", "))
             }
         }

@@ -65,8 +65,9 @@ where
         if let Some(window) = window() {
             if let Ok(Some(storage)) = window.local_storage() {
                 if let Ok(Some(data)) = storage.get_item(key) {
-                    return serde_json::from_str(&data)
-                        .map_err(|e| crate::utils::StateError::new(&format!("Failed to deserialize: {}", e)));
+                    return serde_json::from_str(&data).map_err(|e| {
+                        crate::utils::StateError::new(&format!("Failed to deserialize: {}", e))
+                    });
                 }
             }
         }
@@ -77,8 +78,9 @@ where
         // For non-WASM targets, use file-based storage
         let storage_path = format!("./storage/{}.json", key);
         if let Ok(data) = std::fs::read_to_string(&storage_path) {
-            serde_json::from_str(&data)
-                .map_err(|e| crate::utils::StateError::new(&format!("Failed to deserialize: {}", e)))
+            serde_json::from_str(&data).map_err(|e| {
+                crate::utils::StateError::new(&format!("Failed to deserialize: {}", e))
+            })
         } else {
             Err(crate::utils::StateError::store_not_found(key))
         }
@@ -96,10 +98,15 @@ where
         use web_sys::window;
         if let Some(window) = window() {
             if let Ok(Some(storage)) = window.local_storage() {
-                let data = serde_json::to_string(state)
-                    .map_err(|e| crate::utils::StateError::new(&format!("Failed to serialize: {}", e)))?;
-                storage.set_item(key, &data)
-                    .map_err(|e| crate::utils::StateError::new(&format!("Failed to save to localStorage: {:?}", e)))?;
+                let data = serde_json::to_string(state).map_err(|e| {
+                    crate::utils::StateError::new(&format!("Failed to serialize: {}", e))
+                })?;
+                storage.set_item(key, &data).map_err(|e| {
+                    crate::utils::StateError::new(&format!(
+                        "Failed to save to localStorage: {:?}",
+                        e
+                    ))
+                })?;
                 return Ok(());
             }
         }
@@ -110,12 +117,16 @@ where
         // For non-WASM targets, use file-based storage
         let storage_path = format!("./storage/{}.json", key);
         if let Err(e) = std::fs::create_dir_all("./storage") {
-            return Err(crate::utils::StateError::new(&format!("Failed to create storage directory: {}", e)));
+            return Err(crate::utils::StateError::new(&format!(
+                "Failed to create storage directory: {}",
+                e
+            )));
         }
         let data = serde_json::to_string(state)
             .map_err(|e| crate::utils::StateError::new(&format!("Failed to serialize: {}", e)))?;
-        std::fs::write(&storage_path, data)
-            .map_err(|e| crate::utils::StateError::new(&format!("Failed to write to file: {}", e)))?;
+        std::fs::write(&storage_path, data).map_err(|e| {
+            crate::utils::StateError::new(&format!("Failed to write to file: {}", e))
+        })?;
         Ok(())
     }
 }
@@ -146,9 +157,7 @@ pub fn create_store<T>(initial: T) -> SimpleStore<T>
 where
     T: Clone + PartialEq + Send + Sync + 'static,
 {
-    SimpleStore {
-        initial,
-    }
+    SimpleStore { initial }
 }
 
 /// A simple store implementation that stores the initial value
@@ -156,7 +165,7 @@ pub struct SimpleStore<T> {
     initial: T,
 }
 
-impl<T> Clone for SimpleStore<T> 
+impl<T> Clone for SimpleStore<T>
 where
     T: Clone,
 {
@@ -360,7 +369,7 @@ impl<T> CombinedSelector<T> {
 mod tests {
     use super::*;
 
-    #[derive(Clone, PartialEq, Debug)]
+    #[derive(Clone, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
     pub struct TestState {
         count: i32,
         name: String,
@@ -398,7 +407,7 @@ mod tests {
         // Test load
         let load_result = load_from_storage::<TestState>(key);
         assert!(load_result.is_ok());
-        
+
         let loaded_data = load_result.unwrap();
         assert_eq!(loaded_data.count, 42);
         assert_eq!(loaded_data.name, "test_persistence");
@@ -410,10 +419,10 @@ mod tests {
             count: 42,
             name: "test".to_string(),
         };
-        
+
         // This should create a store that can actually store the initial value
         let store = create_store(initial_state.clone());
-        
+
         // The store should be able to return the initial state
         let created_state = store.get_initial();
         assert_eq!(created_state, initial_state);

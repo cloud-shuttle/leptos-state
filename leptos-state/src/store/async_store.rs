@@ -303,9 +303,9 @@ mod tests {
     fn test_apply_loaded_data() {
         let mut state = TestAsyncState::default();
         let test_data = "test data".to_string();
-        
+
         TestAsyncStore::apply_loaded_data(&mut state, test_data.clone());
-        
+
         assert_eq!(state.data, Some(test_data));
         assert!(!state.loading);
         assert!(state.error.is_none());

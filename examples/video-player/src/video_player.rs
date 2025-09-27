@@ -1,17 +1,19 @@
 use leptos::prelude::*;
-use web_sys;
+// use web_sys;
 
-use crate::state_machine::*;
 use crate::components::*;
+use crate::state_machine::*;
 
 #[component]
 pub fn VideoPlayer() -> impl IntoView {
     log::info!("VideoPlayer component is rendering");
-    
+
     // Sample video URL - using Big Buck Bunny as in the XState example
-    let video_src = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-    let video_poster = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg";
-    
+    let video_src =
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+    let video_poster =
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg";
+
     // Create the video player context
     let context = VideoPlayerContext {
         video_src: video_src.to_string(),
@@ -24,13 +26,13 @@ pub fn VideoPlayer() -> impl IntoView {
         animation_action_timestamp: String::new(),
         is_touch_device: is_touch_device(),
     };
-    
+
     // Create the video player store
     let store = VideoPlayerStore::new(context);
-    
+
     // Video element reference
     let video_ref = NodeRef::<leptos::html::Video>::new();
-    
+
     // Handle video events
     let handle_video_events = move |event: web_sys::Event| {
         let event_type = event.type_();
@@ -62,7 +64,7 @@ pub fn VideoPlayer() -> impl IntoView {
             _ => {}
         }
     };
-    
+
     // Handle video click
     let handle_video_click = move |_| {
         let current_state = store.state.get();
@@ -81,65 +83,63 @@ pub fn VideoPlayer() -> impl IntoView {
             _ => {}
         }
     };
-    
+
     // Handle mouse events
     let handle_mouse_enter = move |_| {
         if !store.context.get().is_touch_device {
             store.set_show_controls.set(true);
         }
     };
-    
+
     let handle_mouse_leave = move |_| {
         if !store.context.get().is_touch_device {
             store.set_show_controls.set(false);
         }
     };
-    
+
     // Handle keyboard events
-    let handle_keydown = move |event: web_sys::KeyboardEvent| {
-        match event.key().as_str() {
-            " " | "k" => {
-                event.prevent_default();
-                let current_state = store.state.get();
-                match current_state {
-                    VideoPlayerState::Playing => {
-                        store.pause();
-                        store.animate(AnimationType::Paused);
-                    }
-                    VideoPlayerState::Paused => {
-                        store.play();
-                        store.animate(AnimationType::Playing);
-                    }
-                    _ => {}
+    let handle_keydown = move |event: web_sys::KeyboardEvent| match event.key().as_str() {
+        " " | "k" => {
+            event.prevent_default();
+            let current_state = store.state.get();
+            match current_state {
+                VideoPlayerState::Playing => {
+                    store.pause();
+                    store.animate(AnimationType::Paused);
                 }
-            }
-            "f" => {
-                event.prevent_default();
-                store.toggle_fullscreen();
-            }
-            "ArrowLeft" => {
-                event.prevent_default();
-                if let Some(video) = video_ref.get() {
-                    let current_time = video.current_time();
-                    let new_time = (current_time - 10.0).max(0.0);
-                    video.set_current_time(new_time);
-                    store.animate(AnimationType::Backward);
+                VideoPlayerState::Paused => {
+                    store.play();
+                    store.animate(AnimationType::Playing);
                 }
+                _ => {}
             }
-            "ArrowRight" => {
-                event.prevent_default();
-                if let Some(video) = video_ref.get() {
-                    let current_time = video.current_time();
-                    let duration = video.duration();
-                    let new_time = (current_time + 10.0).min(duration);
-                    video.set_current_time(new_time);
-                    store.animate(AnimationType::Forward);
-                }
-            }
-            _ => {}
         }
+        "f" => {
+            event.prevent_default();
+            store.toggle_fullscreen();
+        }
+        "ArrowLeft" => {
+            event.prevent_default();
+            if let Some(video) = video_ref.get() {
+                let current_time = video.current_time();
+                let new_time = (current_time - 10.0).max(0.0);
+                video.set_current_time(new_time);
+                store.animate(AnimationType::Backward);
+            }
+        }
+        "ArrowRight" => {
+            event.prevent_default();
+            if let Some(video) = video_ref.get() {
+                let current_time = video.current_time();
+                let duration = video.duration();
+                let new_time = (current_time + 10.0).min(duration);
+                video.set_current_time(new_time);
+                store.animate(AnimationType::Forward);
+            }
+        }
+        _ => {}
     };
-    
+
     // Handle state changes
     Effect::new(move |_| {
         let state = store.state.get();
@@ -149,13 +149,13 @@ pub fn VideoPlayer() -> impl IntoView {
                     let _ = video.play().unwrap();
                 }
                 VideoPlayerState::Paused => {
-                    let _ = video.pause().unwrap();
+                    video.pause().unwrap();
                 }
                 _ => {}
             }
         }
     });
-    
+
     // Auto-hide controls after delay
     Effect::new(move |_| {
         if store.show_controls.get() && !store.context.get().is_touch_device {
@@ -167,7 +167,7 @@ pub fn VideoPlayer() -> impl IntoView {
             );
         }
     });
-    
+
     // Clear animation after delay
     Effect::new(move |_| {
         if store.animation.get().is_some() {
@@ -179,7 +179,7 @@ pub fn VideoPlayer() -> impl IntoView {
             );
         }
     });
-    
+
     view! {
         <div class="video-player-container" on:keydown=handle_keydown tabindex="0">
             <div class="video-wrapper" on:mouseenter=handle_mouse_enter on:mouseleave=handle_mouse_leave>
@@ -196,7 +196,7 @@ pub fn VideoPlayer() -> impl IntoView {
                     on:ended=handle_video_events
                     class="video-element"
                 />
-                
+
                 // Loading overlay
                 {move || {
                     if store.is_loading.get() {
@@ -205,17 +205,17 @@ pub fn VideoPlayer() -> impl IntoView {
                         None
                     }
                 }}
-                
+
                 // Controls overlay
                 {move || {
                     let show_controls = store.show_controls.get();
                     let state = store.state.get();
                     let is_touch_device = store.context.get().is_touch_device;
-                    
+
                     if show_controls || state == VideoPlayerState::Paused || is_touch_device {
-                        Some(view! { 
-                            <ControlsOverlay 
-                                store=store.clone()
+                        Some(view! {
+                            <ControlsOverlay
+                                store=store
                                 on_play=move |_| { store.play(); }
                                 on_pause=move |_| { store.pause(); }
                                 _on_toggle=move |_| {
@@ -242,16 +242,12 @@ pub fn VideoPlayer() -> impl IntoView {
                         None
                     }
                 }}
-                
+
                 // Animation overlay
                 {move || {
-                    if let Some(animation) = store.animation.get() {
-                        Some(view! { 
-                            <AnimationOverlay animation_type=animation />
-                        })
-                    } else {
-                        None
-                    }
+                    store.animation.get().map(|animation| view! {
+                        <AnimationOverlay animation_type=animation />
+                    })
                 }}
             </div>
         </div>

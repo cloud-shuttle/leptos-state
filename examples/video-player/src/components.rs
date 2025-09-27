@@ -1,6 +1,6 @@
-use leptos::prelude::*;
-use leptos::ev::MouseEvent;
 use crate::state_machine::*;
+use leptos::ev::MouseEvent;
+use leptos::prelude::*;
 
 #[component]
 pub fn LoadingOverlay() -> impl IntoView {
@@ -29,32 +29,36 @@ pub fn ControlsOverlay(
     let progress = move || {
         let current = current_time();
         let dur = duration();
-        if dur > 0.0 { current / dur } else { 0.0 }
+        if dur > 0.0 {
+            current / dur
+        } else {
+            0.0
+        }
     };
-    
+
     view! {
         <div class="controls-overlay">
             <div class="controls-top">
                 <div class="video-title">"Big Buck Bunny"</div>
             </div>
-            
+
             <div class="controls-center">
-                <button 
+                <button
                     class="play-button"
                     on:click=move |ev| if is_playing() { on_pause(ev) } else { on_play(ev) }
                 >
                     {if is_playing() { "⏸️" } else { "▶️" }}
                 </button>
             </div>
-            
+
             <div class="controls-bottom">
                 <div class="progress-container">
                     <div class="progress-bar">
-                        <div 
-                            class="progress-fill" 
+                        <div
+                            class="progress-fill"
                             style=move || format!("width: {}%", progress() * 100.0)
                         ></div>
-                        <div 
+                        <div
                             class="progress-handle"
                             style=move || format!("left: {}%", progress() * 100.0)
                             on:mousedown=move |_| {
@@ -64,21 +68,21 @@ pub fn ControlsOverlay(
                         ></div>
                     </div>
                 </div>
-                
+
                 <div class="time-display">
                     <span>{move || format_time(current_time())}</span>
                     " / "
                     <span>{move || format_time(duration())}</span>
                 </div>
-                
+
                 <div class="volume-controls">
-                    <button 
+                    <button
                         class="volume-button"
-                        on:click=move |ev| on_volume_mute(ev)
+                        on:click=on_volume_mute
                     >
                         {move || if store.context.get().muted { "🔇" } else { "🔊" }}
                     </button>
-                    <input 
+                    <input
                         type="range"
                         class="volume-slider"
                         min="0"
@@ -91,10 +95,10 @@ pub fn ControlsOverlay(
                         }
                     />
                 </div>
-                
-                <button 
+
+                <button
                     class="fullscreen-button"
-                    on:click=move |ev| on_fullscreen(ev)
+                    on:click=on_fullscreen
                 >
                     "⛶"
                 </button>
@@ -111,7 +115,7 @@ pub fn AnimationOverlay(animation_type: AnimationType) -> impl IntoView {
         AnimationType::Backward => "animate-backward",
         AnimationType::Forward => "animate-forward",
     };
-    
+
     view! {
         <div class=format!("animation-overlay {}", animation_class)>
             <div class="animation-icon">

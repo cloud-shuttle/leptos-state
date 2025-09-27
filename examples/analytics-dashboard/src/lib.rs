@@ -1,4 +1,4 @@
-use console_error_panic_hook;
+// use console_error_panic_hook;
 use leptos::*;
 use wasm_bindgen::prelude::*;
 

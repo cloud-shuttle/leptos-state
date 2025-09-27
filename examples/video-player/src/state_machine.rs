@@ -37,6 +37,7 @@ pub enum VideoPlayerState {
     Loading,
     Playing,
     Paused,
+    #[allow(dead_code)]
     Ended,
 }
 
@@ -73,7 +74,7 @@ impl VideoPlayerStore {
         let (show_controls, set_show_controls) = signal(false);
         let (animation, set_animation) = signal(None);
         let (is_fullscreen, set_fullscreen) = signal(false);
-        
+
         Self {
             state,
             set_state,
@@ -89,51 +90,51 @@ impl VideoPlayerStore {
             set_fullscreen,
         }
     }
-    
+
     pub fn play(&self) {
         self.set_state.set(VideoPlayerState::Playing);
         self.set_loading.set(false);
     }
-    
+
     pub fn pause(&self) {
         self.set_state.set(VideoPlayerState::Paused);
     }
-    
+
     pub fn stop(&self) {
         self.set_state.set(VideoPlayerState::Stopped);
     }
-    
+
     pub fn set_loading(&self, loading: bool) {
         self.set_loading.set(loading);
         if loading {
             self.set_state.set(VideoPlayerState::Loading);
         }
     }
-    
+
     pub fn update_time(&self, current_time: f64) {
         self.set_context.update(|ctx| {
             ctx.video_current_time = current_time;
         });
     }
-    
+
     pub fn update_duration(&self, duration: f64) {
         self.set_context.update(|ctx| {
             ctx.video_duration = Some(duration);
         });
     }
-    
+
     pub fn set_volume(&self, volume: f64) {
         self.set_context.update(|ctx| {
             ctx.volume = volume;
         });
     }
-    
+
     pub fn toggle_mute(&self) {
         self.set_context.update(|ctx| {
             ctx.muted = !ctx.muted;
         });
     }
-    
+
     pub fn animate(&self, animation: AnimationType) {
         self.set_animation.set(Some(animation));
         // Clear animation after a delay
@@ -144,7 +145,7 @@ impl VideoPlayerStore {
             std::time::Duration::from_millis(600),
         );
     }
-    
+
     pub fn toggle_fullscreen(&self) {
         self.set_fullscreen.set(!self.is_fullscreen.get());
     }

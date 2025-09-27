@@ -83,94 +83,97 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + 'static> MachineBuilder<C, E> 
         }
     }
 
-    #[cfg(feature = "persist")]
-    /// Build a machine with persistence capabilities
-    pub fn build_with_persistence(self, config: PersistenceConfig) -> PersistentMachine<C, E>
-    where
-        C: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
-        E: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
-    {
-        self.build().with_persistence(config)
-    }
+    // TODO: Implement persistence features
+    // #[cfg(feature = "persist")]
+    // /// Build a machine with persistence capabilities
+    // pub fn build_with_persistence(self, config: PersistenceConfig) -> PersistentMachine<C, E>
+    // where
+    //     C: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
+    //     E: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
+    // {
+    //     self.build().with_persistence(config)
+    // }
 
-    #[cfg(feature = "persist")]
-    /// Build a machine with default persistence settings
-    pub fn build_persistent(self) -> PersistentMachine<C, E>
-    where
-        C: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
-        E: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
-    {
-        let config = PersistenceConfig {
-            enabled: true,
-            storage_key: "leptos_state_machine".to_string(),
-            auto_save: true,
-            auto_restore: true,
-            ..Default::default()
-        };
-        self.build_with_persistence(config)
-    }
+    // #[cfg(feature = "persist")]
+    // /// Build a machine with default persistence settings
+    // pub fn build_persistent(self) -> PersistentMachine<C, E>
+    // where
+    //     C: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
+    //     E: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
+    // {
+    //     let config = PersistenceConfig {
+    //         enabled: true,
+    //         storage_key: "leptos_state_machine".to_string(),
+    //         auto_save: true,
+    //         auto_restore: true,
+    //         ..Default::default()
+    //     };
+    //     self.build_with_persistence(config)
+    // }
 
-    #[cfg(feature = "visualization")]
-    /// Build a machine with visualization capabilities
-    pub fn build_with_visualization(self, config: VisualizationConfig) -> VisualizedMachine<C, E>
-    where
-        C: Clone + serde::Serialize,
-        E: Clone + serde::Serialize,
-    {
-        self.build().with_visualization(config)
-    }
+    // TODO: Implement visualization features
+    // #[cfg(feature = "visualization")]
+    // /// Build a machine with visualization capabilities
+    // pub fn build_with_visualization(self, config: VisualizationConfig) -> VisualizedMachine<C, E>
+    // where
+    //     C: Clone + serde::Serialize,
+    //     E: Clone + serde::Serialize,
+    // {
+    //     self.build().with_visualization(config)
+    // }
 
-    #[cfg(feature = "visualization")]
-    /// Build a machine with default visualization settings
-    pub fn build_visualized(self) -> VisualizedMachine<C, E>
-    where
-        C: Clone + serde::Serialize,
-        E: Clone + serde::Serialize,
-    {
-        let config = VisualizationConfig {
-            enabled: true,
-            max_history: 100,
-            capture_snapshots: true,
-            enable_time_travel: true,
-            show_transitions: true,
-            show_context_changes: true,
-            show_actions: true,
-            show_guards: true,
-            // export_format: ExportFormat::Dot,
-            ..Default::default()
-        };
-        self.build_with_visualization(config)
-    }
+    // #[cfg(feature = "visualization")]
+    // /// Build a machine with default visualization settings
+    // pub fn build_visualized(self) -> VisualizedMachine<C, E>
+    // where
+    //     C: Clone + serde::Serialize,
+    //     E: Clone + serde::Serialize,
+    // {
+    //     let config = VisualizationConfig {
+    //         enabled: true,
+    //         max_history: 100,
+    //         capture_snapshots: true,
+    //         enable_time_travel: true,
+    //         show_transitions: true,
+    //         show_context_changes: true,
+    //         show_actions: true,
+    //         show_guards: true,
+    //         // export_format: ExportFormat::Dot,
+    //         ..Default::default()
+    //     };
+    //     self.build_with_visualization(config)
+    // }
 
-    #[cfg(feature = "testing")]
-    /// Build a machine with testing capabilities
-    pub fn build_with_testing(self, config: TestConfig) -> MachineTestRunner<C, E>
-    where
-        C: Clone + std::fmt::Debug + PartialEq,
-        E: Clone + std::fmt::Debug + Event,
-    {
-        self.build().with_testing(config)
-    }
+    // TODO: Implement testing features
+    // #[cfg(feature = "testing")]
+    // /// Build a machine with testing capabilities
+    // pub fn build_with_testing(self, config: TestConfig) -> MachineTestRunner<C, E>
+    // where
+    //     C: Clone + std::fmt::Debug + PartialEq,
+    //     E: Clone + std::fmt::Debug + Event,
+    // {
+    //     self.build().with_testing(config)
+    // }
 
-    #[cfg(feature = "testing")]
-    /// Build a machine with default testing settings
-    pub fn build_testable(self) -> MachineTestRunner<C, E>
-    where
-        C: Clone + std::fmt::Debug + PartialEq,
-        E: Clone + std::fmt::Debug + Event,
-    {
-        let config = TestConfig {
-            max_iterations: 1000,
-            max_transitions: 50,
-            test_timeout: std::time::Duration::from_secs(30),
-            verbose: false,
-            track_coverage: true,
-            benchmark: false,
-            random_seed: None,
-            data_strategy: DataStrategy::Random,
-        };
-        self.build_with_testing(config)
-    }
+    // #[cfg(feature = "testing")]
+    // /// Build a machine with default testing settings
+    // pub fn build_testable(self) -> MachineTestRunner<C, E>
+    // where
+    //     C: Clone + std::fmt::Debug + PartialEq,
+    //     E: Clone + std::fmt::Debug + Event,
+    // {
+    //     let config = TestConfig {
+    //         max_iterations: 1000,
+    //         max_transitions: 50,
+    //         test_timeout: std::time::Duration::from_secs(30),
+    //         verbose: false,
+    //         track_coverage: true,
+    //         benchmark: false,
+    //         random_seed: None,
+    //         data_strategy: DataStrategy::Random,
+    //     };
+    //     self.build_with_testing(config)
+    // }
 
     #[cfg(feature = "performance")]
     /// Build a machine with performance optimization capabilities
@@ -1261,7 +1264,7 @@ mod tests {
 
     #[test]
     fn machine_with_actions() {
-        let action = FunctionAction::new(|ctx: &mut TestContext, _: &TestEvent| ctx.count += 1);
+        let _action = FunctionAction::new(|ctx: &mut TestContext, _: &TestEvent| ctx.count += 1);
 
         let _machine = MachineBuilder::<TestContext, TestEvent>::new()
             .initial("idle")
@@ -1297,7 +1300,7 @@ mod tests {
             .build();
 
         let initial_state = machine.initial_state();
-        
+
         // Test state validation
         assert!(initial_state.can_transition_to("running"));
         assert!(initial_state.can_transition_to("idle"));

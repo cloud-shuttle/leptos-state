@@ -19,7 +19,9 @@ pub fn use_machine<M: StateMachine>() -> MachineHandle<M> {
 }
 
 /// Hook to use a machine with a specific machine instance (README-compatible API)
-pub fn use_machine_with_instance<M: StateMachine>(_machine: M) -> (ReadSignal<M::State>, Callback<M::Event>) {
+pub fn use_machine_with_instance<M: StateMachine>(
+    _machine: M,
+) -> (ReadSignal<M::State>, Callback<M::Event>) {
     let (state, set_state) = signal(M::initial());
 
     let send = Callback::new(move |event: M::Event| {
