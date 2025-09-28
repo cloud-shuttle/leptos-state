@@ -3,8 +3,18 @@
 //! Provides simple, reactive stores with minimal boilerplate.
 
 pub mod async_store;
+pub mod async_store_core;
+pub mod async_store_hooks;
+pub mod async_store_cached;
+pub mod async_store_infinite;
 #[cfg(feature = "devtools")]
 pub mod devtools;
+#[cfg(feature = "devtools")]
+pub mod devtools_core;
+#[cfg(feature = "devtools")]
+pub mod devtools_connectors;
+#[cfg(feature = "devtools")]
+pub mod devtools_timeline;
 pub mod middleware;
 pub mod store;
 pub mod store_core;
