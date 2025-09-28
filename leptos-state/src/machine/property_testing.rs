@@ -1,8 +1,8 @@
 //! Property-based testing for state machines
 
 use super::*;
-use std::collections::HashMap;
 use std::hash::Hash;
+use std::collections::HashMap;
 
 /// Property for property-based testing
 #[derive(Debug, Clone, PartialEq)]

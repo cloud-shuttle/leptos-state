@@ -2,6 +2,7 @@
 
 use super::*;
 use std::collections::HashMap;
+use std::hash::Hash;
 
 /// Performance-optimized state machine
 pub struct OptimizedMachine<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {

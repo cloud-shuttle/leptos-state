@@ -13,15 +13,27 @@ pub fn use_store_with_actions<S: Store>() -> (ReadSignal<S::State>, StoreActions
 }
 
 /// Hook to access a computed slice of store state
-pub fn use_store_slice<S: Store, Slice: StoreSlice<S>>() -> Memo<Slice::Output> {
-    crate::store::use_store_slice::<S, Slice>()
+pub fn use_store_slice<S: Store, Slice: StoreSlice<S>>(store: &S, selector: Slice) -> Memo<Slice::Output>
+where
+    Slice: Clone + Send + Sync + 'static,
+    Slice::Output: Clone + Send + Sync + 'static,
+{
+    Memo::new(move |_| {
+        selector.select(&store.get())
+    })
 }
 
 /// Hook to create a computed value from store state
 pub fn use_computed<S: Store, T: PartialEq + Clone + Send + Sync + 'static>(
+    store: &S,
     selector: impl Fn(&S::State) -> T + Send + Sync + 'static,
-) -> Memo<T> {
-    crate::store::create_computed::<S, T>(selector)
+) -> Memo<T>
+where
+    S: Clone + Send + Sync + 'static,
+{
+    Memo::new(move |_| {
+        selector(&store.get())
+    })
 }
 
 /// Hook for store actions (functions that update store state)

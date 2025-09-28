@@ -271,11 +271,11 @@ pub struct LoggingMiddleware;
 
 impl<T> StoreMiddleware<T> for LoggingMiddleware {
     fn on_set(&self, old_state: &T, new_state: &T) {
-        leptos::logging::debug!("Store state changed");
+        eprintln!("Store state changed");
     }
 
     fn on_update(&self, old_state: &T, new_state: &T) {
-        leptos::logging::debug!("Store state updated");
+        eprintln!("Store state updated");
     }
 }
 
@@ -306,13 +306,13 @@ where
 {
     fn on_set(&self, _old_state: &T, new_state: &T) {
         if let Err(error) = (self.validator)(new_state) {
-            leptos::logging::error!("Store validation failed: {}", error);
+            eprintln!("Store validation failed: {}", error);
         }
     }
 
     fn on_update(&self, _old_state: &T, new_state: &T) {
         if let Err(error) = (self.validator)(new_state) {
-            leptos::logging::error!("Store validation failed: {}", error);
+            eprintln!("Store validation failed: {}", error);
         }
     }
 }

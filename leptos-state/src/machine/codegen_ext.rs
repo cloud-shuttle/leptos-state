@@ -1,6 +1,7 @@
 //! Extension traits for code generation
 
 use super::*;
+use std::hash::Hash;
 
 /// Extension trait for adding code generation to machines
 pub trait MachineCodeGenExt<C: Send + Sync + Clone + PartialEq, E: Clone + Send + Sync + Hash + Eq + 'static> {

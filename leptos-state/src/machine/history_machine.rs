@@ -118,10 +118,10 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
         if let Some(last_state) = self.history_tracker.get_last_state(&history_state.id) {
             // For now, we just log the restoration
             // In a full implementation, this would transition to the historical state
-            leptos::logging::debug!("Restoring history for state {}: {}", history_state.id, last_state.state);
+            eprintln!("Restoring history for state {}: {}", history_state.id, last_state.state);
         } else if let Some(default_target) = &history_state.default_target {
             // Transition to default target if no history exists
-            leptos::logging::debug!("No history found for state {}, using default: {}", history_state.id, default_target);
+            eprintln!("No history found for state {}, using default: {}", history_state.id, default_target);
         }
     }
 
@@ -166,7 +166,7 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
             .map_err(|e| format!("Failed to serialize history: {}", e))?;
 
         // In a real implementation, this would save to localStorage or other persistence
-        leptos::logging::debug!("Persisting history to key: {}", key);
+        eprintln!("Persisting history to key: {}", key);
         Ok(())
     }
 
@@ -179,7 +179,7 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
         let key = self.config.persistence_key_required();
 
         // In a real implementation, this would load from localStorage or other persistence
-        leptos::logging::debug!("Loading history from key: {}", key);
+        eprintln!("Loading history from key: {}", key);
         Ok(())
     }
 

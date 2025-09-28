@@ -35,8 +35,8 @@ pub use leptos::prelude::{
 
 // Re-export our own types
 pub use super::{
-    hooks::{use_machine, use_store as use_store_hook},
+    hooks::{use_machine, use_store as use_store_hook, use_store_slice},
     machine::{Action, Event, Guard, Machine, MachineBuilder, MachineState, Transition},
-    store::{use_store_slice, Store, StoreContext, StoreSlice},
+    store::{Store, StoreContext, StoreSlice},
     utils::types::{StateError, StateResult},
 };

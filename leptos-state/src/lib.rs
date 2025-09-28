@@ -65,7 +65,7 @@ pub mod utils;
 // Re-export commonly used items
 // Store types
 pub use store::{
-    create_computed, create_store, provide_store, use_store_slice, LoggerMiddleware,
+    create_store, LoggerMiddleware,
     MiddlewareChain, Store, StoreContext, StoreSlice, ValidationMiddleware,
 };
 // Machine types

@@ -1,6 +1,7 @@
 //! Core code generation functionality
 
 use super::*;
+use std::hash::Hash;
 
 /// Code generator for state machines
 pub struct CodeGenerator<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {

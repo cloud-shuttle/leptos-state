@@ -475,7 +475,7 @@ impl CodeGenOptions {
 
     /// Set custom footer
     pub fn footer(mut self, footer: String) -> Self {
-        self.custom_footer = Some(header);
+        self.custom_footer = Some(footer);
         self
     }
 }

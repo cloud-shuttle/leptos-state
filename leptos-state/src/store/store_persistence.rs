@@ -4,10 +4,10 @@ use super::*;
 
 /// Load state from localStorage
 pub fn load_from_local_storage<T: serde::de::DeserializeOwned>(key: &str) -> Option<T> {
-    use leptos::window;
-
-    #[cfg(feature = "hydrate")]
+    #[cfg(all(feature = "hydrate", target_arch = "wasm32"))]
     {
+        use leptos::window;
+
         let window = window();
         if let Ok(Some(storage)) = window.local_storage() {
             if let Ok(Some(value)) = storage.get_item(key) {
@@ -18,9 +18,10 @@ pub fn load_from_local_storage<T: serde::de::DeserializeOwned>(key: &str) -> Opt
         }
     }
 
-    #[cfg(not(feature = "hydrate"))]
+    #[cfg(not(all(feature = "hydrate", target_arch = "wasm32")))]
     {
-        // In SSR mode, return None
+        // In SSR mode or non-wasm targets, return None
+        let _ = key; // Suppress unused parameter warning
         return None;
     }
 
@@ -29,10 +30,10 @@ pub fn load_from_local_storage<T: serde::de::DeserializeOwned>(key: &str) -> Opt
 
 /// Save state to localStorage
 pub fn save_to_local_storage<T: serde::Serialize>(key: &str, value: &T) -> Result<(), String> {
-    use leptos::window;
-
-    #[cfg(feature = "hydrate")]
+    #[cfg(all(feature = "hydrate", target_arch = "wasm32"))]
     {
+        use leptos::window;
+
         let window = window();
         match window.local_storage() {
             Ok(Some(storage)) => {
@@ -48,9 +49,11 @@ pub fn save_to_local_storage<T: serde::Serialize>(key: &str, value: &T) -> Resul
         }
     }
 
-    #[cfg(not(feature = "hydrate"))]
+    #[cfg(not(all(feature = "hydrate", target_arch = "wasm32")))]
     {
-        // In SSR mode, do nothing
+        // In SSR mode or non-wasm targets, do nothing
+        let _ = key;
+        let _ = value;
         Ok(())
     }
 }
@@ -60,26 +63,36 @@ pub fn persist_to_local_storage<T: Clone + PartialEq + serde::Serialize + 'stati
     key: &str,
     store: StoreContext<T>,
 ) {
-    use leptos::create_effect;
+    #[cfg(all(feature = "hydrate", target_arch = "wasm32"))]
+    {
+        use leptos::create_effect;
 
-    let key = key.to_string();
+        let key = key.to_string();
 
-    create_effect(move |_| {
-        let _current = store.get(); // This will trigger the effect when state changes
-        let value = store.get();
+        create_effect(move |_| {
+            let _current = store.get(); // This will trigger the effect when state changes
+            let value = store.get();
 
-        if let Err(e) = save_to_local_storage(&key, &value) {
-            leptos::logging::error!("Failed to persist store: {}", e);
-        }
-    });
+            if let Err(e) = save_to_local_storage(&key, &value) {
+                eprintln!("Failed to persist store: {}", e);
+            }
+        });
+    }
+
+    #[cfg(not(all(feature = "hydrate", target_arch = "wasm32")))]
+    {
+        // In SSR mode or non-wasm targets, do nothing
+        let _ = key;
+        let _ = store;
+    }
 }
 
 /// Clear a key from localStorage
 pub fn clear_from_local_storage(key: &str) -> Result<(), String> {
-    use leptos::window;
-
-    #[cfg(feature = "hydrate")]
+    #[cfg(all(feature = "hydrate", target_arch = "wasm32"))]
     {
+        use leptos::window;
+
         let window = window();
         match window.local_storage() {
             Ok(Some(storage)) => {
@@ -90,22 +103,23 @@ pub fn clear_from_local_storage(key: &str) -> Result<(), String> {
         }
     }
 
-    #[cfg(not(feature = "hydrate"))]
+    #[cfg(not(all(feature = "hydrate", target_arch = "wasm32")))]
     {
-        // In SSR mode, do nothing
+        // In SSR mode or non-wasm targets, do nothing
+        let _ = key;
         Ok(())
     }
 }
 
 /// Check if localStorage is available
 pub fn is_local_storage_available() -> bool {
-    #[cfg(feature = "hydrate")]
+    #[cfg(all(feature = "hydrate", target_arch = "wasm32"))]
     {
         use leptos::window;
         window.local_storage().is_ok()
     }
 
-    #[cfg(not(feature = "hydrate"))]
+    #[cfg(not(all(feature = "hydrate", target_arch = "wasm32")))]
     {
         false
     }

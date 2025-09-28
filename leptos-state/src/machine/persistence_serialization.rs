@@ -4,7 +4,7 @@ use super::*;
 
 /// Serialized state machine data
 #[derive(Debug, Clone)]
-pub struct SerializedMachine<C, E, C> {
+pub struct SerializedMachine<C, E, S> {
     /// Machine format version
     pub version: u32,
     /// Machine ID
@@ -25,7 +25,7 @@ pub struct SerializedMachine<C, E, C> {
     pub timestamp: u64,
 }
 
-impl<C, E> SerializedMachine<C, E, C> {
+impl<C, E, S> SerializedMachine<C, E, S> {
     /// Create a new serialized machine
     pub fn new() -> Self {
         Self {
@@ -502,12 +502,12 @@ mod serde_impl {
     use super::*;
     use serde::{Deserialize, Serialize};
 
-    impl<C, E> Serialize for SerializedMachine<C, E, C>
+    impl<C, E, S> Serialize for SerializedMachine<C, E, S>
     where
         C: Serialize,
         E: Serialize,
     {
-        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        fn serialize<Ser>(&self, serializer: Ser) -> Result<Ser::Ok, Ser::Error>
         where
             S: serde::Serializer,
         {
@@ -529,7 +529,7 @@ mod serde_impl {
         }
     }
 
-    impl<'de, C, E> Deserialize<'de> for SerializedMachine<C, E, C>
+    impl<'de, C, E, S> Deserialize<'de> for SerializedMachine<C, E, S>
     where
         C: Deserialize<'de>,
         E: Deserialize<'de>,

@@ -304,11 +304,11 @@ pub mod handlers {
 
     impl<C: Send + Sync + Clone + 'static> HistoryEventHandler<C> for LoggingHistoryHandler {
         fn handle_event(&self, event: &HistoryEntry<C>) {
-            leptos::logging::debug!("History event: {} at {:?}", event.state, event.timestamp);
+            eprintln!("History event: {} at {:?}", event.state, event.timestamp);
         }
 
         fn handle_cleanup(&self, removed_count: usize) {
-            leptos::logging::info!("Cleaned up {} history entries", removed_count);
+            eprintln!("Cleaned up {} history entries", removed_count);
         }
     }
 

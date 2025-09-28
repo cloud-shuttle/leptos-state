@@ -2,25 +2,6 @@
 
 use super::*;
 
-/// Action trait for side effects during transitions
-pub trait Action<C, E> {
-    /// Execute the action with the given context and event
-    fn execute(&self, context: &mut C, event: &E);
-
-    /// Get a description of the action for debugging
-    fn description(&self) -> String {
-        "Action".to_string()
-    }
-
-    /// Check if this action has side effects
-    fn has_side_effects(&self) -> bool {
-        true
-    }
-
-    /// Clone this action
-    fn clone_action(&self) -> Box<dyn Action<C, E>>;
-}
-
 /// Function-based action implementation
 pub struct FunctionAction<C, E, F> {
     /// The function to execute
