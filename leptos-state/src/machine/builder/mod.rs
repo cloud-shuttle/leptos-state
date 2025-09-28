@@ -21,16 +21,12 @@ where
     _phantom: std::marker::PhantomData<C>,
 }
 
-impl<S, E, C> MachineBuilder for MachineBuilderImpl<S, E, C>
+impl<S, E, C> MachineBuilder<C, E, S> for crate::machine::MachineBuilderImpl<S, E, C>
 where
     S: Clone + Send + Sync + 'static,
     E: Clone + Send + Sync + 'static + std::hash::Hash + Eq,
     C: Clone + PartialEq + Send + Sync + Default + 'static,
 {
-    type State = S;
-    type Event = E;
-    type Context = C;
-    type Machine = Machine<S, E, C>;
 
     fn new() -> Self {
         Self {
@@ -68,7 +64,7 @@ where
         self
     }
 
-    fn build_with_context(self, context: C) -> Result<Self::Machine, crate::StateError> {
+    fn build_with_context(self, context: C) -> crate::StateResult<Machine<C, E, S>> {
         let initial_state = self.initial_state
             .ok_or(crate::StateError::StateNotFound("No initial state set".to_string()))?;
 

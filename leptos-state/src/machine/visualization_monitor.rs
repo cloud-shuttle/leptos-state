@@ -7,7 +7,7 @@ pub struct StateMonitor<C: Send + Sync, E> {
     /// Monitored machine
     pub machine: Option<Machine<C, E, C>>,
     /// Current state information
-    pub current_state: Option<StateInfo<'static, C, E>>,
+    pub current_state: Option<StateInfo<C, E>>,
     /// State change listeners
     pub state_change_listeners: Vec<Box<dyn Fn(&StateChangeEvent<C, E>) + Send + Sync>>,
     /// Error listeners

@@ -3,9 +3,9 @@
 use super::*;
 
 /// Core trait for defining stores
-pub trait Store: Clone + 'static {
+pub trait Store: Clone + Send + Sync + 'static {
     /// The state type this store manages
-    type State: Clone + PartialEq + 'static;
+    type State: Clone + PartialEq + Send + Sync + 'static;
 
     /// Get the current state
     fn get(&self) -> Self::State;

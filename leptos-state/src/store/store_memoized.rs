@@ -3,7 +3,7 @@
 use super::*;
 
 /// Memoized selector that prevents unnecessary recalculations
-pub struct MemoizedSelector<T, O> {
+pub struct MemoizedSelector<T: Store, O> {
     /// The selector function
     pub selector: Box<dyn Fn(&T::State) -> O + Send + Sync>,
     /// Cache for the last computed value
@@ -50,7 +50,7 @@ impl<T: Store, O: Clone + PartialEq + 'static> MemoizedSelector<T, O> {
 }
 
 /// Dependency-tracked memoized selector
-pub struct DependencyTrackedSelector<T, O> {
+pub struct DependencyTrackedSelector<T: Store, O> {
     /// The selector function
     pub selector: Box<dyn Fn(&T::State) -> O + Send + Sync>,
     /// Dependencies that this selector reads
@@ -99,18 +99,18 @@ impl<T: Store, O: Clone + PartialEq + 'static> DependencyTrackedSelector<T, O> {
 }
 
 /// Combined selector that merges multiple selectors
-pub struct CombinedSelector<T> {
+pub struct CombinedSelector<T: Store, O = Box<dyn std::any::Any>> {
     /// The selectors to combine
-    pub selectors: Vec<Box<dyn StoreSlice<T>>>,
+    pub selectors: Vec<Box<dyn StoreSlice<T, Output = O>>>,
     /// The combination function
-    pub combiner: Box<dyn Fn(Vec<Box<dyn std::any::Any>>) -> Box<dyn std::any::Any> + Send + Sync>,
+    pub combiner: Box<dyn Fn(Vec<Box<dyn std::any::Any>>) -> O + Send + Sync>,
 }
 
-impl<T: Store> CombinedSelector<T> {
+impl<T: Store, O> CombinedSelector<T, O> {
     /// Create a new combined selector
-    pub fn new<F>(selectors: Vec<Box<dyn StoreSlice<T>>>, combiner: F) -> Self
+    pub fn new<F>(selectors: Vec<Box<dyn StoreSlice<T, Output = O>>>, combiner: F) -> Self
     where
-        F: Fn(Vec<Box<dyn std::any::Any>>) -> Box<dyn std::any::Any> + Send + Sync + 'static,
+        F: Fn(Vec<Box<dyn std::any::Any>>) -> O + Send + Sync + 'static,
     {
         Self {
             selectors,
@@ -119,7 +119,7 @@ impl<T: Store> CombinedSelector<T> {
     }
 
     /// Select combined values
-    pub fn select(&self, state: &T::State) -> Box<dyn std::any::Any> {
+    pub fn select(&self, state: &T::State) -> O {
         let values: Vec<Box<dyn std::any::Any>> = self.selectors.iter()
             .map(|selector| {
                 // In a real implementation, this would need to handle different types
@@ -172,17 +172,21 @@ pub mod composition {
     }
 
     /// Chain multiple selectors
-    pub fn chain<T, S>(selectors: Vec<S>) -> impl StoreSlice<T>
+    pub fn chain<T, S, O>(selectors: Vec<S>) -> impl StoreSlice<T, Output = O>
     where
         T: Store,
-        S: StoreSlice<T> + 'static,
+        S: StoreSlice<T, Output = O> + 'static,
+        O: Clone + 'static,
     {
-        struct ChainedSelector<T> {
-            selectors: Vec<Box<dyn StoreSlice<T>>>,
+        struct ChainedSelector<T, O> {
+            selectors: Vec<Box<dyn StoreSlice<T, Output = O>>>,
         }
 
-        impl<T: Store> StoreSlice<T> for ChainedSelector<T> {
-            type Output = Vec<Box<dyn std::any::Any>>;
+        impl<T: Store, O> StoreSlice<T> for ChainedSelector<T, O>
+        where
+            O: Clone + 'static,
+        {
+            type Output = Vec<O>;
 
             fn select(&self, state: &T::State) -> Self::Output {
                 self.selectors.iter()
@@ -250,7 +254,7 @@ pub mod composition {
 }
 
 /// Performance-optimized selector with statistics
-pub struct PerformanceSelector<T, O> {
+pub struct PerformanceSelector<T: Store, O> {
     /// The underlying selector
     pub selector: Box<dyn StoreSlice<T, Output = O>>,
     /// Performance statistics
@@ -309,7 +313,7 @@ impl<T: Store, O: Clone + PartialEq + 'static> PerformanceSelector<T, O> {
 }
 
 /// Lazy selector that only computes when needed
-pub struct LazySelector<T, O> {
+pub struct LazySelector<T: Store, O> {
     /// The selector function
     pub selector: Box<dyn Fn(&T::State) -> O + Send + Sync>,
     /// Cached result

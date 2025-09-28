@@ -1,5 +1,7 @@
 use std::hash::Hash;
 
+use super::core_machine::Machine;
+
 /// Core trait for state machines
 pub trait StateMachine: Sized + 'static {
     type Context: Clone + PartialEq + Send + Sync + 'static;
@@ -11,26 +13,21 @@ pub trait StateMachine: Sized + 'static {
 }
 
 /// Main builder trait for constructing state machines
-pub trait MachineBuilder {
-    type State: Clone + Send + Sync + 'static;
-    type Event: Clone + Send + Sync + Hash + Eq + 'static;
-    type Context: Clone + Send + Sync + 'static;
-    type Machine;
-
+pub trait MachineBuilder<C, E, S> {
     fn new() -> Self;
     fn state<Name: Into<String>>(self, name: Name) -> Self;
     fn initial<Name: Into<String>>(self, state: Name) -> Self;
-    fn transition<E, S>(self, from: S, event: E, to: S) -> Self
+    fn transition<E2, S2>(self, from: S2, event: E2, to: S2) -> Self
     where
-        S: Into<String> + Clone,
-        E: Into<Self::Event>;
-    fn build_with_context(self, context: Self::Context) -> Result<Self::Machine, crate::StateError>;
-    fn build(self) -> Result<Self::Machine, crate::StateError>
+        S2: Into<String> + Clone,
+        E2: Into<E>;
+    fn build_with_context(self, context: C) -> crate::StateResult<Machine<C, E, S>>;
+    fn build(self) -> crate::StateResult<Machine<C, E, S>>
     where
-        Self::Context: Default,
+        C: Default,
         Self: Sized,
     {
-        self.build_with_context(Self::Context::default())
+        self.build_with_context(C::default())
     }
 }
 

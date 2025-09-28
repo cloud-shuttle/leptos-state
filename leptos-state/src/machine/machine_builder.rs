@@ -21,13 +21,13 @@ use crate::machine::performance::{
 };
 
 /// Builder for creating state machines
-pub struct MachineBuilder<C: Send + Sync, E: Send + Sync> {
+pub struct MachineBuilderImpl<C: Send + Sync, E: Send + Sync> {
     pub states: HashMap<String, StateNode<C, E, C>>,
     pub initial: String,
     _phantom: PhantomData<(C, E)>,
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> MachineBuilder<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> MachineBuilderImpl<C, E> {
     pub fn new() -> Self {
         Self {
             states: HashMap::new(),
@@ -278,9 +278,12 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Machine
 }
 
 impl<C: Clone + 'static + std::fmt::Debug + Send + Sync, E: Clone + 'static + std::fmt::Debug + Send + Sync>
-    Default for MachineBuilder<C, E>
+    Default for MachineBuilderImpl<C, E>
 {
     fn default() -> Self {
         Self::new()
     }
 }
+
+/// Alias for backward compatibility
+pub type MachineBuilder<C, E> = MachineBuilderImpl<C, E>;

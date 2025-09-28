@@ -62,7 +62,7 @@ pub trait MachineBuilderCodeGenExt<C: Send + Sync + Clone + PartialEq + 'static,
     fn build_and_generate(self, config: CodeGenConfig) -> Result<(Machine<C, E, C>, GeneratedFile), String>;
 }
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> MachineBuilderCodeGenExt<C, E, C> for MachineBuilder<C, E> {
+impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> MachineBuilderCodeGenExt<C, E> for crate::machine::MachineBuilder<C, E> {
     fn build_and_generate(self, config: CodeGenConfig) -> Result<(Machine<C, E, C>, GeneratedFile), String> {
         let machine = self.build()?;
         let generated = machine.generate_code(config)?;

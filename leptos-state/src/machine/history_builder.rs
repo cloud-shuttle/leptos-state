@@ -27,7 +27,7 @@ pub struct HistoryMachineBuilderImpl<C: Send + Sync + Clone + 'static, E: Clone 
 
 impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> HistoryMachineBuilderImpl<C, E> {
     /// Create a new history-enabled machine builder
-    pub fn new(base_builder: crate::machine::MachineBuilder<C, E, C>) -> Self {
+    pub fn new(base_builder: crate::machine::builder::MachineBuilderImpl<C, E, C>) -> Self {
         Self {
             base_builder,
             history_config: HistoryConfig::default(),
