@@ -41,9 +41,9 @@ where
     }
 }
 
-impl<C, E, F> Action<C, E> for ConditionalAction<C, E, F>
+impl<C: Send + Sync, E: Send + Sync, F> Action<C, E> for ConditionalAction<C, E, F>
 where
-    F: Fn(&C, &E) -> bool + Clone + 'static,
+    F: Fn(&C, &E) -> bool + Clone + Send + Sync + 'static,
 {
     fn execute(&self, context: &mut C, event: &E) {
         if (self.condition)(context, event) {
@@ -105,7 +105,7 @@ impl<C, E> SequentialAction<C, E> {
     }
 }
 
-impl<C, E> Action<C, E> for SequentialAction<C, E> {
+impl<C: Send + Sync, E: Send + Sync> Action<C, E> for SequentialAction<C, E> {
     fn execute(&self, context: &mut C, event: &E) {
         for action in &self.actions {
             // In a real implementation, we might want to handle errors
@@ -160,7 +160,7 @@ impl<C, E> ParallelAction<C, E> {
     }
 }
 
-impl<C, E> Action<C, E> for ParallelAction<C, E>
+impl<C: Send + Sync, E: Send + Sync> Action<C, E> for ParallelAction<C, E>
 where
     C: Send + Sync + 'static,
     E: Send + Sync + 'static,
@@ -227,7 +227,7 @@ impl<C, E> CompositeAction<C, E> {
     }
 }
 
-impl<C, E> Action<C, E> for CompositeAction<C, E> {
+impl<C: Send + Sync, E: Send + Sync> Action<C, E> for CompositeAction<C, E> {
     fn execute(&self, context: &mut C, event: &E) {
         match &self.logic {
             CompositeLogic::All => {

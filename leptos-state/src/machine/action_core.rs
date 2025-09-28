@@ -28,9 +28,9 @@ where
     }
 }
 
-impl<C, E, F> Action<C, E> for FunctionAction<C, E, F>
+impl<C: Send + Sync, E: Send + Sync, F> Action<C, E> for FunctionAction<C, E, F>
 where
-    F: Fn(&mut C, &E) + Clone + 'static,
+    F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
 {
     fn execute(&self, context: &mut C, event: &E) {
         (self.func)(context, event);
@@ -81,9 +81,9 @@ where
     }
 }
 
-impl<C, E, T, F> Action<C, E> for AssignAction<C, E, T, F>
+impl<C: Send + Sync, E: Send + Sync, T: Send + Sync, F> Action<C, E> for AssignAction<C, E, T, F>
 where
-    F: Fn(&mut C, &E) -> T + Clone + 'static,
+    F: Fn(&mut C, &E) -> T + Clone + Send + Sync + 'static,
 {
     fn execute(&self, context: &mut C, event: &E) {
         let _result = (self.assign_fn)(context, event);
@@ -236,9 +236,9 @@ where
     }
 }
 
-impl<C, E, F> Action<C, E> for PureAction<F>
+impl<C: Send + Sync, E: Send + Sync, F> Action<C, E> for PureAction<F>
 where
-    F: Fn() + Clone + 'static,
+    F: Fn() + Clone + Send + Sync + 'static,
 {
     fn execute(&self, _context: &mut C, _event: &E) {
         (self.func)();

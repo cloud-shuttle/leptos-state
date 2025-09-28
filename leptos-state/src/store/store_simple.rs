@@ -214,14 +214,14 @@ impl<T: Clone + PartialEq + 'static> Store for AsyncStore<T> {
 }
 
 /// Middleware-enabled store
-pub struct MiddlewareStore<T: Clone + PartialEq + 'static, M> {
+pub struct MiddlewareStore<T: Clone + PartialEq + 'static, M: 'static> {
     /// The underlying store
     pub store: SimpleStore<T>,
     /// The middleware
     pub middleware: M,
 }
 
-impl<T: Clone + PartialEq + 'static, M> MiddlewareStore<T, M> {
+impl<T: Clone + PartialEq + 'static, M: 'static> MiddlewareStore<T, M> {
     /// Create a new middleware store
     pub fn new(initial: T, middleware: M) -> Self {
         Self {
@@ -231,7 +231,7 @@ impl<T: Clone + PartialEq + 'static, M> MiddlewareStore<T, M> {
     }
 }
 
-impl<T: Clone + PartialEq + 'static, M> Store for MiddlewareStore<T, M>
+impl<T: Clone + PartialEq + 'static, M: 'static> Store for MiddlewareStore<T, M>
 where
     M: StoreMiddleware<T>,
 {
