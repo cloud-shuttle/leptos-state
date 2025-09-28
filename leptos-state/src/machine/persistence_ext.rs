@@ -114,12 +114,14 @@ impl<C: Send + Sync, E> PersistentMachine<C, E> {
 
     /// Create a backup
     pub async fn create_backup(&self) -> Result<String, PersistenceError> {
-        self.persistence.create_backup(self.id()).await
+        let result: Result<String, PersistenceError> = self.persistence.create_backup(self.id()).await;
+        result
     }
 
     /// Get machine info
     pub async fn info(&self) -> Result<MachineInfo, PersistenceError> {
-        self.persistence.get_machine_info(self.id()).await
+        let result: Result<MachineInfo, PersistenceError> = self.persistence.get_machine_info(self.id()).await;
+        result
     }
 }
 

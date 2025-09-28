@@ -20,22 +20,24 @@ pub trait MachineCodeGenExt<C: Send + Sync + Clone + PartialEq, E: Clone + Send 
 
 impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> MachineCodeGenExt<C, E> for Machine<C, E, C> {
     fn generate_code(&self, config: CodeGenConfig) -> Result<GeneratedFile, String> {
-        let mut generator = CodeGenerator::new(config);
-        generator.generate(self)
+        let mut generator: CodeGenerator<C, E> = CodeGenerator::new(config);
+        let result: Result<GeneratedFile, String> = generator.generate(self);
+        result
     }
 
     fn generate_code_with_templates(&self, config: CodeGenConfig, templates: CodeTemplates) -> Result<GeneratedFile, String> {
-        let mut generator = CodeGenerator::new(config);
+        let mut generator: CodeGenerator<C, E> = CodeGenerator::new(config);
         generator.templates = templates;
-        generator.generate(self)
+        let result: Result<GeneratedFile, String> = generator.generate(self);
+        result
     }
 
     fn generate_multi_language(&self, configs: Vec<CodeGenConfig>) -> Result<Vec<GeneratedFile>, String> {
-        let mut results = Vec::new();
+        let mut results: Vec<GeneratedFile> = Vec::new();
 
         for config in configs {
-            let mut generator = CodeGenerator::new(config);
-            let file = generator.generate(self)?;
+            let mut generator: CodeGenerator<C, E> = CodeGenerator::new(config);
+            let file: GeneratedFile = generator.generate(self)?;
             results.push(file);
         }
 
@@ -43,8 +45,8 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
     }
 
     fn generate_and_save(&self, config: CodeGenConfig, output_dir: &std::path::Path) -> Result<Vec<std::path::PathBuf>, String> {
-        let mut generator = CodeGenerator::new(config);
-        let files = generator.generate_separate_files(self)?;
+        let mut generator: CodeGenerator<C, E> = CodeGenerator::new(config);
+        let files: Vec<GeneratedFile> = generator.generate_separate_files(self)?;
 
         let mut saved_paths = Vec::new();
         for file in files {
@@ -76,26 +78,29 @@ pub mod codegen {
 
     /// Create a code generator for Rust
     pub fn rust<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>() -> CodeGenerator<C, E> {
-        CodeGenerator::new(CodeGenConfig {
+        let config = CodeGenConfig {
             language: ProgrammingLanguage::Rust,
             ..Default::default()
-        })
+        };
+        CodeGenerator::new(config)
     }
 
     /// Create a code generator for TypeScript
     pub fn typescript<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>() -> CodeGenerator<C, E> {
-        CodeGenerator::new(CodeGenConfig {
+        let config = CodeGenConfig {
             language: ProgrammingLanguage::TypeScript,
             ..Default::default()
-        })
+        };
+        CodeGenerator::new(config)
     }
 
     /// Create a code generator for Python
     pub fn python<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>() -> CodeGenerator<C, E> {
-        CodeGenerator::new(CodeGenConfig {
+        let config = CodeGenConfig {
             language: ProgrammingLanguage::Python,
             ..Default::default()
-        })
+        };
+        CodeGenerator::new(config)
     }
 
     /// Create a code generator with custom config

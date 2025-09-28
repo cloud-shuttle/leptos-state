@@ -286,37 +286,37 @@ pub mod builder {
     /// Configure indentation
     pub fn indent_spaces<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(
         spaces: usize
-    ) -> impl FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E> {
-        move |builder| builder.indent_with(IndentationStyle::Spaces(spaces))
+    ) -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
+        Box::new(move |builder| builder.indent_with(IndentationStyle::Spaces(spaces)))
     }
 
     /// Configure indentation with tabs
-    pub fn indent_tabs<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>() -> impl FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E> {
-        |builder| builder.indent_with(IndentationStyle::Tabs)
+    pub fn indent_tabs<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>() -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
+        Box::new(|builder| builder.indent_with(IndentationStyle::Tabs))
     }
 
     /// Add a comment header
     pub fn with_header<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(
         header: String
-    ) -> impl FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E> {
-        move |builder| builder.header(header)
+    ) -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
+        Box::new(move |builder| builder.header(header))
     }
 
     /// Add a comment footer
     pub fn with_footer<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(
         footer: String
-    ) -> impl FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E> {
-        move |builder| builder.footer(footer)
+    ) -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
+        Box::new(move |builder| builder.footer(footer))
     }
 
     /// Enable test generation
-    pub fn with_tests<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>() -> impl FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E> {
-        |builder| builder.with_tests(true)
+    pub fn with_tests<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>() -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
+        Box::new(|builder| builder.with_tests(true))
     }
 
     /// Enable validation code generation
-    pub fn with_validation<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>() -> impl FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E> {
-        |builder| builder.with_validation(true)
+    pub fn with_validation<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>() -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
+        Box::new(|builder| builder.with_validation(true))
     }
 }
 

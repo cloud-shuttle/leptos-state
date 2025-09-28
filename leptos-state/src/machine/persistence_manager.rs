@@ -54,9 +54,9 @@ impl<C: Send + Sync, E> MachinePersistence<C, E> {
 
     /// Restore a machine
     pub async fn restore_machine(&self, machine_id: &str) -> Result<Machine<C, E, C>, PersistenceError> {
-        let data = self.storage.retrieve(machine_id).await?;
-        let decoded = self.decode_data(&data)?;
-        let machine = self.deserialize_machine(&decoded).await?;
+        let data: Vec<u8> = self.storage.retrieve(machine_id).await?;
+        let decoded: Vec<u8> = self.decode_data(&data)?;
+        let machine: Machine<C, E, C> = self.deserialize_machine(&decoded).await?;
 
         self.add_active_machine(machine_id);
         Ok(machine)
@@ -151,8 +151,8 @@ impl<C: Send + Sync, E> MachinePersistence<C, E> {
     /// Restore from backup
     pub async fn restore_from_backup(&self, backup_id: &str) -> Result<Machine<C, E, C>, PersistenceError> {
         if let Some(ref backup_mgr) = self.backup_manager {
-            let data = backup_mgr.restore_backup(backup_id).await?;
-            let decoded = self.decode_data(&data)?;
+            let data: Vec<u8> = backup_mgr.restore_backup(backup_id).await?;
+            let decoded: Vec<u8> = self.decode_data(&data)?;
             self.deserialize_machine(&decoded).await
         } else {
             Err(PersistenceError::ConfigError("Backup not configured".to_string()))
@@ -184,8 +184,8 @@ impl<C: Send + Sync, E> MachinePersistence<C, E> {
         let keys = self.storage.list_keys().await?;
         let mut total_size = 0u64;
         let mut machine_count = 0;
-        let mut oldest_machine = None;
-        let mut newest_machine = None;
+        let mut oldest_machine: Option<MachineInfo> = None;
+        let mut newest_machine: Option<MachineInfo> = None;
 
         for key in &keys {
             if let Ok(data) = self.storage.retrieve(key).await {
