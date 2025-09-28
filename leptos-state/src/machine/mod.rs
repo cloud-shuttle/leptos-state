@@ -59,6 +59,12 @@ pub mod optimized_machine;
 pub mod performance_builder;
 // #[cfg(feature = "serialization")]
 // pub mod persistence;
+pub mod persistence_core;
+pub mod persistence_serialization;
+pub mod persistence_metadata;
+pub mod persistence_storage;
+pub mod persistence_manager;
+pub mod persistence_ext;
 pub mod state_builder;
 pub mod states;
 pub mod testing;
@@ -150,6 +156,12 @@ pub use optimized_machine::{OptimizedMachine as PerfOptimizedMachine, Optimizati
 pub use performance_builder::{PerformanceBuilder, PerformanceOptimizationExt, PerformancePresets};
 // #[cfg(feature = "serialization")]
 // pub use persistence::{MachinePersistence, PersistenceConfig, PersistentMachine};
+pub use persistence_core::{MachineSerialize, MachineDeserialize, PersistenceConfig, BackupConfig, StorageType, PersistenceStrategy, PersistenceError as CorePersistenceError};
+pub use persistence_serialization::{SerializedMachine, SerializedState, SerializedTransition, StateType, ComplexityMetrics};
+pub use persistence_metadata::{MachineMetadata, SchemaInfo, ValidationRule, ValidationType, MachineStats, MetadataBuilder};
+pub use persistence_storage::{MachineStorage, StorageInfo, LocalStorage, MemoryStorage, FileSystemStorage, StorageFactory};
+pub use persistence_manager::{MachinePersistence, BackupEntry, MachineInfo, PersistenceStats, BackupManager};
+pub use persistence_ext::{MachinePersistenceExt, PersistentMachine, PersistenceInfo, persistence_builder, migrations, monitoring};
 pub use testing::{MachineTestRunner, TestCase, TestConfig, TestResult};
 pub use test_types::{TestConfig as TestConfigTypes, DataStrategy, TestResult as TestResultTypes, TestCoverage, PerformanceMetrics, TestStep};
 pub use test_runner::{MachineTestRunner as TestRunner};
