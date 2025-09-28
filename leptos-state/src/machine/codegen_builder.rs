@@ -1,6 +1,7 @@
 //! Builder pattern for code generation
 
 use super::*;
+use std::hash::Hash;
 
 /// Code generation builder for fluent configuration
 pub struct CodeGenBuilder<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {

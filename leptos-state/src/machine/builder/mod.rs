@@ -1,4 +1,8 @@
-use crate::machine::core::{Machine, StateNode, StateType, MachineError, MachineResult, MachineBuilder};
+use crate::machine::core_machine::Machine;
+use crate::machine::core_state::StateNode;
+use crate::machine::types_basic::StateType;
+use crate::machine::core_errors::{MachineError, MachineResult};
+use crate::machine::core_traits::MachineBuilder;
 use std::collections::HashMap;
 
 // MachineBuilder trait is now defined in core.rs to avoid conflicts

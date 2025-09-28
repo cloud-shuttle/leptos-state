@@ -2,6 +2,7 @@
 
 use super::*;
 use std::collections::HashMap;
+use std::hash::Hash;
 
 /// Generated document information
 #[derive(Debug, Clone)]

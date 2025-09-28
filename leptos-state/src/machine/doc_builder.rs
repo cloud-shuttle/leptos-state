@@ -2,6 +2,7 @@
 
 use super::*;
 use std::hash::Hash;
+use super::doc_data::DocumentationData;
 
 /// Documentation builder for fluent configuration
 pub struct DocumentationBuilder<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {

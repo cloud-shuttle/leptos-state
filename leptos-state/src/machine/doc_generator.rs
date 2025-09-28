@@ -1,7 +1,11 @@
 //! Documentation generator implementation
 
 use super::*;
+use std::hash::Hash;
+use super::doc_data::DocumentationData;
 use std::collections::HashMap;
+use crate::StateResult;
+use crate::StateError;
 
 /// Documentation generator for state machines
 pub struct DocumentationGenerator<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
