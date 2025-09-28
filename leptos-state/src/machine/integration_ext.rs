@@ -1,6 +1,7 @@
 //! Extension traits for integration
 
 use super::*;
+use std::hash::Hash;
 
 /// Extension trait for adding integration to machines
 pub trait MachineIntegrationExt<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {

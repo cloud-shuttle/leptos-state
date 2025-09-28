@@ -1,6 +1,7 @@
 //! Performance builder for fluent configuration
 
 use super::*;
+use std::hash::Hash;
 
 /// Performance builder for fluent configuration
 pub struct PerformanceBuilder<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {

@@ -1,6 +1,7 @@
 //! Machine metadata for persistence
 
 use super::*;
+use super::persistence_core::PersistenceError;
 
 /// Machine metadata for persistence
 #[derive(Debug, Clone)]

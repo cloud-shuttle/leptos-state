@@ -1,6 +1,7 @@
 //! History builder extensions
 
 use super::*;
+use std::hash::Hash;
 
 /// Builder extension for adding history states
 pub trait HistoryMachineBuilder<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {

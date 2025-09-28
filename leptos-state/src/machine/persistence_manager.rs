@@ -1,6 +1,7 @@
 //! Persistence manager implementation
 
 use super::*;
+use super::persistence_core::PersistenceError;
 
 /// Persistence manager for state machines
 pub struct MachinePersistence<C: Send + Sync, E> {

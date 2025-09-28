@@ -1,6 +1,7 @@
 //! Serialization and deserialization for state machines
 
 use super::*;
+use super::persistence_core::PersistenceError;
 
 /// Serialized state machine data
 #[derive(Debug, Clone)]

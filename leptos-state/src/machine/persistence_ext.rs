@@ -1,6 +1,7 @@
 //! Extension traits for persistence
 
 use super::*;
+use super::persistence_core::PersistenceError;
 
 /// Extension trait for adding persistence to machines
 pub trait MachinePersistenceExt<C: Send + Sync, E> {

@@ -1,6 +1,7 @@
 //! Storage backends for machine persistence
 
 use super::*;
+use super::persistence_core::PersistenceError;
 
 /// Trait for machine storage backends
 #[async_trait::async_trait]

@@ -1,6 +1,8 @@
 //! Core integration functionality
 
 use super::*;
+use std::hash::Hash;
+use super::integration_metrics::IntegrationMetrics;
 
 /// Integration manager for state machines
 pub struct IntegrationManager<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {

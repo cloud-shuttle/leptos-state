@@ -1,6 +1,7 @@
 //! History machine implementation
 
 use super::*;
+use std::hash::Hash;
 
 /// Machine with history tracking capabilities
 pub struct HistoryMachine<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
