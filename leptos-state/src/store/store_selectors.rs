@@ -189,35 +189,34 @@ impl<T: Store, O: Clone + PartialEq + 'static> MemoizedSelector<T, O> {
 }
 
 /// Combine multiple selectors into a single result
-pub struct CombinedSelector<T> {
+pub struct CombinedSelector<T, O> {
     /// The combination function
-    pub combiner: Box<dyn Fn(&[Box<dyn std::any::Any>]) -> Box<dyn std::any::Any> + Send + Sync>,
+    pub combiner: Box<dyn Fn(&[Box<dyn std::any::Any>]) -> O + Send + Sync>,
     /// The selectors to combine
-    pub selectors: Vec<Box<dyn StoreSlice<T>>>,
+    pub selectors: Vec<Box<dyn StoreSlice<T, Output = O>>>,
 }
 
-impl<T: Store> CombinedSelector<T> {
+impl<T: Store, O: Clone + PartialEq + 'static> CombinedSelector<T, O> {
     /// Create a new combined selector
     pub fn new<F, S>(combiners: F, selectors: Vec<S>) -> Self
     where
-        F: Fn(&[Box<dyn std::any::Any>]) -> Box<dyn std::any::Any> + Send + Sync + 'static,
-        S: StoreSlice<T> + 'static,
+        F: Fn(&[Box<dyn std::any::Any>]) -> O + Send + Sync + 'static,
+        S: StoreSlice<T, Output = O> + 'static,
     {
         Self {
             combiner: Box::new(combiners),
             selectors: selectors.into_iter()
-                .map(|s| Box::new(s) as Box<dyn StoreSlice<T>>)
+                .map(|s| Box::new(s) as Box<dyn StoreSlice<T, Output = O>>)
                 .collect(),
         }
     }
 
     /// Select combined values
-    pub fn select(&self, state: &T::State) -> Box<dyn std::any::Any> {
+    pub fn select(&self, state: &T::State) -> O {
         let values: Vec<Box<dyn std::any::Any>> = self.selectors.iter()
             .map(|selector| {
-                // This is a simplified implementation
-                // In practice, we'd need to handle the different output types
-                Box::new(()) as Box<dyn std::any::Any>
+                let value = selector.select(state);
+                Box::new(value) as Box<dyn std::any::Any>
             })
             .collect();
 

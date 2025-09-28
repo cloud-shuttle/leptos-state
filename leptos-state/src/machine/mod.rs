@@ -133,7 +133,7 @@ pub use codegen_config::{ProgrammingLanguage, IndentationStyle, CodeTemplates, C
 pub use codegen_core::{CodeGenerator as CoreCodeGenerator, GenerationStats};
 pub use codegen_types::{GeneratedFile as TypesGeneratedFile, TransitionInfo as TypesTransitionInfo, StateGenInfo, EventGenInfo, GuardGenInfo, ActionGenInfo, GuardType, ActionType, CodeGenContext, MachineGenInfo, MachineType};
 pub use codegen_ext::{MachineCodeGenExt as ExtMachineCodeGenExt, MachineBuilderCodeGenExt, CodeGenPipeline, PipelineConfig, CodeGenStep, PipelineResult};
-pub use codegen_builder::{CodeGenBuilder as BuilderCodeGenBuilder, codegen as builder_codegen, presets as codegen_presets};
+pub use codegen_builder::{CodeGenBuilder as BuilderCodeGenBuilder, presets as codegen_presets};
 pub use documentation::{DocumentationConfig, DocumentationGenerator, GeneratedDocument};
 pub use doc_config::{DocumentationConfig as DocConfig, DocumentationFormat, DocumentationTemplate, DocumentationStyling, ColorScheme, DocumentationOptions};
 pub use doc_styling::{TemplateData, BuiltInTemplates, HtmlStyling, MarkdownStyling};
