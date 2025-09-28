@@ -5,14 +5,14 @@ use super::*;
 /// A simple store implementation that stores the initial value
 pub struct SimpleStore<T> {
     /// The current state
-    pub value: std::rc::Rc<std::cell::RefCell<T>>,
+    pub value: std::sync::Arc<std::sync::RwLock<T>>,
 }
 
 impl<T> SimpleStore<T> {
     /// Create a new simple store with an initial value
     pub fn new(initial: T) -> Self {
         Self {
-            value: std::rc::Rc::new(std::cell::RefCell::new(initial)),
+            value: std::sync::Arc::new(std::sync::RwLock::new(initial)),
         }
     }
 }
@@ -20,7 +20,7 @@ impl<T> SimpleStore<T> {
 impl<T> Clone for SimpleStore<T> {
     fn clone(&self) -> Self {
         Self {
-            value: std::rc::Rc::clone(&self.value),
+            value: std::sync::Arc::clone(&self.value),
         }
     }
 }
@@ -32,11 +32,11 @@ where
     type State = T;
 
     fn get(&self) -> Self::State {
-        self.value.borrow().clone()
+        self.value.read().unwrap().clone()
     }
 
     fn set(&self, state: Self::State) {
-        *self.value.borrow_mut() = state;
+        *self.value.write().unwrap() = state;
     }
 
     fn update<F>(&self, f: F)
@@ -103,51 +103,51 @@ macro_rules! create_store_type {
 }
 
 /// Reactive store that integrates with Leptos signals
-pub struct ReactiveStore<T: Clone + PartialEq + 'static> {
+pub struct ReactiveStore<T: Clone + PartialEq + Send + Sync + 'static> {
     /// The current state value (simplified for now)
-    state: std::cell::RefCell<T>,
+    state: std::sync::Arc<std::sync::RwLock<T>>,
 }
 
-impl<T: Clone + PartialEq + 'static> ReactiveStore<T> {
+impl<T: Clone + PartialEq + Send + Sync + 'static> ReactiveStore<T> {
     /// Create a new reactive store
     pub fn new(initial: T) -> Self {
         Self {
-            state: std::cell::RefCell::new(initial),
+            state: std::sync::Arc::new(std::sync::RwLock::new(initial)),
         }
     }
 
     /// Get a read-only signal (placeholder)
     pub fn read_signal(&self) -> T {
-        self.state.borrow().clone()
+        self.state.read().unwrap().clone()
     }
 
     /// Get a write signal (placeholder)
-    pub fn write_signal(&mut self) -> std::rc::Rc<dyn Fn(T)> {
+    pub fn write_signal(&self) -> std::sync::Arc<dyn Fn(T) + Send + Sync> {
         let state = self.state.clone();
-        std::rc::Rc::new(move |value| {
-            *state.borrow_mut() = value;
+        std::sync::Arc::new(move |value| {
+            *state.write().unwrap() = value;
         })
     }
 }
 
-impl<T: Clone + PartialEq + 'static> Store for ReactiveStore<T> {
+impl<T: Clone + PartialEq + Send + Sync + 'static> Store for ReactiveStore<T> {
     type State = T;
 
     fn get(&self) -> Self::State {
-        self.state.borrow().clone()
+        self.state.read().unwrap().clone()
     }
 
     fn set(&self, state: Self::State) {
-        *self.state.borrow_mut() = state;
+        *self.state.write().unwrap() = state;
     }
 
     fn update<F>(&self, f: F)
     where
         F: FnOnce(Self::State) -> Self::State,
     {
-        let current = self.state.borrow().clone();
+        let current = self.state.read().unwrap().clone();
         let new_state = f(current);
-        *self.state.borrow_mut() = new_state;
+        *self.state.write().unwrap() = new_state;
     }
 }
 
