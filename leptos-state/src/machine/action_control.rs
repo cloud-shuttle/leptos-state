@@ -57,7 +57,7 @@ impl<C, E> RetryAction<C, E> {
     }
 }
 
-impl<C: Send + Sync, E: Send + Sync> Action<C, E> for RetryAction<C, E> {
+impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for RetryAction<C, E> {
     fn execute(&self, context: &mut C, event: &E) {
         // For now, just execute the action once
         // In a real implementation, this would retry on failure
@@ -115,7 +115,7 @@ impl<C, E> TimerAction<C, E> {
     }
 }
 
-impl<C: Send + Sync, E: Send + Sync> Action<C, E> for TimerAction<C, E> {
+impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for TimerAction<C, E> {
     fn execute(&self, context: &mut C, event: &E) {
         let start = std::time::Instant::now();
         self.action.execute(context, event);
@@ -184,7 +184,7 @@ impl<C, E> MetricsAction<C, E> {
     }
 }
 
-impl<C: Send + Sync, E: Send + Sync> Action<C, E> for MetricsAction<C, E> {
+impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for MetricsAction<C, E> {
     fn execute(&self, context: &mut C, event: &E) {
         let start = std::time::Instant::now();
         let start_memory = 0; // Would get actual memory usage
@@ -254,7 +254,7 @@ impl<C, E> TimeoutAction<C, E> {
     }
 }
 
-impl<C: Send + Sync, E: Send + Sync> Action<C, E> for TimeoutAction<C, E> {
+impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for TimeoutAction<C, E> {
     fn execute(&self, context: &mut C, event: &E) {
         // For now, just execute the action without timeout
         // In a real implementation, this would use async/timeout mechanisms
@@ -329,7 +329,7 @@ impl<C, E> CircuitBreakerAction<C, E> {
     }
 }
 
-impl<C: Send + Sync, E: Send + Sync> Action<C, E> for CircuitBreakerAction<C, E> {
+impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for CircuitBreakerAction<C, E> {
     fn execute(&self, context: &mut C, event: &E) {
         // For now, just execute the action
         // In a real implementation, this would implement circuit breaker logic

@@ -28,7 +28,7 @@ where
     }
 }
 
-impl<C: Send + Sync, E: Send + Sync, F> Action<C, E> for FunctionAction<C, E, F>
+impl<C: Send + Sync + 'static, E: Send + Sync + 'static, F> Action<C, E> for FunctionAction<C, E, F>
 where
     F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
 {
@@ -236,7 +236,7 @@ where
     }
 }
 
-impl<C: Send + Sync, E: Send + Sync, F> Action<C, E> for PureAction<F>
+impl<C: Send + Sync + 'static, E: Send + Sync + 'static, F> Action<C, E> for PureAction<F>
 where
     F: Fn() + Clone + Send + Sync + 'static,
 {
