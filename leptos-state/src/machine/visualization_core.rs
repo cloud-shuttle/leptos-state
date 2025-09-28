@@ -1,6 +1,7 @@
 //! Core visualization functionality
 
 use super::*;
+use super::visualization_data::MachineSnapshot;
 
 /// State machine visualizer
 pub struct MachineVisualizer<C: Send + Sync, E> {

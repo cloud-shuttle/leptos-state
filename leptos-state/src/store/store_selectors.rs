@@ -145,7 +145,7 @@ macro_rules! selector {
 }
 
 /// Memoized selector that prevents unnecessary recalculations
-pub struct MemoizedSelector<T, O> {
+pub struct MemoizedSelector<T: Store, O> {
     /// The selector function
     pub selector: Box<dyn Fn(&T::State) -> O + Send + Sync>,
     /// The last computed value

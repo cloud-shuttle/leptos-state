@@ -18,7 +18,7 @@ pub trait HistoryMachineBuilder<C: Send + Sync + Clone + 'static, E: Clone + Sen
 /// History-enabled machine builder
 pub struct HistoryMachineBuilderImpl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     /// The base machine builder
-    pub base_builder: crate::machine::MachineBuilder<C, E, C>,
+    pub base_builder: crate::machine::builder::MachineBuilderImpl<C, E, C>,
     /// History configuration
     pub history_config: HistoryConfig,
     /// History states to add

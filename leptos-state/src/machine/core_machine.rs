@@ -5,6 +5,7 @@ use super::core_guards::Guard;
 use super::types_config::MachineConfig;
 use super::types_history::MachineHistory;
 use super::core_errors::MachineError;
+use super::core_state::StateNode;
 
 /// Core Machine implementation
 pub struct Machine<S, E, C>
@@ -19,7 +20,7 @@ where
     pub context: C,
     pub guards: HashMap<String, Box<dyn Guard<C, E>>>,
     pub actions: HashMap<String, Box<dyn Action<C, E>>>,
-    pub history: MachineHistory,
+    pub history: super::types_history::MachineHistory<C>,
     pub config: MachineConfig,
     _phantom: PhantomData<(S, E)>,
 }

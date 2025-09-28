@@ -104,26 +104,29 @@ macro_rules! create_store_type {
 
 /// Reactive store that integrates with Leptos signals
 pub struct ReactiveStore<T: Clone + PartialEq + 'static> {
-    /// The Leptos signal for the state
-    pub signal: leptos::RwSignal<T>,
+    /// The current state value (simplified for now)
+    state: std::cell::RefCell<T>,
 }
 
 impl<T: Clone + PartialEq + 'static> ReactiveStore<T> {
     /// Create a new reactive store
     pub fn new(initial: T) -> Self {
         Self {
-            signal: leptos::create_rw_signal(initial),
+            state: std::cell::RefCell::new(initial),
         }
     }
 
-    /// Get a read-only signal
-    pub fn read_signal(&self) -> leptos::ReadSignal<T> {
-        self.signal.read_only()
+    /// Get a read-only signal (placeholder)
+    pub fn read_signal(&self) -> T {
+        self.state.borrow().clone()
     }
 
-    /// Get a write signal
-    pub fn write_signal(&self) -> leptos::WriteSignal<T> {
-        self.signal.write_only()
+    /// Get a write signal (placeholder)
+    pub fn write_signal(&mut self) -> std::rc::Rc<dyn Fn(T)> {
+        let state = self.state.clone();
+        std::rc::Rc::new(move |value| {
+            *state.borrow_mut() = value;
+        })
     }
 }
 
@@ -131,18 +134,20 @@ impl<T: Clone + PartialEq + 'static> Store for ReactiveStore<T> {
     type State = T;
 
     fn get(&self) -> Self::State {
-        self.signal.get()
+        self.state.borrow().clone()
     }
 
     fn set(&self, state: Self::State) {
-        self.signal.set(state);
+        *self.state.borrow_mut() = state;
     }
 
     fn update<F>(&self, f: F)
     where
         F: FnOnce(Self::State) -> Self::State,
     {
-        self.signal.update(f);
+        let current = self.state.borrow().clone();
+        let new_state = f(current);
+        *self.state.borrow_mut() = new_state;
     }
 }
 

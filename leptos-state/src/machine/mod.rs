@@ -123,7 +123,7 @@ pub use types::{ContextValue, HistoryEntry, EventRoutingConfig, StateValidationC
 // pub use machine::*;
 // Core machine types
 pub use actions::{ActionBuilder, ActionExecution, ActionExecutor};
-pub use action_core::{Action as CoreAction, FunctionAction, AssignAction, LogAction, LogLevel, PureAction};
+pub use action_core::{FunctionAction, AssignAction, LogAction, LogLevel, PureAction};
 pub use action_composite::{ConditionalAction, SequentialAction, ParallelAction, CompositeAction, CompositeLogic};
 pub use action_control::{RetryAction, RetryBackoff, TimerAction, MetricsAction, TimeoutAction, CircuitBreakerAction};
 pub use action_builder::{ActionBuilder as ActionBuilderCore, ConditionalActionBuilder, ActionExecution as ActionExecutionCore, actions as action_utils};
@@ -132,7 +132,7 @@ pub use codegen::{CodeGenConfig, CodeGenerator, GeneratedFile, MachineCodeGenExt
 pub use codegen_config::{ProgrammingLanguage, IndentationStyle, CodeTemplates, CodeGenOptions};
 pub use codegen_core::{CodeGenerator as CoreCodeGenerator, GenerationStats};
 pub use codegen_types::{GeneratedFile as TypesGeneratedFile, TransitionInfo as TypesTransitionInfo, StateGenInfo, EventGenInfo, GuardGenInfo, ActionGenInfo, GuardType, ActionType, CodeGenContext, MachineGenInfo, MachineType};
-pub use codegen_ext::{MachineCodeGenExt as ExtMachineCodeGenExt, MachineBuilderCodeGenExt, codegen as codegen_utils, CodeGenPipeline, PipelineConfig, CodeGenStep, PipelineResult};
+pub use codegen_ext::{MachineCodeGenExt as ExtMachineCodeGenExt, MachineBuilderCodeGenExt, CodeGenPipeline, PipelineConfig, CodeGenStep, PipelineResult};
 pub use codegen_builder::{CodeGenBuilder as BuilderCodeGenBuilder, codegen as builder_codegen, presets as codegen_presets};
 pub use documentation::{DocumentationConfig, DocumentationGenerator, GeneratedDocument};
 pub use doc_config::{DocumentationConfig as DocConfig, DocumentationFormat, DocumentationTemplate, DocumentationStyling, ColorScheme, DocumentationOptions};

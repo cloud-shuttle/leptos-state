@@ -15,6 +15,7 @@ pub trait MachineBuilder {
     type State: Clone + Send + Sync + 'static;
     type Event: Clone + Send + Sync + Hash + Eq + 'static;
     type Context: Clone + Send + Sync + 'static;
+    type Machine;
 
     fn new() -> Self;
     fn state<Name: Into<String>>(self, name: Name) -> Self;
@@ -23,8 +24,8 @@ pub trait MachineBuilder {
     where
         S: Into<String> + Clone,
         E: Into<Self::Event>;
-    fn build_with_context(self, context: Self::Context) -> MachineResult<Machine<Self::State, Self::Event, Self::Context>>;
-    fn build(self) -> MachineResult<Machine<Self::State, Self::Event, Self::Context>>
+    fn build_with_context(self, context: Self::Context) -> Result<Self::Machine, crate::StateError>;
+    fn build(self) -> Result<Self::Machine, crate::StateError>
     where
         Self::Context: Default,
         Self: Sized,

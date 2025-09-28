@@ -2,30 +2,37 @@ use super::types_context::Context;
 
 /// History entry for machine transitions
 #[derive(Clone, Debug)]
-pub struct HistoryEntry {
+pub struct HistoryEntry<C = ()> {
     pub from_state: String,
     pub to_state: String,
     pub event: String,
     pub timestamp: std::time::SystemTime,
-    pub context_snapshot: Context,
+    pub context_snapshot: super::types_context::Context,
+    _phantom: std::marker::PhantomData<C>,
 }
 
 /// Machine history tracking
 #[derive(Clone, Debug, Default)]
-pub struct MachineHistory {
-    pub entries: Vec<HistoryEntry>,
+pub struct MachineHistory<C = ()> {
+    pub entries: Vec<HistoryEntry<C>>,
     pub max_size: usize,
+    _phantom: std::marker::PhantomData<C>,
 }
 
-impl MachineHistory {
+impl<C> MachineHistory<C> {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            entries: Vec::new(),
+            max_size: 100,
+            _phantom: std::marker::PhantomData,
+        }
     }
 
     pub fn with_max_size(max_size: usize) -> Self {
         Self {
             entries: Vec::new(),
             max_size,
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -34,7 +41,7 @@ impl MachineHistory {
         from_state: String,
         to_state: String,
         event: String,
-        context: &Context,
+        context: &super::types_context::Context,
     ) {
         let entry = HistoryEntry {
             from_state,
@@ -42,6 +49,7 @@ impl MachineHistory {
             event,
             timestamp: std::time::SystemTime::now(),
             context_snapshot: context.clone(),
+            _phantom: std::marker::PhantomData,
         };
 
         self.entries.push(entry);
@@ -53,11 +61,11 @@ impl MachineHistory {
         }
     }
 
-    pub fn get_entries(&self) -> &[HistoryEntry] {
+    pub fn get_entries(&self) -> &[HistoryEntry<C>] {
         &self.entries
     }
 
-    pub fn get_latest(&self) -> Option<&HistoryEntry> {
+    pub fn get_latest(&self) -> Option<&HistoryEntry<C>> {
         self.entries.last()
     }
 

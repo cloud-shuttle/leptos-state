@@ -30,6 +30,7 @@ where
     type State = S;
     type Event = E;
     type Context = C;
+    type Machine = Machine<S, E, C>;
 
     fn new() -> Self {
         Self {
@@ -67,12 +68,12 @@ where
         self
     }
 
-    fn build_with_context(self, context: C) -> MachineResult<Machine<S, E, C>> {
+    fn build_with_context(self, context: C) -> Result<Self::Machine, crate::StateError> {
         let initial_state = self.initial_state
-            .ok_or(MachineError::InvalidState("No initial state set".to_string()))?;
+            .ok_or(crate::StateError::StateNotFound("No initial state set".to_string()))?;
 
         if !self.states.contains_key(&initial_state) {
-            return Err(MachineError::InvalidState(format!("Initial state '{}' not found", initial_state)));
+            return Err(crate::StateError::StateNotFound(format!("Initial state '{}' not found", initial_state)));
         }
 
         let mut machine = Machine::new("built_machine".to_string(), context);

@@ -1,6 +1,7 @@
 //! Debugging tools for state machines
 
 use super::*;
+use super::visualization_data::MachineSnapshot;
 
 /// Time travel debugger for state machines
 pub struct TimeTravelDebugger<C: Send + Sync, E> {
@@ -14,7 +15,7 @@ pub struct TimeTravelDebugger<C: Send + Sync, E> {
     pub max_snapshots: usize,
 }
 
-impl<C: Send + Sync, E> TimeTravelDebugger<C, Send + Sync, E> {
+impl<C: Send + Sync, E> TimeTravelDebugger<C, E> {
     /// Create a new time travel debugger
     pub fn new() -> Self {
         Self {
@@ -188,9 +189,8 @@ impl Default for VisualizationStats {
 
 impl VisualizationStats {
     /// Update statistics with new data
-    pub fn update(&mut self, visualizer: &MachineVisualizer<C, E>)
+    pub fn update<C: Send + Sync, E>(&mut self, visualizer: &MachineVisualizer<C, E>)
     where
-        C: Send + Sync,
         E: Clone,
     {
         self.total_events = visualizer.event_history.len();

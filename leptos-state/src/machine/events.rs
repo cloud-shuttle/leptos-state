@@ -1,4 +1,5 @@
 use std::fmt;
+use crate::machine::core_actions::Action;
 
 /// Trait for machine events
 pub trait Event: Clone + fmt::Debug {
@@ -57,11 +58,7 @@ impl<T: Clone + fmt::Debug> Event for DataEvent<T> {
     }
 }
 
-/// Action trait for side effects during transitions
-pub trait Action<C, E> {
-    /// Execute the action, potentially modifying the context
-    fn execute(&self, context: &mut C, event: &E);
-}
+// Action trait moved to core_actions.rs
 
 /// Function-based action implementation
 pub struct FunctionAction<C, E, F> {
