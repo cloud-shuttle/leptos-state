@@ -5,7 +5,7 @@ use super::visualization_data::MachineSnapshot;
 
 /// Time travel debugger for state machines
 #[derive(Debug)]
-pub struct TimeTravelDebugger<C: Send + Sync + Debug, E: Debug> {
+pub struct TimeTravelDebugger<C: Send + Sync + std::fmt::Debug, E: std::fmt::Debug> {
     /// Snapshots in chronological order
     pub snapshots: Vec<MachineSnapshot<C, E>>,
     /// Current position in time travel

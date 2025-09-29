@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 /// State node in the machine definition
 #[derive(Clone, Debug)]
-pub struct StateNode<C: Clone + Debug + 'static, E: Send + Clone + Debug + 'static, S: Clone + Debug> {
+pub struct StateNode<C: Clone + std::fmt::Debug + 'static, E: Send + Clone + std::fmt::Debug + 'static, S: Clone + std::fmt::Debug> {
     pub id: String,
     pub transitions: Vec<Transition<C, E>>,
     pub entry_actions: Vec<Box<dyn Action<C, E>>>,
@@ -17,7 +17,7 @@ pub struct StateNode<C: Clone + Debug + 'static, E: Send + Clone + Debug + 'stat
 
 /// Transition definition
 #[derive(Clone, Debug)]
-pub struct Transition<C: Clone + Debug + 'static, E: Send + Clone + Debug + 'static> {
+pub struct Transition<C: Clone + std::fmt::Debug + 'static, E: Send + Clone + std::fmt::Debug + 'static> {
     pub event: E,
     pub target: String,
     pub guards: Vec<Box<dyn Guard<C, E>>>,
@@ -26,7 +26,7 @@ pub struct Transition<C: Clone + Debug + 'static, E: Send + Clone + Debug + 'sta
 
 /// Complete machine implementation
 #[derive(Clone, Debug)]
-pub struct Machine<C: Send + Sync + Clone + Debug + 'static, E: Send + Clone + Debug + 'static, S: Clone + Debug> {
+pub struct Machine<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Clone + std::fmt::Debug + 'static, S: Clone + std::fmt::Debug> {
     pub states: HashMap<String, StateNode<C, E, C>>,
     pub initial: String,
     pub _phantom: std::marker::PhantomData<S>,

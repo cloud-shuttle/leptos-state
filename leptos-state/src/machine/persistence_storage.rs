@@ -292,7 +292,7 @@ impl MachineStorage for MemoryStorage {
         Ok(storage.keys().cloned().collect())
     }
 
-    async fn exists(&self, _key: &str) -> Result<bool, PersistenceError> {
+    async fn exists(&self, key: &str) -> Result<bool, PersistenceError> {
         let storage = self.storage.read().unwrap();
         Ok(storage.contains_key(key))
     }

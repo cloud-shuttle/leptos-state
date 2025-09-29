@@ -5,7 +5,7 @@ use super::visualization_data::MachineSnapshot;
 
 /// State machine visualizer
 #[derive(Debug)]
-pub struct MachineVisualizer<C: Send + Sync + Debug, E: Debug> {
+pub struct MachineVisualizer<C: Send + Sync + std::fmt::Debug, E: std::fmt::Debug> {
     /// Visualization configuration
     pub config: VisualizationConfig,
     /// Theme configuration

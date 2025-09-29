@@ -4,7 +4,7 @@ use super::*;
 
 /// Real-time state monitor
 #[derive(Debug)]
-pub struct StateMonitor<C: Send + Sync + Debug, E: Debug> {
+pub struct StateMonitor<C: Send + Sync + std::fmt::Debug, E: std::fmt::Debug> {
     /// Monitored machine
     pub machine: Option<Machine<C, E, C>>,
     /// Current state information
