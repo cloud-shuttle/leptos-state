@@ -1,21 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Traffic Light Example - Leptos State</title>
     <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
     <div id="app"></div>
-    <script type="module">
-        import init, { main } from './pkg/traffic_light_example.js';
-        
-        async function run() {
-            await init();
-            main();
-        }
-        
-        run().catch(console.error);
-    </script>
+    <link data-trunk rel="rust" data-bin="traffic-light" />
 </body>
 </html>

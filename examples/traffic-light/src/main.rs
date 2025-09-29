@@ -1,133 +1,57 @@
-use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, Get, OnAttribute};
-use leptos::*;
-use leptos_state::machine::states::StateValue;
-use leptos_state::*;
-
-#[derive(Debug, Clone, PartialEq, Default)]
-struct TrafficContext {
-    timer: i32,
-    pedestrian_waiting: bool,
-}
+use leptos::prelude::*;
 
 #[derive(Debug, Clone, PartialEq)]
-enum TrafficEvent {
-    Timer,
-    PedestrianRequest,
-    EmergencyStop,
-    Reset,
-}
-
-impl Event for TrafficEvent {
-    fn event_type(&self) -> &str {
-        match self {
-            TrafficEvent::Timer => "timer",
-            TrafficEvent::PedestrianRequest => "pedestrian_request",
-            TrafficEvent::EmergencyStop => "emergency_stop",
-            TrafficEvent::Reset => "reset",
-        }
-    }
-}
-
-// For this example, we'll create a simplified machine implementation
-#[derive(Debug, Clone, PartialEq)]
-struct TrafficMachineState {
-    current: StateValue,
-    context: TrafficContext,
-}
-
-impl MachineState for TrafficMachineState {
-    type Context = TrafficContext;
-
-    fn value(&self) -> &StateValue {
-        &self.current
-    }
-
-    fn context(&self) -> &Self::Context {
-        &self.context
-    }
-
-    fn matches(&self, pattern: &str) -> bool {
-        self.current.matches(pattern)
-    }
-
-    fn can_transition_to(&self, _target: &str) -> bool {
-        true
-    }
-}
-
-#[derive(Clone)]
-struct TrafficMachine;
-
-impl StateMachine for TrafficMachine {
-    type Context = TrafficContext;
-    type Event = TrafficEvent;
-    type State = TrafficMachineState;
-
-    fn initial() -> Self::State {
-        TrafficMachineState {
-            current: StateValue::simple("red"),
-            context: TrafficContext::default(),
-        }
-    }
-
-    fn transition(state: &Self::State, event: Self::Event) -> Self::State {
-        let mut new_state = state.clone();
-
-        match (&state.current, &event) {
-            (current, TrafficEvent::Timer) => {
-                new_state.current = match current {
-                    StateValue::Simple(s) if s == "red" => StateValue::simple("green"),
-                    StateValue::Simple(s) if s == "green" => StateValue::simple("yellow"),
-                    StateValue::Simple(s) if s == "yellow" => StateValue::simple("red"),
-                    _ => current.clone(),
-                };
-            }
-            (_, TrafficEvent::PedestrianRequest) => {
-                new_state.context.pedestrian_waiting = true;
-            }
-            (_, TrafficEvent::EmergencyStop) => {
-                new_state.current = StateValue::simple("red");
-                new_state.context.pedestrian_waiting = false;
-            }
-            (_, TrafficEvent::Reset) => {
-                new_state = Self::initial();
-            }
-        }
-
-        new_state
-    }
+enum TrafficLightState {
+    Red,
+    Yellow,
+    Green,
 }
 
 #[component]
 fn TrafficLight() -> impl IntoView {
-    let machine = use_machine::<TrafficMachine>();
+    let (current_state, set_current_state) = signal(TrafficLightState::Red);
+    let (pedestrian_waiting, set_pedestrian_waiting) = signal(false);
 
-    let machine_current = machine.clone();
-    let current_light = move || {
-        let state = machine_current.current();
-        match state {
-            StateValue::Simple(s) => match s.as_str() {
-                "red" => "Red".to_string(),
-                "yellow" => "Yellow".to_string(),
-                "green" => "Green".to_string(),
-                _ => s.to_string(),
-            },
-            _ => "unknown".to_string(),
+    let current_light = move || match current_state.get() {
+        TrafficLightState::Red => "Red",
+        TrafficLightState::Yellow => "Yellow",
+        TrafficLightState::Green => "Green",
+    };
+
+    let is_red = move || current_state.get() == TrafficLightState::Red;
+    let is_yellow = move || current_state.get() == TrafficLightState::Yellow;
+    let is_green = move || current_state.get() == TrafficLightState::Green;
+
+    let next_timer = move |_| {
+        set_current_state.update(|state| {
+            let next_state = match state {
+                TrafficLightState::Red => TrafficLightState::Green,
+                TrafficLightState::Green => TrafficLightState::Yellow,
+                TrafficLightState::Yellow => TrafficLightState::Red,
+            };
+            *state = next_state;
+        });
+
+        // If pedestrians are waiting and we're at red, clear the waiting state
+        // (simulating that pedestrians can now cross)
+        if current_state.get() == TrafficLightState::Red && pedestrian_waiting.get() {
+            set_pedestrian_waiting.set(false);
         }
     };
 
-    let is_red = machine.create_matcher("red".to_string());
-    let is_yellow = machine.create_matcher("yellow".to_string());
-    let is_green = machine.create_matcher("green".to_string());
+    let request_pedestrian = move |_| {
+        set_pedestrian_waiting.set(true);
+    };
 
-    let machine_timer = machine.clone();
-    let next_timer = move |_| machine_timer.emit(TrafficEvent::Timer);
-    let machine_pedestrian = machine.clone();
-    let request_pedestrian = move |_| machine_pedestrian.emit(TrafficEvent::PedestrianRequest);
-    let machine_emergency = machine.clone();
-    let emergency_stop = move |_| machine_emergency.emit(TrafficEvent::EmergencyStop);
-    let machine_reset = machine.clone();
-    let reset = move |_| machine_reset.emit(TrafficEvent::Reset);
+    let emergency_stop = move |_| {
+        set_current_state.set(TrafficLightState::Red);
+        set_pedestrian_waiting.set(false);
+    };
+
+    let reset = move |_| {
+        set_current_state.set(TrafficLightState::Red);
+        set_pedestrian_waiting.set(false);
+    };
 
     view! {
         <div class="traffic-light">
@@ -136,22 +60,22 @@ fn TrafficLight() -> impl IntoView {
             <div class="light-display">
                 <div
                     class="light red"
-                    class:active=move || is_red.get()
+                    class:active=is_red
                 ></div>
                 <div
                     class="light yellow"
-                    class:active=move || is_yellow.get()
+                    class:active=is_yellow
                 ></div>
                 <div
                     class="light green"
-                    class:active=move || is_green.get()
+                    class:active=is_green
                 ></div>
             </div>
 
             <div class="status">
                 <p>"Current State: " <strong data-testid="current-state">{current_light}</strong></p>
                 <p>"Pedestrian Waiting: "
-                    <strong data-testid="pedestrian-waiting">{move || if machine.get_context().pedestrian_waiting { "Yes" } else { "No" }}</strong>
+                    <strong data-testid="pedestrian-waiting">{move || if pedestrian_waiting.get() { "Yes" } else { "No" }}</strong>
                 </p>
             </div>
 
@@ -248,5 +172,9 @@ fn App() -> impl IntoView {
 
 fn main() {
     console_error_panic_hook::set_once();
-    mount_to_body(App);
+    leptos::mount::mount_to_body(|| {
+        view! {
+            <App />
+        }
+    });
 }
