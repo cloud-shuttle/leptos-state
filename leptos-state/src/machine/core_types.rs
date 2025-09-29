@@ -4,7 +4,7 @@ use crate::StateResult;
 use std::collections::HashMap;
 
 /// State node in the machine definition
-pub struct StateNode<C, E, S> {
+pub struct StateNode<C, E: Send, S> {
     pub id: String,
     pub transitions: Vec<Transition<C, E>>,
     pub entry_actions: Vec<Box<dyn Action<C, E>>>,
@@ -15,7 +15,7 @@ pub struct StateNode<C, E, S> {
 }
 
 /// Transition definition
-pub struct Transition<C, E> {
+pub struct Transition<C, E: Send> {
     pub event: E,
     pub target: String,
     pub guards: Vec<Box<dyn Guard<C, E>>>,
@@ -23,7 +23,7 @@ pub struct Transition<C, E> {
 }
 
 /// Complete machine implementation
-pub struct Machine<C: Send + Sync, E, S> {
+pub struct Machine<C: Send + Sync, E: Send, S> {
     pub states: HashMap<String, StateNode<C, E, C>>,
     pub initial: String,
     pub _phantom: std::marker::PhantomData<S>,

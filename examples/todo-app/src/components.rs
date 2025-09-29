@@ -42,14 +42,14 @@ pub fn TodoList() -> impl IntoView {
 #[component]
 pub fn TodoItem(todo: Todo) -> impl IntoView {
     let store = use_context::<TodoStore>().expect("TodoStore not found");
-            let (is_editing, set_is_editing) = create_signal(false);
-        let (is_expanded, set_is_expanded) = create_signal(false);
+            let (is_editing, set_is_editing) = signal(false);
+        let (is_expanded, set_is_expanded) = signal(false);
         
         // Create signals for editing
-        let (edit_title, set_edit_title) = create_signal(todo.title.clone());
-        let (edit_description, set_edit_description) = create_signal(todo.description.clone());
-        let (edit_priority, set_edit_priority) = create_signal(todo.priority.clone());
-        let (edit_tags, set_edit_tags) = create_signal(todo.tags.clone());
+        let (edit_title, set_edit_title) = signal(todo.title.clone());
+        let (edit_description, set_edit_description) = signal(todo.description.clone());
+        let (edit_priority, set_edit_priority) = signal(todo.priority.clone());
+        let (edit_tags, set_edit_tags) = signal(todo.tags.clone());
     
     // Handle save
     let handle_save = move |_| {
@@ -251,11 +251,11 @@ pub fn TodoItem(todo: Todo) -> impl IntoView {
 #[component]
 pub fn AddTodoForm() -> impl IntoView {
     let store = use_context::<TodoStore>().expect("TodoStore not found");
-    let (title, set_title) = create_signal(String::new());
-    let (description, set_description) = create_signal(String::new());
-    let (priority, set_priority) = create_signal(Priority::Medium);
-    let (tags, set_tags) = create_signal(String::new());
-    let (show_advanced, set_show_advanced) = create_signal(false);
+    let (title, set_title) = signal(String::new());
+    let (description, set_description) = signal(String::new());
+    let (priority, set_priority) = signal(Priority::Medium);
+    let (tags, set_tags) = signal(String::new());
+    let (show_advanced, set_show_advanced) = signal(false);
     
     let handle_submit = move |ev: SubmitEvent| {
         ev.prevent_default();

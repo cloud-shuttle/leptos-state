@@ -13,6 +13,8 @@ pub struct CodeGenerator<C: Send + Sync + Clone + PartialEq + 'static, E: Clone 
     pub generated_code: std::collections::HashMap<String, String>,
     /// Generation statistics
     pub stats: GenerationStats,
+    /// Phantom data for unused type parameter
+    pub _phantom: std::marker::PhantomData<C>,
 }
 
 impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> CodeGenerator<C, E> {
@@ -24,6 +26,7 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
             templates,
             generated_code: std::collections::HashMap::new(),
             stats: GenerationStats::default(),
+            _phantom: std::marker::PhantomData,
         }
     }
 

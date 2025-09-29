@@ -1,6 +1,4 @@
-use leptos::ev::SubmitEvent;
 use leptos::prelude::*;
-// use leptos::*;
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -26,8 +24,7 @@ pub fn SimpleTodoApp() -> impl IntoView {
     let (todos, set_todos) = signal(HashMap::new());
     let (new_todo_title, set_new_todo_title) = signal(String::new());
 
-    let handle_add_todo = move |ev: SubmitEvent| {
-        ev.prevent_default();
+    let add_todo = move || {
         let title = new_todo_title.get();
         if !title.trim().is_empty() {
             let todo = Todo::new(title);
@@ -38,27 +35,37 @@ pub fn SimpleTodoApp() -> impl IntoView {
         }
     };
 
+    let handle_add_todo = move |_| {
+        add_todo();
+    };
+
+    let handle_keydown = move |ev: leptos::ev::KeyboardEvent| {
+        if ev.key() == "Enter" {
+            add_todo();
+        }
+    };
+
     view! {
         <div style="max-width: 600px; margin: 0 auto; padding: 2rem;">
             <h1>"Simple Todo App"</h1>
             <p>"Built with Leptos and Rust"</p>
 
-            <form on:submit=handle_add_todo>
+            <div>
                 <input
                     type="text"
                     placeholder="What needs to be done?"
                     prop:value=new_todo_title
                     on:input=move |ev| {
-                        let value = ev.target().unwrap().value_of().as_string().unwrap_or_default();
+                        let value = event_target_value(&ev);
                         set_new_todo_title.set(value);
                     }
-                    required=true
+                    on:keydown=handle_keydown
                     style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"
                 />
-                <button type="submit" style="padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.25rem;">
+                <button on:click=handle_add_todo style="padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.25rem;">
                     "Add Todo"
                 </button>
-            </form>
+            </div>
 
             <div>
                 <p>"Todo List:"</p>

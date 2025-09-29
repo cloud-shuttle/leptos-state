@@ -46,7 +46,6 @@ pub trait Deserialize<T> {
 }
 
 /// Subscription handle for cleanup
-#[derive(Debug)]
 pub struct SubscriptionHandle {
     /// Cleanup function
     pub cleanup: Option<Box<dyn FnOnce() + Send + Sync>>,
@@ -157,13 +156,6 @@ impl ErasedObservable {
         self.inner.downcast_ref()
     }
 
-    /// Clone this observable
-    pub fn clone_erased(&self) -> Self {
-        Self {
-            inner: (self.clone_fn)(&self.inner),
-            clone_fn: self.clone_fn.clone(),
-        }
-    }
 }
 
 /// Builder pattern trait

@@ -23,7 +23,6 @@ pub fn ControlsOverlay(
     on_volume_mute: impl Fn(MouseEvent) + 'static + Copy,
     on_fullscreen: impl Fn(MouseEvent) + 'static + Copy,
 ) -> impl IntoView {
-    let is_playing = move || store.state.get() == crate::state_machine::VideoPlayerState::Playing;
     let current_time = move || store.context.get().video_current_time;
     let duration = move || store.context.get().video_duration.unwrap_or(1.0);
     let progress = move || {
@@ -45,9 +44,15 @@ pub fn ControlsOverlay(
             <div class="controls-center">
                 <button
                     class="play-button"
-                    on:click=move |ev| if is_playing() { on_pause(ev) } else { on_play(ev) }
+                    on:click=move |ev| {
+                        if store.state.get() == crate::state_machine::VideoPlayerState::Playing {
+                            on_pause(ev)
+                        } else {
+                            on_play(ev)
+                        }
+                    }
                 >
-                    {if is_playing() { "⏸️" } else { "▶️" }}
+                    {move || if store.state.get() == crate::state_machine::VideoPlayerState::Playing { "⏸️" } else { "▶️" }}
                 </button>
             </div>
 

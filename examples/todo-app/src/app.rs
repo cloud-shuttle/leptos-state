@@ -18,8 +18,8 @@ pub fn TodoApp() -> impl IntoView {
     provide_context(state_machines);
     
     // Create signals for reactive state
-    let (show_sidebar, set_show_sidebar) = create_signal(false);
-    let (show_settings, set_show_settings) = create_signal(false);
+    let (show_sidebar, set_show_sidebar) = signal(false);
+    let (show_settings, set_show_settings) = signal(false);
     
     // Get app state
     let app_state = store.state();
@@ -105,12 +105,12 @@ pub fn TodoApp() -> impl IntoView {
 #[component]
 fn SearchBar() -> impl IntoView {
     let store = use_context::<TodoStore>().expect("TodoStore not found");
-    let (query, set_query) = create_signal(String::new());
+    let (query, set_query) = signal(String::new());
     
     // Debounced search
-    let debounced_query = create_memo(move |_| query.get());
+    let debounced_query = Memo::new(move |_| query.get());
     
-    create_effect(move |_| {
+    Effect::new(move |_| {
         let q = debounced_query.get();
         store.set_search_query(q);
     });
@@ -237,7 +237,7 @@ fn FilterBar() -> impl IntoView {
 #[component]
 fn BulkActions() -> impl IntoView {
     let store = use_context::<TodoStore>().expect("TodoStore not found");
-    let (selected_todos, set_selected_todos) = create_signal(Vec::new());
+    let (selected_todos, set_selected_todos) = signal(Vec::new());
     
     view! {
         <div class="bulk-actions">

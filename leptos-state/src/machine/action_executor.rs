@@ -309,12 +309,26 @@ pub struct ActionScheduler<C, E> {
     pub queue: std::collections::BinaryHeap<PrioritizedAction<C, E>>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub struct PrioritizedAction<C, E> {
     /// Action priority (higher numbers = higher priority)
     pub priority: i32,
     /// The action to execute
     pub action: Box<dyn Action<C, E>>,
+}
+
+impl<C, E> PartialEq for PrioritizedAction<C, E> {
+    fn eq(&self, other: &Self) -> bool {
+        self.priority == other.priority
+    }
+}
+
+impl<C, E> Eq for PrioritizedAction<C, E> {}
+
+impl<C, E> std::hash::Hash for PrioritizedAction<C, E> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.priority.hash(state);
+    }
 }
 
 impl<C, E> PartialOrd for PrioritizedAction<C, E> {

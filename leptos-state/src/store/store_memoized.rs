@@ -190,17 +190,14 @@ pub mod composition {
 
             fn select(&self, state: &T::State) -> Self::Output {
                 self.selectors.iter()
-                    .map(|selector| {
-                        // Simplified - in practice would need proper type handling
-                        Box::new(()) as Box<dyn std::any::Any>
-                    })
+                    .map(|selector| selector.select(state))
                     .collect()
             }
         }
 
         ChainedSelector {
             selectors: selectors.into_iter()
-                .map(|s| Box::new(s) as Box<dyn StoreSlice<T>>)
+                .map(|s| Box::new(s) as Box<dyn StoreSlice<T, Output = O>>)
                 .collect(),
         }
     }

@@ -360,7 +360,7 @@ impl EventBatch {
                     events: std::mem::take(&mut current_batch_events),
                     created_at: self.created_at,
                     metadata: self.metadata.clone(),
-                    priority: self.priority,
+                    priority: self.priority.clone(),
                 };
                 batches.push(batch);
             }
@@ -373,7 +373,7 @@ impl EventBatch {
                 events: current_batch_events,
                 created_at: self.created_at,
                 metadata: self.metadata,
-                priority: self.priority,
+                priority: self.priority.clone(),
             };
             batches.push(batch);
         }
@@ -500,13 +500,13 @@ impl EventFilter {
         }
 
         // Check priority range
-        if let Some(min_pri) = self.min_priority {
+        if let Some(min_pri) = &self.min_priority {
             if event.priority < min_pri {
                 return false;
             }
         }
 
-        if let Some(max_pri) = self.max_priority {
+        if let Some(max_pri) = &self.max_priority {
             if event.priority > max_pri {
                 return false;
             }

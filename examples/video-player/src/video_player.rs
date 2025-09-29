@@ -98,46 +98,54 @@ pub fn VideoPlayer() -> impl IntoView {
     };
 
     // Handle keyboard events
-    let handle_keydown = move |event: web_sys::KeyboardEvent| match event.key().as_str() {
-        " " | "k" => {
-            event.prevent_default();
-            let current_state = store.state.get();
-            match current_state {
-                VideoPlayerState::Playing => {
-                    store.pause();
-                    store.animate(AnimationType::Paused);
+    let handle_keydown = move |event: web_sys::KeyboardEvent| {
+        let key = event.key();
+        leptos::logging::log!("Key pressed: {}", key);
+
+        match key.as_str() {
+            " " | "k" | "K" => {
+                leptos::logging::log!("Play/pause triggered by key: {}", key);
+                event.prevent_default();
+                let current_state = store.state.get();
+                match current_state {
+                    VideoPlayerState::Playing => {
+                        store.pause();
+                        store.animate(AnimationType::Paused);
+                    }
+                    VideoPlayerState::Paused => {
+                        store.play();
+                        store.animate(AnimationType::Playing);
+                    }
+                    _ => {}
                 }
-                VideoPlayerState::Paused => {
-                    store.play();
-                    store.animate(AnimationType::Playing);
+            }
+            "f" => {
+                event.prevent_default();
+                store.toggle_fullscreen();
+            }
+            "ArrowLeft" => {
+                event.prevent_default();
+                if let Some(video) = video_ref.get() {
+                    let current_time = video.current_time();
+                    let new_time = (current_time - 10.0).max(0.0);
+                    leptos::logging::log!("Skip backward: {} -> {} (diff: {})", current_time, new_time, new_time - current_time);
+                    video.set_current_time(new_time);
+                    store.animate(AnimationType::Backward);
                 }
-                _ => {}
             }
-        }
-        "f" => {
-            event.prevent_default();
-            store.toggle_fullscreen();
-        }
-        "ArrowLeft" => {
-            event.prevent_default();
-            if let Some(video) = video_ref.get() {
-                let current_time = video.current_time();
-                let new_time = (current_time - 10.0).max(0.0);
-                video.set_current_time(new_time);
-                store.animate(AnimationType::Backward);
+            "ArrowRight" => {
+                event.prevent_default();
+                if let Some(video) = video_ref.get() {
+                    let current_time = video.current_time();
+                    let duration = video.duration();
+                    let new_time = (current_time + 10.0).min(duration);
+                    leptos::logging::log!("Skip forward: {} -> {} (diff: {})", current_time, new_time, new_time - current_time);
+                    video.set_current_time(new_time);
+                    store.animate(AnimationType::Forward);
+                }
             }
+            _ => {}
         }
-        "ArrowRight" => {
-            event.prevent_default();
-            if let Some(video) = video_ref.get() {
-                let current_time = video.current_time();
-                let duration = video.duration();
-                let new_time = (current_time + 10.0).min(duration);
-                video.set_current_time(new_time);
-                store.animate(AnimationType::Forward);
-            }
-        }
-        _ => {}
     };
 
     // Handle state changes
@@ -187,6 +195,7 @@ pub fn VideoPlayer() -> impl IntoView {
                     node_ref=video_ref
                     src=move || store.context.get().current_video_src.clone().unwrap_or_default()
                     poster=move || store.context.get().video_poster.clone()
+                    controls=false
                     on:click=handle_video_click
                     on:loadedmetadata=handle_video_events
                     on:timeupdate=handle_video_events

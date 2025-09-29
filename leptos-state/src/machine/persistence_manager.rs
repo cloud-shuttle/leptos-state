@@ -17,7 +17,7 @@ pub struct MachinePersistence<C: Send + Sync, E> {
     backup_manager: Option<BackupManager>,
 }
 
-impl<C: Send + Sync, E> MachinePersistence<C, E> {
+impl<C: Send + Sync + 'static, E: Send + Sync + 'static> MachinePersistence<C, E> {
     /// Create a new persistence manager
     pub fn new(storage: Box<dyn MachineStorage>, config: PersistenceConfig) -> Self {
         let backup_manager = if config.backup_config.enabled {
@@ -184,8 +184,8 @@ impl<C: Send + Sync, E> MachinePersistence<C, E> {
         let keys = self.storage.list_keys().await?;
         let mut total_size = 0u64;
         let mut machine_count = 0;
-        let mut oldest_machine: Option<MachineInfo> = None;
-        let mut newest_machine: Option<MachineInfo> = None;
+        let _oldest_machine: Option<MachineInfo> = None;
+        let _newest_machine: Option<MachineInfo> = None;
 
         for key in &keys {
             if let Ok(data) = self.storage.retrieve(key).await {
@@ -369,7 +369,7 @@ impl BackupManager {
 
         // Keep only the most recent backups
         if sorted_backups.len() > self.config.max_backups {
-            let delete_count = sorted_backups.len() - self.config.max_backups;
+            let _delete_count = sorted_backups.len() - self.config.max_backups;
             for backup in sorted_backups.iter().skip(self.config.max_backups) {
                 to_delete.push(backup.id.clone());
             }

@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.0] - 2025-09-29
+## [1.1.0] - 2025-09-29
 
 ### 🚀 Major Release: Production-Ready Demos & Library Stability
 
@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **🔗 Library Architecture**: Improved trait bounds, error handling, and generic constraints
 
 ### Changed
-- **📦 Library Version**: Bumped to 0.3.0 for major stability improvements
+- **📦 Library Version**: Bumped to 1.1.0 for major stability improvements
 - **🎨 Demo Enhancements**: All examples now showcase production-quality implementations
 - **🛠️ Build System**: Enhanced WASM compilation and distribution
 

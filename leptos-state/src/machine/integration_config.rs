@@ -230,7 +230,7 @@ impl EventPattern {
         }
 
         // Check priority
-        if let Some(priority_filter) = self.priority {
+        if let Some(priority_filter) = &self.priority {
             if event.priority != priority_filter {
                 return false;
             }
@@ -333,7 +333,7 @@ impl EventTransformation {
             event.source = new_source.clone();
         }
 
-        if let Some(new_priority) = self.new_priority {
+        if let Some(new_priority) = &self.new_priority {
             event.priority = new_priority;
         }
 

@@ -317,17 +317,17 @@ pub mod guards {
     }
 
     /// Create an AND guard
-    pub fn and<C, E>(guards: Vec<Box<dyn GuardEvaluator<C, E>>>) -> Box<dyn GuardEvaluator<C, E>> {
+    pub fn and<C: 'static, E: 'static>(guards: Vec<Box<dyn GuardEvaluator<C, E>>>) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(AndGuard::new(guards))
     }
 
     /// Create an OR guard
-    pub fn or<C, E>(guards: Vec<Box<dyn GuardEvaluator<C, E>>>) -> Box<dyn GuardEvaluator<C, E>> {
+    pub fn or<C: 'static, E: 'static>(guards: Vec<Box<dyn GuardEvaluator<C, E>>>) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(OrGuard::new(guards))
     }
 
     /// Create a NOT guard
-    pub fn not<C, E>(guard: Box<dyn GuardEvaluator<C, E>>) -> Box<dyn GuardEvaluator<C, E>> {
+    pub fn not<C: 'static, E: 'static>(guard: Box<dyn GuardEvaluator<C, E>>) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(NotGuard::new(guard))
     }
 

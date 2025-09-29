@@ -383,10 +383,13 @@ where
         // Enforce max size (simple LRU-like eviction)
         if storage.len() > self.max_size {
             // Remove least recently accessed item
-            let mut items: Vec<_> = storage.iter().collect();
-            items.sort_by_key(|(_, entry)| entry.access_count);
-            if let Some((key_to_remove, _)) = items.first() {
-                storage.remove(key_to_remove);
+            let keys_to_remove: Vec<_> = {
+                let mut items: Vec<_> = storage.iter().collect();
+                items.sort_by_key(|(_, entry)| entry.access_count);
+                items.into_iter().map(|(k, _)| k.clone()).take(1).collect()
+            };
+            for key in keys_to_remove {
+                storage.remove(&key);
             }
         }
     }
@@ -502,11 +505,14 @@ impl<T> PriorityQueue<T> {
     }
 
     /// Peek at the highest priority item
-    pub fn peek(&self) -> Option<&T> {
+    pub fn peek(&self) -> Option<T>
+    where
+        T: Clone,
+    {
         let queues = self.queues.read().unwrap();
 
         if let Some((_, queue)) = queues.iter().next() {
-            queue.last()
+            queue.last().cloned()
         } else {
             None
         }

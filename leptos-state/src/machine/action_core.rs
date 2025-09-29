@@ -8,6 +8,8 @@ pub struct FunctionAction<C, E, F> {
     pub func: F,
     /// Description of the action
     pub description: String,
+    /// Phantom data for unused type parameters
+    pub _phantom: std::marker::PhantomData<(C, E)>,
 }
 
 impl<C, E, F> FunctionAction<C, E, F>
@@ -19,12 +21,17 @@ where
         Self {
             func,
             description: "Function Action".to_string(),
+            _phantom: std::marker::PhantomData,
         }
     }
 
     /// Create a new function action with description
     pub fn with_description(func: F, description: String) -> Self {
-        Self { func, description }
+        Self {
+            func,
+            description,
+            _phantom: std::marker::PhantomData,
+        }
     }
 }
 
@@ -36,6 +43,10 @@ where
         (self.func)(context, event);
     }
 
+    fn name(&self) -> &str {
+        "function"
+    }
+
     fn description(&self) -> String {
         self.description.clone()
     }
@@ -44,6 +55,7 @@ where
         Box::new(Self {
             func: self.func.clone(),
             description: self.description.clone(),
+            _phantom: std::marker::PhantomData,
         })
     }
 }
@@ -81,7 +93,7 @@ where
     }
 }
 
-impl<C: Send + Sync, E: Send + Sync, T: Send + Sync, F> Action<C, E> for AssignAction<C, E, T, F>
+impl<C: Send + Sync + 'static, E: Send + Sync + 'static, T: Send + Sync, F> Action<C, E> for AssignAction<C, E, T, F>
 where
     F: Fn(&mut C, &E) -> T + Clone + Send + Sync + 'static,
 {
@@ -89,6 +101,10 @@ where
         let _result = (self.assign_fn)(context, event);
         // In a real implementation, this might assign the result to a field
         // For now, we just execute the function
+    }
+
+    fn name(&self) -> &str {
+        "assign"
     }
 
     fn description(&self) -> String {
@@ -186,6 +202,10 @@ where
         }
     }
 
+    fn name(&self) -> &str {
+        "log"
+    }
+
     fn description(&self) -> String {
         format!("Log Action: {}", self.message)
     }
@@ -244,6 +264,10 @@ where
         (self.func)();
     }
 
+    fn name(&self) -> &str {
+        "pure"
+    }
+
     fn description(&self) -> String {
         self.description.clone()
     }
@@ -256,6 +280,7 @@ where
         Box::new(Self {
             func: self.func.clone(),
             description: self.description.clone(),
+            _phantom: std::marker::PhantomData,
         })
     }
 }

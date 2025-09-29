@@ -68,8 +68,8 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
 
     /// Set integration configuration
     pub fn with_config(mut self, config: IntegrationConfig) -> Self {
-        self.config = config;
-        self.manager.config = config.clone();
+        self.config = config.clone();
+        self.manager.config = config;
         self
     }
 
@@ -124,7 +124,7 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
 
     /// Add event routing rules
     pub fn with_routing(mut self, routing_config: EventRoutingConfig) -> Self {
-        self.config.event_routing = routing_config;
+        self.config.event_routing = routing_config.clone();
         self.manager.config.event_routing = routing_config;
         self
     }

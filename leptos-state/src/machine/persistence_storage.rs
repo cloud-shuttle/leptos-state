@@ -118,15 +118,15 @@ impl LocalStorage {
 
 #[async_trait::async_trait]
 impl MachineStorage for LocalStorage {
-    async fn store(&self, key: &str, data: &[u8]) -> Result<(), PersistenceError> {
+    async fn store(&self, _key: &str, _data: &[u8]) -> Result<(), PersistenceError> {
         #[cfg(feature = "hydrate")]
         {
             let window = leptos::window();
             match window.local_storage() {
                 Ok(Some(storage)) => {
                     // Convert bytes to base64 string
-                    let encoded = base64::encode(data);
-                    storage.set_item(key, &encoded)
+                    let encoded = base64::encode(_data);
+                    storage.set_item(_key, &encoded)
                         .map_err(|e| PersistenceError::StorageError(format!("Failed to store: {:?}", e)))?;
                     Ok(())
                 }
@@ -139,18 +139,18 @@ impl MachineStorage for LocalStorage {
         }
     }
 
-    async fn retrieve(&self, key: &str) -> Result<Vec<u8>, PersistenceError> {
+    async fn retrieve(&self, _key: &str) -> Result<Vec<u8>, PersistenceError> {
         #[cfg(feature = "hydrate")]
         {
             let window = leptos::window();
             match window.local_storage() {
                 Ok(Some(storage)) => {
-                    match storage.get_item(key) {
+                    match storage.get_item(_key) {
                         Ok(Some(encoded)) => {
                             base64::decode(&encoded)
                                 .map_err(|e| PersistenceError::DeserializationError(format!("Failed to decode: {}", e)))
                         }
-                        Ok(None) => Err(PersistenceError::StorageError(format!("Key '{}' not found", key))),
+                        Ok(None) => Err(PersistenceError::StorageError(format!("Key '{}' not found", _key))),
                         Err(e) => Err(PersistenceError::StorageError(format!("Failed to retrieve: {:?}", e))),
                     }
                 }
@@ -163,13 +163,13 @@ impl MachineStorage for LocalStorage {
         }
     }
 
-    async fn delete(&self, key: &str) -> Result<(), PersistenceError> {
+    async fn delete(&self, _key: &str) -> Result<(), PersistenceError> {
         #[cfg(feature = "hydrate")]
         {
             let window = leptos::window();
             match window.local_storage() {
                 Ok(Some(storage)) => {
-                    storage.remove_item(key)
+                    storage.remove_item(_key)
                         .map_err(|e| PersistenceError::StorageError(format!("Failed to delete: {:?}", e)))
                 }
                 _ => Err(PersistenceError::StorageError("localStorage not available".to_string())),
@@ -200,13 +200,13 @@ impl MachineStorage for LocalStorage {
         }
     }
 
-    async fn exists(&self, key: &str) -> Result<bool, PersistenceError> {
+    async fn exists(&self, _key: &str) -> Result<bool, PersistenceError> {
         #[cfg(feature = "hydrate")]
         {
             let window = leptos::window();
             match window.local_storage() {
                 Ok(Some(storage)) => {
-                    storage.get_item(key)
+                    storage.get_item(_key)
                         .map(|result| result.is_some())
                         .map_err(|e| PersistenceError::StorageError(format!("Failed to check: {:?}", e)))
                 }
@@ -268,22 +268,22 @@ impl MemoryStorage {
 
 #[async_trait::async_trait]
 impl MachineStorage for MemoryStorage {
-    async fn store(&self, key: &str, data: &[u8]) -> Result<(), PersistenceError> {
+    async fn store(&self, _key: &str, _data: &[u8]) -> Result<(), PersistenceError> {
         let mut storage = self.storage.write().unwrap();
-        storage.insert(key.to_string(), data.to_vec());
+        storage.insert(_key.to_string(), _data.to_vec());
         Ok(())
     }
 
-    async fn retrieve(&self, key: &str) -> Result<Vec<u8>, PersistenceError> {
+    async fn retrieve(&self, _key: &str) -> Result<Vec<u8>, PersistenceError> {
         let storage = self.storage.read().unwrap();
-        storage.get(key)
+        storage.get(_key)
             .cloned()
-            .ok_or_else(|| PersistenceError::StorageError(format!("Key '{}' not found", key)))
+            .ok_or_else(|| PersistenceError::StorageError(format!("Key '{}' not found", _key)))
     }
 
-    async fn delete(&self, key: &str) -> Result<(), PersistenceError> {
+    async fn delete(&self, _key: &str) -> Result<(), PersistenceError> {
         let mut storage = self.storage.write().unwrap();
-        storage.remove(key);
+        storage.remove(_key);
         Ok(())
     }
 
@@ -292,7 +292,7 @@ impl MachineStorage for MemoryStorage {
         Ok(storage.keys().cloned().collect())
     }
 
-    async fn exists(&self, key: &str) -> Result<bool, PersistenceError> {
+    async fn exists(&self, _key: &str) -> Result<bool, PersistenceError> {
         let storage = self.storage.read().unwrap();
         Ok(storage.contains_key(key))
     }
@@ -334,8 +334,8 @@ impl FileSystemStorage {
 
 #[async_trait::async_trait]
 impl MachineStorage for FileSystemStorage {
-    async fn store(&self, key: &str, data: &[u8]) -> Result<(), PersistenceError> {
-        let file_path = self.get_file_path(key);
+    async fn store(&self, _key: &str, _data: &[u8]) -> Result<(), PersistenceError> {
+        let file_path = self.get_file_path(_key);
 
         // Ensure directory exists
         if let Some(parent) = file_path.parent() {
@@ -343,18 +343,18 @@ impl MachineStorage for FileSystemStorage {
                 .map_err(|e| PersistenceError::StorageError(format!("Failed to create directory: {}", e)))?;
         }
 
-        tokio::fs::write(&file_path, data).await
+        tokio::fs::write(&file_path, _data).await
             .map_err(|e| PersistenceError::StorageError(format!("Failed to write file: {}", e)))
     }
 
-    async fn retrieve(&self, key: &str) -> Result<Vec<u8>, PersistenceError> {
-        let file_path = self.get_file_path(key);
+    async fn retrieve(&self, _key: &str) -> Result<Vec<u8>, PersistenceError> {
+        let file_path = self.get_file_path(_key);
         tokio::fs::read(&file_path).await
             .map_err(|e| PersistenceError::StorageError(format!("Failed to read file: {}", e)))
     }
 
-    async fn delete(&self, key: &str) -> Result<(), PersistenceError> {
-        let file_path = self.get_file_path(key);
+    async fn delete(&self, _key: &str) -> Result<(), PersistenceError> {
+        let file_path = self.get_file_path(_key);
         tokio::fs::remove_file(&file_path).await
             .map_err(|e| PersistenceError::StorageError(format!("Failed to delete file: {}", e)))
     }
@@ -383,8 +383,8 @@ impl MachineStorage for FileSystemStorage {
         Ok(keys)
     }
 
-    async fn exists(&self, key: &str) -> Result<bool, PersistenceError> {
-        let file_path = self.get_file_path(key);
+    async fn exists(&self, _key: &str) -> Result<bool, PersistenceError> {
+        let file_path = self.get_file_path(_key);
         let exists = tokio::fs::try_exists(&file_path).await
             .map_err(|e| PersistenceError::StorageError(format!("Failed to check file: {}", e)))?;
         Ok(exists)

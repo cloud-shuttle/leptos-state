@@ -16,7 +16,7 @@ pub trait HistoryMachineBuilder<C: Send + Sync + Clone + 'static, E: Clone + Sen
 }
 
 /// History-enabled machine builder
-pub struct HistoryMachineBuilderImpl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct HistoryMachineBuilderImpl<C: Send + Sync + Clone + Eq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
     /// The base machine builder
     pub base_builder: crate::machine::builder::MachineBuilderImpl<C, E, C>,
     /// History configuration
@@ -133,10 +133,10 @@ pub mod factory {
 
     /// Create a simple history machine
     pub fn simple_history_machine<C: Send + Sync + Clone + Default + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(
-        states: Vec<&str>,
+        _states: Vec<&str>,
         initial_state: &str,
     ) -> Result<HistoryMachine<C, E>, String> {
-        if !states.contains(&initial_state) {
+        if !_states.contains(&initial_state) {
             return Err(format!("Initial state '{}' not in states list", initial_state));
         }
 
@@ -152,7 +152,7 @@ pub mod factory {
 
     /// Create a history machine with persistence
     pub fn persistent_history_machine<C: Send + Sync + Clone + Default + serde::Serialize + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(
-        states: Vec<&str>,
+        _states: Vec<&str>,
         initial_state: &str,
         persistence_key: &str,
     ) -> Result<HistoryMachine<C, E>, String> {
@@ -172,7 +172,7 @@ pub mod factory {
 
     /// Create a memory-efficient history machine
     pub fn memory_efficient_history_machine<C: Send + Sync + Clone + Default + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(
-        max_history_per_state: usize,
+        _max_history_per_state: usize,
         max_total_history: usize,
     ) -> HistoryMachineBuilderImpl<C, E> {
         let mut builder = history_builder::create_history_machine();

@@ -1,0 +1,27 @@
+[build]
+target = "index.html"
+dist = "dist"
+public_url = "./"
+
+[watch]
+watch = ["src", "index.html", "src/styles.css"]
+
+[serve]
+address = "127.0.0.1"
+port = 8084
+open = false
+
+[[hooks]]
+stage = "pre_build"
+command = "cargo"
+command_arguments = ["build", "--target", "wasm32-unknown-unknown", "--package", "notification-center", "--manifest-path", "../../Cargo.toml"]
+
+[[hooks]]
+stage = "post_build"
+command = "wasm-bindgen"
+command_arguments = ["../../target/wasm32-unknown-unknown/debug/notification_center.wasm", "--out-dir", "dist", "--target", "web"]
+
+[[hooks]]
+stage = "post_build"
+command = "sh"
+command_arguments = ["-c", "cp ../../examples/notification-center/src/styles.css ../../examples/notification-center/dist/"]

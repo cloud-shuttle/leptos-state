@@ -15,7 +15,7 @@ pub type StateId = String;
 pub type EventId = String;
 
 /// Configuration for stores and machines
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Config {
     /// Enable debug mode
     pub debug: bool,

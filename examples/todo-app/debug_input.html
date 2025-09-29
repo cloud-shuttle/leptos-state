@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Input Debug Test</title>
+</head>
+<body>
+    <h1>Input Debug Test</h1>
+    <input type="text" id="test-input" placeholder="Type here..." />
+    <p>Typed: <span id="output"></span></p>
+
+    <script>
+        const input = document.getElementById('test-input');
+        const output = document.getElementById('output');
+
+        input.addEventListener('input', (e) => {
+            console.log('Input event fired:', e.target.value);
+            output.textContent = e.target.value;
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                console.log('Enter key pressed');
+            }
+        });
+
+        console.log('Input test page loaded');
+    </script>
+</body>
+</html>

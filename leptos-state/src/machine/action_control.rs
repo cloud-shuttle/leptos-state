@@ -64,6 +64,10 @@ impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for RetryA
         self.action.execute(context, event);
     }
 
+    fn name(&self) -> &str {
+        "retry"
+    }
+
     fn description(&self) -> String {
         format!("{} (max {} attempts)", self.description, self.max_attempts)
     }
@@ -116,6 +120,10 @@ impl<C, E> TimerAction<C, E> {
 }
 
 impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for TimerAction<C, E> {
+    fn name(&self) -> &str {
+        "timer"
+    }
+
     fn execute(&self, context: &mut C, event: &E) {
         let start = std::time::Instant::now();
         self.action.execute(context, event);
@@ -185,6 +193,10 @@ impl<C, E> MetricsAction<C, E> {
 }
 
 impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for MetricsAction<C, E> {
+    fn name(&self) -> &str {
+        "metrics"
+    }
+
     fn execute(&self, context: &mut C, event: &E) {
         let start = std::time::Instant::now();
         let start_memory = 0; // Would get actual memory usage
@@ -255,6 +267,10 @@ impl<C, E> TimeoutAction<C, E> {
 }
 
 impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for TimeoutAction<C, E> {
+    fn name(&self) -> &str {
+        "timeout"
+    }
+
     fn execute(&self, context: &mut C, event: &E) {
         // For now, just execute the action without timeout
         // In a real implementation, this would use async/timeout mechanisms
@@ -330,6 +346,10 @@ impl<C, E> CircuitBreakerAction<C, E> {
 }
 
 impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for CircuitBreakerAction<C, E> {
+    fn name(&self) -> &str {
+        "circuit_breaker"
+    }
+
     fn execute(&self, context: &mut C, event: &E) {
         // For now, just execute the action
         // In a real implementation, this would implement circuit breaker logic

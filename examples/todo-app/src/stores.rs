@@ -13,7 +13,7 @@ pub struct TodoStore {
 
 impl TodoStore {
     pub fn new() -> Self {
-        let (state, dispatch) = create_signal(AppState::default());
+        let (state, dispatch) = signal(AppState::default());
         
         // Set up persistence
         let persistent_store = create_persistent_store(
@@ -35,7 +35,7 @@ impl TodoStore {
 
     /// Get filtered and sorted todos
     pub fn filtered_todos(&self) -> Signal<Vec<Todo>> {
-        create_memo(move |_| {
+        Memo::new(move |_| {
             let state = self.state.get();
             let mut todos: Vec<Todo> = state.todos.values().cloned().collect();
 
@@ -107,7 +107,7 @@ impl TodoStore {
 
     /// Get statistics about todos
     pub fn stats(&self) -> Signal<TodoStats> {
-        create_memo(move |_| {
+        Memo::new(move |_| {
             let state = self.state.get();
             TodoStats::from_todos(&state.todos)
         })
@@ -115,7 +115,7 @@ impl TodoStore {
 
     /// Get all unique tags
     pub fn all_tags(&self) -> Signal<Vec<String>> {
-        create_memo(move |_| {
+        Memo::new(move |_| {
             let state = self.state.get();
             let mut tags: std::collections::HashSet<String> = std::collections::HashSet::new();
             
@@ -256,7 +256,7 @@ impl TodoStore {
 
     /// Get a specific todo by ID
     pub fn get_todo(&self, id: Uuid) -> Signal<Option<Todo>> {
-        create_memo(move |_| {
+        Memo::new(move |_| {
             let state = self.state.get();
             state.todos.get(&id).cloned()
         })
@@ -264,7 +264,7 @@ impl TodoStore {
 
     /// Check if a todo exists
     pub fn has_todo(&self, id: Uuid) -> Signal<bool> {
-        create_memo(move |_| {
+        Memo::new(move |_| {
             let state = self.state.get();
             state.todos.contains_key(&id)
         })
@@ -272,7 +272,7 @@ impl TodoStore {
 
     /// Get todos by tag
     pub fn todos_by_tag(&self, tag: String) -> Signal<Vec<Todo>> {
-        create_memo(move |_| {
+        Memo::new(move |_| {
             let state = self.state.get();
             state.todos
                 .values()
@@ -284,7 +284,7 @@ impl TodoStore {
 
     /// Get overdue todos
     pub fn overdue_todos(&self) -> Signal<Vec<Todo>> {
-        create_memo(move |_| {
+        Memo::new(move |_| {
             let state = self.state.get();
             state.todos
                 .values()
@@ -296,7 +296,7 @@ impl TodoStore {
 
     /// Get todos due today
     pub fn todos_due_today(&self) -> Signal<Vec<Todo>> {
-        create_memo(move |_| {
+        Memo::new(move |_| {
             let state = self.state.get();
             let today = chrono::Utc::now().date_naive();
             
@@ -340,7 +340,7 @@ fn create_persistent_store(
     // In a real implementation, you would use the leptos-state persistence features
     
     // Set up automatic saving when state changes
-    create_effect(move |_| {
+    Effect::new(move |_| {
         let current_state = state.get();
         if current_state.auto_save {
             // Log state changes for debugging

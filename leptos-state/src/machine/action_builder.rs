@@ -150,6 +150,7 @@ impl<C, E> ActionBuilder<C, E> {
 /// Conditional action builder
 pub struct ConditionalActionBuilder<C, E, F> {
     condition: F,
+    _phantom: std::marker::PhantomData<(C, E)>,
 }
 
 impl<C, E, F> ConditionalActionBuilder<C, E, F>
@@ -158,7 +159,10 @@ where
 {
     /// Create a new conditional action builder
     pub fn new(condition: F) -> Self {
-        Self { condition }
+        Self {
+            condition,
+            _phantom: std::marker::PhantomData,
+        }
     }
 
     /// Specify the action to execute when condition is true

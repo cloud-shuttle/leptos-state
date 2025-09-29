@@ -27,7 +27,7 @@ impl<T> Clone for SimpleStore<T> {
 
 impl<T> Store for SimpleStore<T>
 where
-    T: Clone + PartialEq + 'static,
+    T: Clone + PartialEq + Send + Sync + 'static,
 {
     type State = T;
 
@@ -194,7 +194,7 @@ impl<T: Clone + PartialEq + 'static> AsyncStore<T> {
     }
 }
 
-impl<T: Clone + PartialEq + 'static> Store for AsyncStore<T> {
+impl<T: Clone + PartialEq + Send + Sync + 'static> Store for AsyncStore<T> {
     type State = T;
 
     fn get(&self) -> Self::State {
@@ -231,7 +231,7 @@ impl<T: Clone + PartialEq + 'static, M: 'static> MiddlewareStore<T, M> {
     }
 }
 
-impl<T: Clone + PartialEq + 'static, M: 'static> Store for MiddlewareStore<T, M>
+impl<T: Clone + PartialEq + Send + Sync + 'static, M: Send + Sync + 'static> Store for MiddlewareStore<T, M>
 where
     M: StoreMiddleware<T>,
 {

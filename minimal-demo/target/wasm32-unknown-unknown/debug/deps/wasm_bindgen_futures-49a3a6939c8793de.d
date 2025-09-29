@@ -1,0 +1,9 @@
+/Users/peterhanssens/consulting/Leptos/leptos-state/minimal-demo/target/wasm32-unknown-unknown/debug/deps/wasm_bindgen_futures-49a3a6939c8793de.d: /Users/peterhanssens/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.54/src/lib.rs /Users/peterhanssens/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.54/src/queue.rs /Users/peterhanssens/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.54/src/task/singlethread.rs
+
+/Users/peterhanssens/consulting/Leptos/leptos-state/minimal-demo/target/wasm32-unknown-unknown/debug/deps/libwasm_bindgen_futures-49a3a6939c8793de.rlib: /Users/peterhanssens/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.54/src/lib.rs /Users/peterhanssens/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.54/src/queue.rs /Users/peterhanssens/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.54/src/task/singlethread.rs
+
+/Users/peterhanssens/consulting/Leptos/leptos-state/minimal-demo/target/wasm32-unknown-unknown/debug/deps/libwasm_bindgen_futures-49a3a6939c8793de.rmeta: /Users/peterhanssens/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.54/src/lib.rs /Users/peterhanssens/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.54/src/queue.rs /Users/peterhanssens/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.54/src/task/singlethread.rs
+
+/Users/peterhanssens/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.54/src/lib.rs:
+/Users/peterhanssens/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.54/src/queue.rs:
+/Users/peterhanssens/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.54/src/task/singlethread.rs:

@@ -308,7 +308,7 @@ impl HistoryStats {
     }
 
     /// Record a cleanup operation
-    pub fn record_cleanup(&mut self, removed_count: usize) {
+    pub fn record_cleanup(&mut self, _removed_count: usize) {
         self.last_cleanup = Some(std::time::Instant::now());
         // Note: This doesn't update total_entries - that should be done by the caller
     }

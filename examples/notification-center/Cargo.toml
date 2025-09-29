@@ -1,0 +1,33 @@
+[package]
+name = "notification-center"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+leptos = { workspace = true, features = ["csr"] }
+serde = { workspace = true, features = ["derive"] }
+uuid = { workspace = true, features = ["v4", "js"] }
+wasm-bindgen = { workspace = true }
+console_error_panic_hook = { workspace = true }
+console_log = "1.0"
+log = "0.4"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = [
+    "Window",
+    "Document",
+    "Element",
+    "HtmlElement",
+    "CssStyleDeclaration",
+    "EventTarget",
+    "Event",
+    "FocusEvent",
+    "MouseEvent",
+    "KeyboardEvent",
+    "AnimationEvent",
+] }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"

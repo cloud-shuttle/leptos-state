@@ -53,6 +53,10 @@ where
         }
     }
 
+    fn name(&self) -> &str {
+        "conditional"
+    }
+
     fn description(&self) -> String {
         self.description.clone()
     }
@@ -114,6 +118,10 @@ impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for Sequen
         }
     }
 
+    fn name(&self) -> &str {
+        "sequential"
+    }
+
     fn description(&self) -> String {
         format!("{} ({} actions)", self.description, self.actions.len())
     }
@@ -173,6 +181,10 @@ where
         }
     }
 
+    fn name(&self) -> &str {
+        "parallel"
+    }
+
     fn description(&self) -> String {
         format!("{} ({} parallel actions)", self.description, self.actions.len())
     }
@@ -228,6 +240,10 @@ impl<C, E> CompositeAction<C, E> {
 }
 
 impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for CompositeAction<C, E> {
+    fn name(&self) -> &str {
+        "composite"
+    }
+
     fn execute(&self, context: &mut C, event: &E) {
         match &self.logic {
             CompositeLogic::All => {

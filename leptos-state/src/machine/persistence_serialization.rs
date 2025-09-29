@@ -510,7 +510,7 @@ mod serde_impl {
     {
         fn serialize<Ser>(&self, serializer: Ser) -> Result<Ser::Ok, Ser::Error>
         where
-            S: serde::Serializer,
+            Ser: serde::Serializer,
         {
             // Custom serialization logic here
             // This is a simplified implementation

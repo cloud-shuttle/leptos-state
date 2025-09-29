@@ -124,8 +124,8 @@ where
         self.running.store(true, std::sync::atomic::Ordering::SeqCst);
 
         let interval = self.interval;
-        let action = &self.action;
-        let running = &self.running;
+        let action = self.action.clone();
+        let running = self.running.clone();
 
         let handle = tokio::spawn(async move {
             let mut interval_timer = tokio::time::interval(interval);
