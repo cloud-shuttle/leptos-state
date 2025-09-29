@@ -4,7 +4,8 @@ use super::*;
 use super::visualization_data::MachineSnapshot;
 
 /// Time travel debugger for state machines
-pub struct TimeTravelDebugger<C: Send + Sync, E> {
+#[derive(Debug)]
+pub struct TimeTravelDebugger<C: Send + Sync + Debug, E: Debug> {
     /// Snapshots in chronological order
     pub snapshots: Vec<MachineSnapshot<C, E>>,
     /// Current position in time travel
@@ -271,7 +272,7 @@ pub struct Breakpoint<C: Send + Sync, E> {
     pub condition: Option<Box<dyn Fn(&TransitionEvent<C, E>) -> bool + Send + Sync>>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum BreakpointType<C, E> {
     /// Break on state entry
     StateEntry(String),

@@ -4,7 +4,8 @@ use super::*;
 use super::visualization_data::MachineSnapshot;
 
 /// State machine visualizer
-pub struct MachineVisualizer<C: Send + Sync, E> {
+#[derive(Debug)]
+pub struct MachineVisualizer<C: Send + Sync + Debug, E: Debug> {
     /// Visualization configuration
     pub config: VisualizationConfig,
     /// Theme configuration

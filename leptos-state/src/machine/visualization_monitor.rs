@@ -3,7 +3,8 @@
 use super::*;
 
 /// Real-time state monitor
-pub struct StateMonitor<C: Send + Sync, E> {
+#[derive(Debug)]
+pub struct StateMonitor<C: Send + Sync + Debug, E: Debug> {
     /// Monitored machine
     pub machine: Option<Machine<C, E, C>>,
     /// Current state information
@@ -128,7 +129,7 @@ impl<C: Send + Sync, E> StateMonitor<C, E> {
 }
 
 /// Monitoring statistics
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct MonitoringStats {
     /// Total state changes observed
     pub total_state_changes: usize,
@@ -140,6 +141,18 @@ pub struct MonitoringStats {
     pub error_counts: std::collections::HashMap<ErrorEventType, usize>,
     /// Monitoring start time
     pub start_time: std::time::Instant,
+}
+
+impl Default for MonitoringStats {
+    fn default() -> Self {
+        Self {
+            total_state_changes: 0,
+            total_errors: 0,
+            total_performance_events: 0,
+            error_counts: std::collections::HashMap::new(),
+            start_time: std::time::Instant::now(),
+        }
+    }
 }
 
 impl MonitoringStats {

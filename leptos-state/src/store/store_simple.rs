@@ -255,7 +255,7 @@ where
         let current = self.store.get();
         let new_state = f(current.clone());
         self.middleware.on_update(&current, &new_state);
-        self.store.update(f);
+        self.store.set(new_state);
     }
 }
 
