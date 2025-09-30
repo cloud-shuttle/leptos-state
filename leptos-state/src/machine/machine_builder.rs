@@ -5,7 +5,7 @@ use std::marker::PhantomData;
 // Extension traits
 #[cfg(feature = "codegen")]
 use crate::machine::codegen::config::{CodeGenConfig, ProgrammingLanguage};
-use crate::machine::codegen_core::CodeGenerator;
+use crate::machine::codegen::core::CodeGenerator;
 #[cfg(feature = "documentation")]
 use crate::machine::documentation::{
     DocumentationConfig, DocumentationFormat, DocumentationGenerator, DocumentationStyling,
