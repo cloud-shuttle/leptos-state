@@ -70,6 +70,17 @@ impl<C: Clone, E: Clone + Send> Clone for StateNode<C, E, C> {
     }
 }
 
+// Manual Clone implementation for Machine since trait objects can't be cloned
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> Clone for Machine<C, E, C> {
+    fn clone(&self) -> Self {
+        Self {
+            states: self.states.clone(),
+            initial: self.initial.clone(),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
 
 impl<C: Send + Sync + Clone + 'static, E: Clone> Machine<C, E, C> {
     /// Get all state IDs in the machine

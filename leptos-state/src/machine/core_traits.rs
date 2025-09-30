@@ -4,16 +4,16 @@ use super::core_machine::Machine;
 
 /// Core trait for state machines
 pub trait StateMachine: Sized + 'static {
-    type Context: Clone + PartialEq + Send + Sync + 'static;
-    type Event: Clone + Send + Sync + 'static;
-    type State: MachineState<Context = Self::Context> + Clone + Send + Sync + 'static;
+    type Context: Clone + PartialEq + Send + Sync + std::fmt::Debug + 'static;
+    type Event: Clone + Send + Sync + std::fmt::Debug + 'static;
+    type State: MachineState<Context = Self::Context> + Clone + Send + Sync + std::fmt::Debug + 'static;
 
     fn initial() -> Self::State;
     fn transition(state: &Self::State, event: Self::Event) -> Self::State;
 }
 
 /// Main builder trait for constructing state machines
-pub trait MachineBuilder<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static, S: Clone + Send + Sync + 'static> {
+pub trait MachineBuilder<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Hash + Eq + 'static, S: Clone + Send + Sync + std::fmt::Debug + 'static> {
     fn new() -> Self;
     fn state<Name: Into<String>>(self, name: Name) -> Self;
     fn initial<Name: Into<String>>(self, state: Name) -> Self;
@@ -32,8 +32,8 @@ pub trait MachineBuilder<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: 
 }
 
 /// Trait for machine states
-pub trait MachineState: Clone + Send + Sync + 'static {
-    type Context: Send + Sync + 'static;
+pub trait MachineState: Clone + Send + Sync + std::fmt::Debug + 'static {
+    type Context: Send + Sync + std::fmt::Debug + 'static;
 
     fn value(&self) -> &crate::machine::types_basic::StateValue;
     fn context(&self) -> &Self::Context;
