@@ -3,7 +3,6 @@
 use super::*;
 
 /// Real-time state monitor
-#[derive(Debug)]
 pub struct StateMonitor<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> {
     /// Monitored machine
     pub machine: Option<Machine<C, E, C>>,
@@ -32,6 +31,21 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
             enabled: self.enabled,
             stats: self.stats,
         }
+    }
+}
+
+// Manual Debug implementation for StateMonitor since it contains trait objects
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> std::fmt::Debug for StateMonitor<C, E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("StateMonitor")
+            .field("machine", &self.machine)
+            .field("current_state", &self.current_state)
+            .field("state_change_listeners_count", &self.state_change_listeners.len())
+            .field("error_listeners_count", &self.error_listeners.len())
+            .field("performance_listeners_count", &self.performance_listeners.len())
+            .field("enabled", &self.enabled)
+            .field("stats", &self.stats)
+            .finish()
     }
 }
 

@@ -271,7 +271,6 @@ impl VisualizationStats {
 }
 
 /// Breakpoint system for debugging
-#[derive(Debug)]
 pub struct Breakpoint<C: Send + Sync, E> {
     /// Breakpoint ID
     pub id: String,
@@ -297,7 +296,20 @@ impl<C: Send + Sync, E> Clone for Breakpoint<C, E> {
     }
 }
 
-#[derive(Debug)]
+// Manual Debug implementation for Breakpoint since it contains trait objects
+impl<C: Send + Sync, E> std::fmt::Debug for Breakpoint<C, E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Breakpoint")
+            .field("id", &self.id)
+            .field("breakpoint_type", &self.breakpoint_type)
+            .field("enabled", &self.enabled)
+            .field("hit_count", &self.hit_count)
+            .field("has_condition", &self.condition.is_some())
+            .field("last_updated", &self.last_updated)
+            .finish()
+    }
+}
+
 pub enum BreakpointType<C, E> {
     /// Break on state entry
     StateEntry(String),
@@ -328,6 +340,21 @@ impl<C, E> Clone for BreakpointType<C, E> {
             Self::Error(e) => Self::Error(*e),
             Self::GuardFailure => Self::GuardFailure,
             Self::Custom(_) => Self::GuardFailure, // Can't clone trait objects, fallback
+        }
+    }
+}
+
+// Manual Debug implementation for BreakpointType since it contains trait objects
+impl<C, E> std::fmt::Debug for BreakpointType<C, E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::StateEntry(s) => f.debug_tuple("StateEntry").field(s).finish(),
+            Self::StateExit(s) => f.debug_tuple("StateExit").field(s).finish(),
+            Self::Transition { from, to } => f.debug_struct("Transition").field("from", from).field("to", to).finish(),
+            Self::Event(s) => f.debug_tuple("Event").field(s).finish(),
+            Self::Error(e) => f.debug_tuple("Error").field(e).finish(),
+            Self::GuardFailure => f.debug_tuple("GuardFailure").finish(),
+            Self::Custom(_) => f.debug_tuple("Custom").field(&"<function>").finish(),
         }
     }
 }
