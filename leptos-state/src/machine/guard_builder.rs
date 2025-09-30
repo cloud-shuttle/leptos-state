@@ -89,7 +89,7 @@ impl<C, E> GuardBuilder<C, E> {
     }
 
     /// Add a null check guard
-    pub fn is_null<F, T>(mut self, field_extractor: F) -> Self
+    pub fn is_null<F: Send + Sync, T: Send + Sync>(mut self, field_extractor: F) -> Self
     where
         F: Fn(&C) -> Option<&T> + Clone + 'static,
     {
@@ -99,7 +99,7 @@ impl<C, E> GuardBuilder<C, E> {
     }
 
     /// Add a not-null check guard
-    pub fn is_not_null<F, T>(mut self, field_extractor: F) -> Self
+    pub fn is_not_null<F: Send + Sync, T: Send + Sync>(mut self, field_extractor: F) -> Self
     where
         F: Fn(&C) -> Option<&T> + Clone + 'static,
     {

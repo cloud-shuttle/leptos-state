@@ -355,7 +355,7 @@ pub mod actions {
     use super::*;
 
     /// Create a function action
-    pub fn function<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F>(func: F) -> Box<dyn Action<C, E>>
+    pub fn function<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F: Send + Sync>(func: F) -> Box<dyn Action<C, E>>
     where
         F: Fn(&mut C, &E) + Clone + 'static,
     {
@@ -368,7 +368,7 @@ pub mod actions {
     }
 
     /// Create a pure action
-    pub fn pure<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F>(func: F) -> Box<dyn Action<C, E>>
+    pub fn pure<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F: Send + Sync>(func: F) -> Box<dyn Action<C, E>>
     where
         F: Fn() + Clone + 'static,
     {
