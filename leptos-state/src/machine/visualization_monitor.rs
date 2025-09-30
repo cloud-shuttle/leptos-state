@@ -3,7 +3,7 @@
 use super::*;
 
 /// Real-time state monitor
-pub struct StateMonitor<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> {
+pub struct StateMonitor<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> {
     /// Monitored machine
     pub machine: Option<Machine<C, E, C>>,
     /// Current state information
@@ -20,7 +20,7 @@ pub struct StateMonitor<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: C
     pub stats: MonitoringStats,
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> Clone for StateMonitor<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> Clone for StateMonitor<C, E> {
     fn clone(&self) -> Self {
         Self {
             machine: self.machine.clone(),
@@ -35,7 +35,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
 }
 
 // Manual Debug implementation for StateMonitor since it contains trait objects
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> std::fmt::Debug for StateMonitor<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> std::fmt::Debug for StateMonitor<C, E> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("StateMonitor")
             .field("machine", &self.machine)

@@ -376,7 +376,7 @@ pub mod actions {
     }
 
     /// Create a conditional action
-    pub fn conditional<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F>(
+    pub fn conditional<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F: Send + Sync>(
         condition: F,
         action: Box<dyn Action<C, E>>,
     ) -> Box<dyn Action<C, E>>

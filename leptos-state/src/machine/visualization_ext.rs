@@ -46,7 +46,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
 
 /// A state machine with visualization capabilities
 #[derive(Debug)]
-pub struct VisualizedMachine<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
+pub struct VisualizedMachine<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> {
     /// The underlying machine
     pub machine: Machine<C, E, C>,
     /// The visualizer
@@ -57,7 +57,7 @@ pub struct VisualizedMachine<C: Clone + Send + Sync + 'static, E: Clone + Send +
     pub debugger: TimeTravelDebugger<C, E>,
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> VisualizedMachine<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> VisualizedMachine<C, E> {
     /// Create a new visualized machine
     pub fn new(machine: Machine<C, E, C>) -> Self {
         let visualizer = machine.visualizer();
