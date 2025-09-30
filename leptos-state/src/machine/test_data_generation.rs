@@ -49,7 +49,7 @@ impl<C, E> TestDataGenerator<C, E> for DefaultTestDataGenerator {
 }
 
 /// Test data generator for specific machine types
-pub struct MachineTestDataGenerator<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
+pub struct MachineTestDataGenerator<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> {
     /// Machine being tested
     pub machine: Machine<C, E, C>,
     /// Context templates
@@ -118,7 +118,7 @@ impl<
     }
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> TestDataGenerator<C, E> for MachineTestDataGenerator<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> TestDataGenerator<C, E> for MachineTestDataGenerator<C, E> {
     fn generate_context(&self) -> C {
         // Generate a random context
         unsafe { std::mem::zeroed() } // This is unsafe and should be replaced

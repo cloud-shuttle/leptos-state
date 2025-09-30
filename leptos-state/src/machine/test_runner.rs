@@ -7,8 +7,8 @@ use std::time::Instant;
 
 /// State machine test runner
 pub struct MachineTestRunner<
-    C: Send + Sync + Clone + PartialEq + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + PartialEq + std::fmt::Debug + 'static,
+    E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + PartialEq + 'static,
 > {
     /// Machine being tested
     pub machine: Machine<C, E, C>,
@@ -23,8 +23,8 @@ pub struct MachineTestRunner<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + PartialEq + std::fmt::Debug + 'static,
+        E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + PartialEq + 'static,
     > MachineTestRunner<C, E>
 {
     /// Create a new test runner

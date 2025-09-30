@@ -108,8 +108,8 @@ impl<E> TestCaseStep<E> {
 
 /// Test case executor
 pub struct TestCaseExecutor<
-    C: Send + Sync + Clone + PartialEq + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + PartialEq + std::fmt::Debug + 'static,
+    E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + PartialEq + 'static,
 > {
     /// Machine being tested
     pub machine: Machine<C, E, C>,
@@ -118,8 +118,8 @@ pub struct TestCaseExecutor<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + PartialEq + std::fmt::Debug + 'static,
+        E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + PartialEq + 'static,
     > TestCaseExecutor<C, E>
 {
     /// Create a new test case executor
