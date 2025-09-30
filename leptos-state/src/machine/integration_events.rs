@@ -147,7 +147,7 @@ impl EventPriority {
 }
 
 /// Error handling strategy
-#[derive(Debug, PartialEq)]
+#[derive(PartialEq)]
 pub enum ErrorHandlingStrategy {
     /// Ignore errors and continue
     Ignore,
@@ -172,6 +172,20 @@ impl Clone for ErrorHandlingStrategy {
             Self::FailFast => Self::FailFast,
             Self::DeadLetterQueue => Self::DeadLetterQueue,
             Self::Custom(_) => Self::Ignore, // Can't clone trait objects, fallback to Ignore
+        }
+    }
+}
+
+// Manual Debug implementation for ErrorHandlingStrategy since it contains trait objects
+impl std::fmt::Debug for ErrorHandlingStrategy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Ignore => f.debug_tuple("Ignore").finish(),
+            Self::LogAndContinue => f.debug_tuple("LogAndContinue").finish(),
+            Self::Retry => f.debug_tuple("Retry").finish(),
+            Self::FailFast => f.debug_tuple("FailFast").finish(),
+            Self::DeadLetterQueue => f.debug_tuple("DeadLetterQueue").finish(),
+            Self::Custom(_) => f.debug_tuple("Custom").field(&"<function>").finish(),
         }
     }
 }
@@ -396,7 +410,6 @@ impl EventBatch {
 }
 
 /// Event filter for selective processing
-#[derive(Debug)]
 pub struct EventFilter {
     /// Event types to include (None means all)
     pub include_event_types: Option<Vec<String>>,
@@ -425,6 +438,21 @@ impl Clone for EventFilter {
             max_priority: self.max_priority,
             custom_filter: None, // Can't clone trait objects
         }
+    }
+}
+
+// Manual Debug implementation for EventFilter since it contains trait objects
+impl std::fmt::Debug for EventFilter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EventFilter")
+            .field("include_event_types", &self.include_event_types)
+            .field("exclude_event_types", &self.exclude_event_types)
+            .field("include_sources", &self.include_sources)
+            .field("exclude_sources", &self.exclude_sources)
+            .field("min_priority", &self.min_priority)
+            .field("max_priority", &self.max_priority)
+            .field("has_custom_filter", &self.custom_filter.is_some())
+            .finish()
     }
 }
 
