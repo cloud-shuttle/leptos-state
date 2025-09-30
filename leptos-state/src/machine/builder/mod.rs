@@ -24,8 +24,8 @@ where
 impl<S, E, C> MachineBuilder<C, E, S> for crate::machine::MachineBuilderImpl<S, E, C>
 where
     S: Clone + Send + Sync + 'static,
-    E: Clone + Send + Sync + 'static + std::hash::Hash + Eq,
-    C: Clone + PartialEq + Send + Sync + Default + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + 'static + std::hash::Hash + Eq,
+    C: Clone + PartialEq + Send + Sync + std::fmt::Debug + Default + 'static,
 {
     fn new() -> Self {
         Self {

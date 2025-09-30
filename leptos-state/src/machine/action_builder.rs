@@ -10,7 +10,17 @@ pub struct ActionBuilder<C, E> {
     pub description: String,
 }
 
-impl<C, E> ActionBuilder<C, E> {
+// Manual Debug implementation for ActionBuilder since it contains trait objects
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> std::fmt::Debug for ActionBuilder<C, E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ActionBuilder")
+            .field("actions_count", &self.actions.len())
+            .field("description", &self.description)
+            .finish()
+    }
+}
+
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> ActionBuilder<C, E> {
     /// Create a new action builder
     pub fn new() -> Self {
         Self {
@@ -157,7 +167,7 @@ pub struct ConditionalActionBuilder<C, E, F> {
     _phantom: std::marker::PhantomData<(C, E)>,
 }
 
-impl<C, E, F> ConditionalActionBuilder<C, E, F>
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F> ConditionalActionBuilder<C, E, F>
 where
     F: Fn(&C, &E) -> bool + Clone + 'static,
 {
@@ -345,7 +355,7 @@ pub mod actions {
     use super::*;
 
     /// Create a function action
-    pub fn function<C, E, F>(func: F) -> Box<dyn Action<C, E>>
+    pub fn function<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F>(func: F) -> Box<dyn Action<C, E>>
     where
         F: Fn(&mut C, &E) + Clone + 'static,
     {
@@ -353,12 +363,12 @@ pub mod actions {
     }
 
     /// Create a log action
-    pub fn log<C, E>(message: String) -> Box<dyn Action<C, E>> {
+    pub fn log<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq>(message: String) -> Box<dyn Action<C, E>> {
         Box::new(LogAction::new(message))
     }
 
     /// Create a pure action
-    pub fn pure<C, E, F>(func: F) -> Box<dyn Action<C, E>>
+    pub fn pure<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F>(func: F) -> Box<dyn Action<C, E>>
     where
         F: Fn() + Clone + 'static,
     {
@@ -366,7 +376,7 @@ pub mod actions {
     }
 
     /// Create a conditional action
-    pub fn conditional<C, E, F>(
+    pub fn conditional<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F>(
         condition: F,
         action: Box<dyn Action<C, E>>,
     ) -> Box<dyn Action<C, E>>
@@ -377,17 +387,17 @@ pub mod actions {
     }
 
     /// Create a sequential action
-    pub fn sequential<C, E>(actions: Vec<Box<dyn Action<C, E>>>) -> Box<dyn Action<C, E>> {
+    pub fn sequential<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq>(actions: Vec<Box<dyn Action<C, E>>>) -> Box<dyn Action<C, E>> {
         Box::new(SequentialAction::new(actions))
     }
 
     /// Create a parallel action
-    pub fn parallel<C, E>(actions: Vec<Box<dyn Action<C, E>>>) -> Box<dyn Action<C, E>> {
+    pub fn parallel<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq>(actions: Vec<Box<dyn Action<C, E>>>) -> Box<dyn Action<C, E>> {
         Box::new(ParallelAction::new(actions))
     }
 
     /// Create a retry action
-    pub fn retry<C, E>(
+    pub fn retry<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq>(
         action: Box<dyn Action<C, E>>,
         max_attempts: usize,
     ) -> Box<dyn Action<C, E>> {
@@ -395,12 +405,12 @@ pub mod actions {
     }
 
     /// Create a timer action
-    pub fn timer<C, E>(action: Box<dyn Action<C, E>>, timer_name: String) -> Box<dyn Action<C, E>> {
+    pub fn timer<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq>(action: Box<dyn Action<C, E>>, timer_name: String) -> Box<dyn Action<C, E>> {
         Box::new(TimerAction::new(action, timer_name))
     }
 
     /// Create a metrics action
-    pub fn metrics<C, E>(
+    pub fn metrics<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq>(
         action: Box<dyn Action<C, E>>,
         metrics_name: String,
     ) -> Box<dyn Action<C, E>> {

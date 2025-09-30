@@ -82,7 +82,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
 }
 
 
-impl<C: Send + Sync + Clone + 'static, E: Clone> Machine<C, E, C> {
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash> Machine<C, E, C> {
     /// Get all state IDs in the machine
     pub fn get_states(&self) -> Vec<String> {
         self.states.keys().cloned().collect()
