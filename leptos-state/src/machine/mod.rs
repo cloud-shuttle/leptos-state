@@ -99,7 +99,8 @@ pub mod visualization_data;
 pub mod visualization_debug;
 pub mod visualization_events;
 pub mod visualization_ext;
-pub mod visualization_monitor;
+pub mod visualization;
+// Visualization monitor is now in visualization::monitor
 
 // Re-export core types from new modular structure
 pub use builder::{create_machine_builder, MachineBuilderImpl};
@@ -295,9 +296,10 @@ pub use visualization_events::{
 pub use visualization_ext::{
     AutoExportSettings, AutoVisualizer, MachineVisualizationExt, VisualizedMachine,
 };
-pub use visualization_monitor::{
-    HealthCheckResult, HealthChecker, HealthStatus as VisualizationHealthStatus, MonitoringStats,
-    StateInfo as MonitorStateInfo, StateMonitor, StateStatus,
-};
+// TODO: Re-export monitor types once the module structure is finalized
+// pub use visualization_monitor::{
+//     HealthCheckResult, HealthChecker, HealthStatus as VisualizationHealthStatus, MonitoringStats,
+//     StateInfo as MonitorStateInfo, StateMonitor, StateStatus,
+// };
 // #[cfg(feature = "serialization")]
 // pub use visualization::{MachineVisualizer, VisualizationConfig, VisualizedMachine};

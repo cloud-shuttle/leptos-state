@@ -1,6 +1,7 @@
 //! Extension traits for visualization
 
 use super::*;
+use crate::machine::visualization::monitor::{StateMonitor, HealthChecker, HealthCheckResult};
 
 /// Extension trait for adding visualization to machines
 pub trait MachineVisualizationExt<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> {
