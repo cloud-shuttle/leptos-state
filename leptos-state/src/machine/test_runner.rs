@@ -2,11 +2,14 @@
 
 use super::*;
 use std::collections::{HashSet, VecDeque};
-use std::time::Instant;
 use std::hash::Hash;
+use std::time::Instant;
 
 /// State machine test runner
-pub struct MachineTestRunner<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct MachineTestRunner<
+    C: Send + Sync + Clone + PartialEq + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+> {
     /// Machine being tested
     pub machine: Machine<C, E, C>,
     /// Test configuration
@@ -19,7 +22,11 @@ pub struct MachineTestRunner<C: Send + Sync + Clone + PartialEq + 'static, E: Cl
     pub results: Vec<TestResult>,
 }
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> MachineTestRunner<C, E> {
+impl<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    > MachineTestRunner<C, E>
+{
     /// Create a new test runner
     pub fn new(machine: Machine<C, E, C>, config: TestConfig) -> Self {
         Self {
@@ -106,7 +113,7 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
         // Test some basic transitions
         // This is a simplified version - in reality, you'd need to convert events properly
         let test_events = self.generate_test_events();
-        
+
         for event in test_events {
             // For now, we'll just track that we attempted the transition
             transitions_executed += 1;
@@ -260,12 +267,17 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
     }
 
     /// Calculate test coverage
-    pub fn calculate_coverage<C2: Send + Sync + Clone + PartialEq + 'static, E2: Clone + Send + Sync + Hash + Eq + 'static>(
+    pub fn calculate_coverage<
+        C2: Send + Sync + Clone + PartialEq + 'static,
+        E2: Clone + Send + Sync + Hash + Eq + 'static,
+    >(
         &self,
         machine: &Machine<C2, E2, C2>,
     ) -> TestCoverage {
         let total_states = machine.get_states().len();
-        let total_transitions = machine.states.values()
+        let total_transitions = machine
+            .states
+            .values()
             .map(|state| state.transitions.len())
             .sum::<usize>();
 
@@ -296,7 +308,7 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
         TestCoverage {
             state_coverage,
             transition_coverage,
-            guard_coverage: 0.0, // Placeholder
+            guard_coverage: 0.0,  // Placeholder
             action_coverage: 0.0, // Placeholder
             covered_states,
             covered_transitions,
@@ -356,7 +368,13 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
     }
 
     /// DFS to find paths
-    fn dfs_find_paths(&self, state: &str, visited: &mut HashSet<String>, current_path: &mut Vec<String>, paths: &mut Vec<Vec<String>>) {
+    fn dfs_find_paths(
+        &self,
+        state: &str,
+        visited: &mut HashSet<String>,
+        current_path: &mut Vec<String>,
+        paths: &mut Vec<Vec<String>>,
+    ) {
         if visited.contains(state) {
             return;
         }

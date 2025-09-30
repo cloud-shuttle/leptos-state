@@ -36,15 +36,12 @@ pub fn save_to_local_storage<T: serde::Serialize>(key: &str, value: &T) -> Resul
 
         let window = window();
         match window.local_storage() {
-            Ok(Some(storage)) => {
-                match serde_json::to_string(value) {
-                    Ok(json) => {
-                        storage.set_item(key, &json)
-                            .map_err(|e| format!("Failed to save to localStorage: {:?}", e))
-                    }
-                    Err(e) => Err(format!("Failed to serialize state: {}", e)),
-                }
-            }
+            Ok(Some(storage)) => match serde_json::to_string(value) {
+                Ok(json) => storage
+                    .set_item(key, &json)
+                    .map_err(|e| format!("Failed to save to localStorage: {:?}", e)),
+                Err(e) => Err(format!("Failed to serialize state: {}", e)),
+            },
             _ => Err("localStorage not available".to_string()),
         }
     }
@@ -95,10 +92,9 @@ pub fn clear_from_local_storage(key: &str) -> Result<(), String> {
 
         let window = window();
         match window.local_storage() {
-            Ok(Some(storage)) => {
-                storage.remove_item(key)
-                    .map_err(|e| format!("Failed to clear from localStorage: {:?}", e))
-            }
+            Ok(Some(storage)) => storage
+                .remove_item(key)
+                .map_err(|e| format!("Failed to clear from localStorage: {:?}", e)),
             _ => Err("localStorage not available".to_string()),
         }
     }

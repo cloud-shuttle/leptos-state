@@ -93,7 +93,8 @@ where
     }
 }
 
-impl<C: Send + Sync + 'static, E: Send + Sync + 'static, T: Send + Sync, F> Action<C, E> for AssignAction<C, E, T, F>
+impl<C: Send + Sync + 'static, E: Send + Sync + 'static, T: Send + Sync, F> Action<C, E>
+    for AssignAction<C, E, T, F>
 where
     F: Fn(&mut C, &E) -> T + Clone + Send + Sync + 'static,
 {

@@ -205,7 +205,8 @@ impl<T: Store, O: Clone + PartialEq + 'static> CombinedSelector<T, O> {
     {
         Self {
             combiner: Box::new(combiners),
-            selectors: selectors.into_iter()
+            selectors: selectors
+                .into_iter()
                 .map(|s| Box::new(s) as Box<dyn StoreSlice<T, Output = O>>)
                 .collect(),
         }
@@ -213,7 +214,9 @@ impl<T: Store, O: Clone + PartialEq + 'static> CombinedSelector<T, O> {
 
     /// Select combined values
     pub fn select(&self, state: &T::State) -> O {
-        let values: Vec<Box<dyn std::any::Any>> = self.selectors.iter()
+        let values: Vec<Box<dyn std::any::Any>> = self
+            .selectors
+            .iter()
             .map(|selector| {
                 let value = selector.select(state);
                 Box::new(value) as Box<dyn std::any::Any>
@@ -322,9 +325,7 @@ pub mod selectors {
 
             fn select(&self, state: &T::State) -> Self::Output {
                 let items = (self.0)(state);
-                items.into_iter()
-                    .filter(|item| (self.1)(item))
-                    .collect()
+                items.into_iter().filter(|item| (self.1)(item)).collect()
             }
         }
 
@@ -352,9 +353,7 @@ pub mod selectors {
 
             fn select(&self, state: &T::State) -> Self::Output {
                 let items = (self.0)(state);
-                items.into_iter()
-                    .filter(|item| (self.1)(item))
-                    .count()
+                items.into_iter().filter(|item| (self.1)(item)).count()
             }
         }
 

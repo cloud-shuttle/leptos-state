@@ -1,10 +1,10 @@
 //! Persistence manager implementation
 
-use super::*;
 use super::persistence_core::PersistenceError;
+use super::*;
 
 /// Persistence manager for state machines
-pub struct MachinePersistence<C: Send + Sync, E> {
+pub struct MachinePersistence<C: Send + Sync + 'static, E: Send + Sync + 'static> {
     /// Storage backend
     storage: Box<dyn MachineStorage>,
     /// Configuration
@@ -17,11 +17,14 @@ pub struct MachinePersistence<C: Send + Sync, E> {
     backup_manager: Option<BackupManager>,
 }
 
-impl<C: Send + Sync + 'static, E: Send + Sync + 'static> MachinePersistence<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> MachinePersistence<C, E> {
     /// Create a new persistence manager
     pub fn new(storage: Box<dyn MachineStorage>, config: PersistenceConfig) -> Self {
         let backup_manager = if config.backup_config.enabled {
-            Some(BackupManager::new(storage.info().storage_type, config.backup_config.clone()))
+            Some(BackupManager::new(
+                storage.info().storage_type,
+                config.backup_config.clone(),
+            ))
         } else {
             None
         };
@@ -36,7 +39,10 @@ impl<C: Send + Sync + 'static, E: Send + Sync + 'static> MachinePersistence<C, E
     }
 
     /// Persist a machine
-    pub async fn persist_machine(&self, machine: &Machine<C, E, C>) -> Result<(), PersistenceError> {
+    pub async fn persist_machine(
+        &self,
+        machine: &Machine<C, E, C>,
+    ) -> Result<(), PersistenceError> {
         let machine_id = machine.id().to_string();
         let serialized = self.serialize_machine(machine).await?;
         let data = self.encode_data(&serialized)?;
@@ -53,7 +59,10 @@ impl<C: Send + Sync + 'static, E: Send + Sync + 'static> MachinePersistence<C, E
     }
 
     /// Restore a machine
-    pub async fn restore_machine(&self, machine_id: &str) -> Result<Machine<C, E, C>, PersistenceError> {
+    pub async fn restore_machine(
+        &self,
+        machine_id: &str,
+    ) -> Result<Machine<C, E, C>, PersistenceError> {
         let data: Vec<u8> = self.storage.retrieve(machine_id).await?;
         let decoded: Vec<u8> = self.decode_data(&data)?;
         let machine: Machine<C, E, C> = self.deserialize_machine(&decoded).await?;
@@ -80,13 +89,18 @@ impl<C: Send + Sync + 'static, E: Send + Sync + 'static> MachinePersistence<C, E
     }
 
     /// Get machine info
-    pub async fn get_machine_info(&self, machine_id: &str) -> Result<MachineInfo, PersistenceError> {
+    pub async fn get_machine_info(
+        &self,
+        machine_id: &str,
+    ) -> Result<MachineInfo, PersistenceError> {
         let data = self.storage.retrieve(machine_id).await?;
         let decoded = self.decode_data(&data)?;
         let size = data.len();
 
         // Parse metadata from serialized data
-        let metadata = if let Ok(serialized) = serde_json::from_slice::<SerializedMachine<C, E, C>>(&decoded) {
+        let metadata = if let Ok(serialized) =
+            serde_json::from_slice::<SerializedMachine<C, E, C>>(&decoded)
+        {
             serialized.metadata
         } else {
             MachineMetadata::new()
@@ -110,7 +124,8 @@ impl<C: Send + Sync + 'static, E: Send + Sync + 'static> MachinePersistence<C, E
         let persistence = std::sync::Arc::new(self.clone());
 
         let handle = tokio::spawn(async move {
-            let mut interval_timer = tokio::time::interval(std::time::Duration::from_secs(interval));
+            let mut interval_timer =
+                tokio::time::interval(std::time::Duration::from_secs(interval));
 
             loop {
                 interval_timer.tick().await;
@@ -144,18 +159,25 @@ impl<C: Send + Sync + 'static, E: Send + Sync + 'static> MachinePersistence<C, E
             let data = self.storage.retrieve(machine_id).await?;
             backup_mgr.create_backup(machine_id, &data).await
         } else {
-            Err(PersistenceError::ConfigError("Backup not configured".to_string()))
+            Err(PersistenceError::ConfigError(
+                "Backup not configured".to_string(),
+            ))
         }
     }
 
     /// Restore from backup
-    pub async fn restore_from_backup(&self, backup_id: &str) -> Result<Machine<C, E, C>, PersistenceError> {
+    pub async fn restore_from_backup(
+        &self,
+        backup_id: &str,
+    ) -> Result<Machine<C, E, C>, PersistenceError> {
         if let Some(ref backup_mgr) = self.backup_manager {
             let data: Vec<u8> = backup_mgr.restore_backup(backup_id).await?;
             let decoded: Vec<u8> = self.decode_data(&data)?;
             self.deserialize_machine(&decoded).await
         } else {
-            Err(PersistenceError::ConfigError("Backup not configured".to_string()))
+            Err(PersistenceError::ConfigError(
+                "Backup not configured".to_string(),
+            ))
         }
     }
 
@@ -206,17 +228,27 @@ impl<C: Send + Sync + 'static, E: Send + Sync + 'static> MachinePersistence<C, E
     }
 
     /// Serialize a machine
-    async fn serialize_machine(&self, machine: &Machine<C, E, C>) -> Result<SerializedMachine<C, E, C>, PersistenceError> {
+    async fn serialize_machine(
+        &self,
+        machine: &Machine<C, E, C>,
+    ) -> Result<SerializedMachine<C, E, C>, PersistenceError> {
         // This would implement the actual serialization logic
         // For now, return a placeholder
-        Err(PersistenceError::SerializationError("Not implemented".to_string()))
+        Err(PersistenceError::SerializationError(
+            "Not implemented".to_string(),
+        ))
     }
 
     /// Deserialize a machine
-    async fn deserialize_machine(&self, data: &SerializedMachine<C, E, C>) -> Result<Machine<C, E, C>, PersistenceError> {
+    async fn deserialize_machine(
+        &self,
+        data: &SerializedMachine<C, E, C>,
+    ) -> Result<Machine<C, E, C>, PersistenceError> {
         // This would implement the actual deserialization logic
         // For now, return a placeholder
-        Err(PersistenceError::DeserializationError("Not implemented".to_string()))
+        Err(PersistenceError::DeserializationError(
+            "Not implemented".to_string(),
+        ))
     }
 
     /// Encode data for storage
@@ -248,7 +280,10 @@ impl<C: Send + Sync + 'static, E: Send + Sync + 'static> MachinePersistence<C, E
 
     /// Add an active machine
     fn add_active_machine(&self, machine_id: &str) {
-        self.active_machines.write().unwrap().insert(machine_id.to_string());
+        self.active_machines
+            .write()
+            .unwrap()
+            .insert(machine_id.to_string());
     }
 
     /// Remove an active machine
@@ -257,10 +292,11 @@ impl<C: Send + Sync + 'static, E: Send + Sync + 'static> MachinePersistence<C, E
     }
 }
 
-impl<C: Send + Sync, E> Clone for MachinePersistence<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Clone for MachinePersistence<C, E> {
     fn clone(&self) -> Self {
         Self {
-            storage: persistence_storage::StorageFactory::create_storage(&StorageType::Memory).unwrap(),
+            storage: persistence_storage::StorageFactory::create_storage(&StorageType::Memory)
+                .unwrap(),
             config: self.config.clone(),
             active_machines: std::sync::RwLock::new(std::collections::HashSet::new()),
             auto_save_handles: std::sync::Mutex::new(Vec::new()),
@@ -309,7 +345,8 @@ impl BackupManager {
     /// Create a new backup manager
     pub fn new(storage_type: String, config: BackupConfig) -> Self {
         // Use memory storage for backups by default
-        let backup_storage = persistence_storage::StorageFactory::create_storage(&StorageType::Memory).unwrap();
+        let backup_storage =
+            persistence_storage::StorageFactory::create_storage(&StorageType::Memory).unwrap();
 
         Self {
             storage_type,
@@ -319,13 +356,20 @@ impl BackupManager {
     }
 
     /// Create a backup
-    pub async fn create_backup(&self, machine_id: &str, data: &[u8]) -> Result<String, PersistenceError> {
+    pub async fn create_backup(
+        &self,
+        machine_id: &str,
+        data: &[u8],
+    ) -> Result<String, PersistenceError> {
         let timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
             .as_secs();
 
-        let backup_id = format!("{}-{}-{}", machine_id, timestamp, self.config.naming_pattern);
+        let backup_id = format!(
+            "{}-{}-{}",
+            machine_id, timestamp, self.config.naming_pattern
+        );
 
         self.backup_storage.store(&backup_id, data).await?;
 
@@ -349,7 +393,7 @@ impl BackupManager {
                 id: key.clone(),
                 machine_id: key.split('-').next().unwrap_or("").to_string(),
                 timestamp: std::time::SystemTime::now(), // Would parse from key
-                size: 0, // Would get from storage
+                size: 0,                                 // Would get from storage
                 compressed: self.config.compress,
             };
             backups.push(entry);
@@ -424,21 +468,26 @@ pub mod utils {
     use super::*;
 
     /// Create a persistence manager with default settings
-    pub fn create_default_persistence<C: Send + Sync, E>() -> Result<MachinePersistence<C, E>, PersistenceError> {
+    pub fn create_default_persistence<C: Send + Sync, E>(
+    ) -> Result<MachinePersistence<C, E>, PersistenceError> {
         let storage = persistence_storage::StorageFactory::create_storage(&StorageType::Memory)?;
         let config = PersistenceConfig::default();
         Ok(MachinePersistence::new(storage, config))
     }
 
     /// Create a persistence manager with local storage
-    pub fn create_local_persistence<C: Send + Sync, E>() -> Result<MachinePersistence<C, E>, PersistenceError> {
-        let storage = persistence_storage::StorageFactory::create_storage(&StorageType::LocalStorage)?;
+    pub fn create_local_persistence<C: Send + Sync, E>(
+    ) -> Result<MachinePersistence<C, E>, PersistenceError> {
+        let storage =
+            persistence_storage::StorageFactory::create_storage(&StorageType::LocalStorage)?;
         let config = PersistenceConfig::default();
         Ok(MachinePersistence::new(storage, config))
     }
 
     /// Create a persistence manager with file system storage
-    pub fn create_filesystem_persistence<C: Send + Sync, E>(base_dir: std::path::PathBuf) -> Result<MachinePersistence<C, E>, PersistenceError> {
+    pub fn create_filesystem_persistence<C: Send + Sync, E>(
+        base_dir: std::path::PathBuf,
+    ) -> Result<MachinePersistence<C, E>, PersistenceError> {
         let storage = Box::new(persistence_storage::FileSystemStorage::new(base_dir));
         let config = PersistenceConfig::default();
         Ok(MachinePersistence::new(storage, config))
@@ -446,12 +495,18 @@ pub mod utils {
 
     /// Validate persistence configuration
     pub fn validate_config(config: &PersistenceConfig) -> Result<(), PersistenceError> {
-        if config.storage_type == StorageType::LocalStorage && !persistence_storage::LocalStorage::is_available() {
-            return Err(PersistenceError::ConfigError("LocalStorage not available".to_string()));
+        if config.storage_type == StorageType::LocalStorage
+            && !persistence_storage::LocalStorage::is_available()
+        {
+            return Err(PersistenceError::ConfigError(
+                "LocalStorage not available".to_string(),
+            ));
         }
 
         if config.compression_level > 9 {
-            return Err(PersistenceError::ConfigError("Compression level must be 0-9".to_string()));
+            return Err(PersistenceError::ConfigError(
+                "Compression level must be 0-9".to_string(),
+            ));
         }
 
         Ok(())
@@ -471,7 +526,9 @@ pub mod utils {
     }
 
     /// Test persistence setup
-    pub async fn test_persistence(persistence: &MachinePersistence<(), ()>) -> Result<(), PersistenceError> {
+    pub async fn test_persistence(
+        persistence: &MachinePersistence<(), ()>,
+    ) -> Result<(), PersistenceError> {
         persistence_storage::utils::test_storage(persistence.storage.as_ref()).await
     }
 }

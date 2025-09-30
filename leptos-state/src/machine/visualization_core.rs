@@ -1,11 +1,11 @@
 //! Core visualization functionality
 
-use super::*;
 use super::visualization_data::MachineSnapshot;
+use super::*;
 
 /// State machine visualizer
 #[derive(Debug)]
-pub struct MachineVisualizer<C: Send + Sync + std::fmt::Debug, E: std::fmt::Debug> {
+pub struct MachineVisualizer<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> {
     /// Visualization configuration
     pub config: VisualizationConfig,
     /// Theme configuration
@@ -26,7 +26,7 @@ pub struct MachineVisualizer<C: Send + Sync + std::fmt::Debug, E: std::fmt::Debu
     pub enabled: bool,
 }
 
-impl<C: Send + Sync, E> MachineVisualizer<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> MachineVisualizer<C, E> {
     /// Create a new machine visualizer
     pub fn new() -> Self {
         Self {
@@ -162,7 +162,10 @@ impl<C: Send + Sync, E> MachineVisualizer<C, E> {
                 ExportFormat::Mermaid => self.export_mermaid(machine),
                 ExportFormat::PlantUml => self.export_plantuml(machine),
                 ExportFormat::Json => self.export_json(machine),
-                _ => Err(format!("Format {:?} not supported for diagram export", format)),
+                _ => Err(format!(
+                    "Format {:?} not supported for diagram export",
+                    format
+                )),
             }
         } else {
             Err("No machine set for visualization".to_string())
@@ -180,8 +183,10 @@ impl<C: Send + Sync, E> MachineVisualizer<C, E> {
 
         // Add initial state
         let initial_state = machine.initial_state();
-        output.push_str(&format!("  \"{}\" [fillcolor=\"{}\", shape=circle, label=\"\"];\n",
-            "start", self.theme.initial_state_color));
+        output.push_str(&format!(
+            "  \"{}\" [fillcolor=\"{}\", shape=circle, label=\"\"];\n",
+            "start", self.theme.initial_state_color
+        ));
 
         // Add states
         for state_name in machine.get_states() {
@@ -197,8 +202,10 @@ impl<C: Send + Sync, E> MachineVisualizer<C, E> {
                 state_name.clone()
             };
 
-            output.push_str(&format!("  \"{}\" [fillcolor=\"{}\", label=\"{}\"];\n",
-                state_name, color, label));
+            output.push_str(&format!(
+                "  \"{}\" [fillcolor=\"{}\", label=\"{}\"];\n",
+                state_name, color, label
+            ));
         }
 
         // Add initial transition
@@ -216,8 +223,10 @@ impl<C: Send + Sync, E> MachineVisualizer<C, E> {
                     };
 
                     let color = &self.theme.transition_color;
-                    output.push_str(&format!("  \"{}\" -> \"{}\" [color=\"{}\", label=\"{}\"];\n",
-                        state_name, target, color, label));
+                    output.push_str(&format!(
+                        "  \"{}\" -> \"{}\" [color=\"{}\", label=\"{}\"];\n",
+                        state_name, target, color, label
+                    ));
                 }
             }
         }
@@ -254,8 +263,7 @@ impl<C: Send + Sync, E> MachineVisualizer<C, E> {
                         String::new()
                     };
 
-                    output.push_str(&format!("  {} --> {}{}\n",
-                        state_name, target, label));
+                    output.push_str(&format!("  {} --> {}{}\n", state_name, target, label));
                 }
             }
         }
@@ -270,8 +278,14 @@ impl<C: Send + Sync, E> MachineVisualizer<C, E> {
         output.push_str("@startuml\n");
         output.push_str("skinparam backgroundColor #FEFEFE\n");
         output.push_str("skinparam state {\n");
-        output.push_str(&format!("  BackgroundColor<<initial>> {}\n", self.theme.initial_state_color));
-        output.push_str(&format!("  BackgroundColor<<normal>> {}\n", self.theme.state_color));
+        output.push_str(&format!(
+            "  BackgroundColor<<initial>> {}\n",
+            self.theme.initial_state_color
+        ));
+        output.push_str(&format!(
+            "  BackgroundColor<<normal>> {}\n",
+            self.theme.state_color
+        ));
         output.push_str("}\n");
 
         // Add initial state
@@ -296,8 +310,7 @@ impl<C: Send + Sync, E> MachineVisualizer<C, E> {
                         String::new()
                     };
 
-                    output.push_str(&format!("{} --> {}{}\n",
-                        state_name, target, label));
+                    output.push_str(&format!("{} --> {}{}\n", state_name, target, label));
                 }
             }
         }
@@ -316,9 +329,8 @@ impl<C: Send + Sync, E> MachineVisualizer<C, E> {
     /// Generate performance report
     pub fn generate_performance_report(&self) -> PerformanceReport {
         let total_events = self.performance_metrics.len();
-        let total_duration: std::time::Duration = self.performance_metrics.iter()
-            .map(|e| e.duration)
-            .sum();
+        let total_duration: std::time::Duration =
+            self.performance_metrics.iter().map(|e| e.duration).sum();
 
         let avg_duration = if total_events > 0 {
             total_duration / total_events as u32
@@ -326,16 +338,20 @@ impl<C: Send + Sync, E> MachineVisualizer<C, E> {
             std::time::Duration::from_nanos(0)
         };
 
-        let max_duration = self.performance_metrics.iter()
+        let max_duration = self
+            .performance_metrics
+            .iter()
             .map(|e| e.duration)
             .max()
             .unwrap_or(std::time::Duration::from_nanos(0));
 
-        let event_counts = self.performance_metrics.iter()
-            .fold(std::collections::HashMap::new(), |mut acc, event| {
+        let event_counts = self.performance_metrics.iter().fold(
+            std::collections::HashMap::new(),
+            |mut acc, event| {
                 *acc.entry(event.event_type.clone()).or_insert(0) += 1;
                 acc
-            });
+            },
+        );
 
         PerformanceReport {
             total_events,
@@ -350,17 +366,15 @@ impl<C: Send + Sync, E> MachineVisualizer<C, E> {
     /// Generate error summary
     pub fn generate_error_summary(&self) -> ErrorSummary {
         let total_errors = self.error_log.len();
-        let error_counts = self.error_log.iter()
-            .fold(std::collections::HashMap::new(), |mut acc, error| {
-                *acc.entry(error.error_type.clone()).or_insert(0) += 1;
-                acc
-            });
+        let error_counts =
+            self.error_log
+                .iter()
+                .fold(std::collections::HashMap::new(), |mut acc, error| {
+                    *acc.entry(error.error_type.clone()).or_insert(0) += 1;
+                    acc
+                });
 
-        let recent_errors: Vec<_> = self.error_log.iter()
-            .rev()
-            .take(10)
-            .cloned()
-            .collect();
+        let recent_errors: Vec<_> = self.error_log.iter().rev().take(10).cloned().collect();
 
         ErrorSummary {
             total_errors,
@@ -434,13 +448,17 @@ pub struct ErrorSummary {
 impl ErrorSummary {
     /// Get most common error type
     pub fn most_common_error_type(&self) -> Option<ErrorEventType> {
-        self.error_counts.iter()
+        self.error_counts
+            .iter()
             .max_by_key(|(_, count)| *count)
             .map(|(error_type, _)| error_type.clone())
     }
 
     /// Check if there are critical errors
     pub fn has_critical_errors(&self) -> bool {
-        self.error_counts.get(&ErrorEventType::InternalError).unwrap_or(&0) > &0
+        self.error_counts
+            .get(&ErrorEventType::InternalError)
+            .unwrap_or(&0)
+            > &0
     }
 }

@@ -29,7 +29,8 @@ impl HttpApiAdapter {
 
     /// Get endpoint for event type
     pub fn get_endpoint(&self, event_type: &str) -> Option<&str> {
-        self.endpoints.get(event_type)
+        self.endpoints
+            .get(event_type)
             .map(|s| s.as_str())
             .or_else(|| Some(&self.config.url))
     }
@@ -38,11 +39,15 @@ impl HttpApiAdapter {
 #[async_trait::async_trait]
 impl IntegrationAdapterTrait for HttpApiAdapter {
     async fn send_event(&self, event: IntegrationEvent) -> Result<(), IntegrationError> {
-        let endpoint = self.get_endpoint(&event.event_type)
-            .ok_or_else(|| IntegrationError::new(
+        let endpoint = self.get_endpoint(&event.event_type).ok_or_else(|| {
+            IntegrationError::new(
                 IntegrationErrorType::ConfigurationError,
-                format!("No endpoint configured for event type: {}", event.event_type)
-            ))?;
+                format!(
+                    "No endpoint configured for event type: {}",
+                    event.event_type
+                ),
+            )
+        })?;
 
         let url = if endpoint.starts_with("http") {
             endpoint.to_string()
@@ -50,21 +55,24 @@ impl IntegrationAdapterTrait for HttpApiAdapter {
             format!("{}/{}", self.config.url.trim_end_matches('/'), endpoint)
         };
 
-        let response = self.client
+        let response = self
+            .client
             .post(&url)
             .json(&event)
             .timeout(self.config.timeout)
             .send()
             .await
-            .map_err(|e| IntegrationError::new(
-                IntegrationErrorType::NetworkError,
-                format!("HTTP request failed: {}", e)
-            ))?;
+            .map_err(|e| {
+                IntegrationError::new(
+                    IntegrationErrorType::NetworkError,
+                    format!("HTTP request failed: {}", e),
+                )
+            })?;
 
         if !response.status().is_success() {
             return Err(IntegrationError::new(
                 IntegrationErrorType::ExternalServiceError,
-                format!("HTTP request failed with status: {}", response.status())
+                format!("HTTP request failed with status: {}", response.status()),
             ));
         }
 
@@ -80,15 +88,18 @@ impl IntegrationAdapterTrait for HttpApiAdapter {
     async fn health_check(&self) -> Result<bool, IntegrationError> {
         let test_url = format!("{}/health", self.config.url.trim_end_matches('/'));
 
-        let response = self.client
+        let response = self
+            .client
             .get(&test_url)
             .timeout(std::time::Duration::from_secs(5))
             .send()
             .await
-            .map_err(|_| IntegrationError::new(
-                IntegrationErrorType::NetworkError,
-                "Health check failed".to_string()
-            ))?;
+            .map_err(|_| {
+                IntegrationError::new(
+                    IntegrationErrorType::NetworkError,
+                    "Health check failed".to_string(),
+                )
+            })?;
 
         Ok(response.status().is_success())
     }
@@ -129,7 +140,8 @@ impl DatabaseAdapter {
 
     /// Get table name for event type
     pub fn get_table_name(&self, event_type: &str) -> &str {
-        self.table_mappings.get(event_type)
+        self.table_mappings
+            .get(event_type)
             .map(|s| s.as_str())
             .unwrap_or("events")
     }
@@ -200,7 +212,8 @@ impl MessageQueueAdapter {
 
     /// Get queue name for event type
     pub fn get_queue_name(&self, event_type: &str) -> &str {
-        self.queue_mappings.get(event_type)
+        self.queue_mappings
+            .get(event_type)
             .map(|s| s.as_str())
             .unwrap_or("default_queue")
     }
@@ -288,7 +301,8 @@ impl FileSystemAdapter {
             FileFormat::Text => "txt",
         };
 
-        self.output_dir.join(format!("{}.{}", event_type, extension))
+        self.output_dir
+            .join(format!("{}.{}", event_type, extension))
     }
 }
 
@@ -299,22 +313,25 @@ impl IntegrationAdapterTrait for FileSystemAdapter {
 
         // Ensure output directory exists
         if let Some(parent) = file_path.parent() {
-            tokio::fs::create_dir_all(parent).await
-                .map_err(|e| IntegrationError::new(
+            tokio::fs::create_dir_all(parent).await.map_err(|e| {
+                IntegrationError::new(
                     IntegrationErrorType::InternalError,
-                    format!("Failed to create directory: {}", e)
-                ))?;
+                    format!("Failed to create directory: {}", e),
+                )
+            })?;
         }
 
         let content = match self.file_format {
-            FileFormat::Json => serde_json::to_string_pretty(&event)
-                .map_err(|e| IntegrationError::new(
+            FileFormat::Json => serde_json::to_string_pretty(&event).map_err(|e| {
+                IntegrationError::new(
                     IntegrationErrorType::SerializationError,
-                    format!("JSON serialization failed: {}", e)
-                ))?,
+                    format!("JSON serialization failed: {}", e),
+                )
+            })?,
             FileFormat::Csv => {
                 // Simple CSV format - in a real implementation, this would be more sophisticated
-                format!("{},{},{},{}\n",
+                format!(
+                    "{},{},{},{}\n",
                     event.id,
                     event.event_type,
                     event.source,
@@ -322,20 +339,19 @@ impl IntegrationAdapterTrait for FileSystemAdapter {
                 )
             }
             FileFormat::Text => {
-                format!("Event: {}\nType: {}\nSource: {}\nData: {}\n\n",
-                    event.id,
-                    event.event_type,
-                    event.source,
-                    event.data
+                format!(
+                    "Event: {}\nType: {}\nSource: {}\nData: {}\n\n",
+                    event.id, event.event_type, event.source, event.data
                 )
             }
         };
 
-        tokio::fs::write(&file_path, content).await
-            .map_err(|e| IntegrationError::new(
+        tokio::fs::write(&file_path, content).await.map_err(|e| {
+            IntegrationError::new(
                 IntegrationErrorType::InternalError,
-                format!("Failed to write file: {}", e)
-            ))?;
+                format!("Failed to write file: {}", e),
+            )
+        })?;
 
         Ok(())
     }
@@ -414,7 +430,10 @@ impl IntegrationAdapterTrait for WebSocketAdapter {
         // In a real implementation, this would broadcast to connected WebSocket clients
         // For now, simulate broadcasting
         let client_count = self.clients.lock().unwrap().len();
-        println!("Broadcasting event to {} WebSocket clients: {:?}", client_count, event);
+        println!(
+            "Broadcasting event to {} WebSocket clients: {:?}",
+            client_count, event
+        );
 
         Ok(())
     }
@@ -427,7 +446,11 @@ impl IntegrationAdapterTrait for WebSocketAdapter {
 
     async fn health_check(&self) -> Result<bool, IntegrationError> {
         // Check if server is running
-        Ok(self.server_handle.as_ref().map(|h| !h.is_finished()).unwrap_or(false))
+        Ok(self
+            .server_handle
+            .as_ref()
+            .map(|h| !h.is_finished())
+            .unwrap_or(false))
     }
 
     fn clone_adapter(&self) -> Box<dyn IntegrationAdapterTrait + Send + Sync> {

@@ -42,10 +42,7 @@ impl TimeUtils {
     }
 
     /// Create a repeating timer
-    pub fn repeating_timer<F>(
-        interval: std::time::Duration,
-        action: F,
-    ) -> RepeatingTimer<F>
+    pub fn repeating_timer<F>(interval: std::time::Duration, action: F) -> RepeatingTimer<F>
     where
         F: Fn() + Send + Sync + 'static,
     {
@@ -113,7 +110,7 @@ pub struct RepeatingTimer<F> {
 
 impl<F> RepeatingTimer<F>
 where
-    F: Fn() + Send + Sync + 'static,
+    F: Fn() + Clone + Send + Sync + 'static,
 {
     /// Start the timer
     pub fn start(&self) {
@@ -121,11 +118,14 @@ where
             return;
         }
 
-        self.running.store(true, std::sync::atomic::Ordering::SeqCst);
+        self.running
+            .store(true, std::sync::atomic::Ordering::SeqCst);
 
         let interval = self.interval;
         let action = self.action.clone();
-        let running = self.running.clone();
+        let running = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(
+            self.running.load(std::sync::atomic::Ordering::SeqCst)
+        ));
 
         let handle = tokio::spawn(async move {
             let mut interval_timer = tokio::time::interval(interval);
@@ -142,7 +142,8 @@ where
 
     /// Stop the timer
     pub async fn stop(&self) {
-        self.running.store(false, std::sync::atomic::Ordering::SeqCst);
+        self.running
+            .store(false, std::sync::atomic::Ordering::SeqCst);
 
         if let Some(handle) = self.handle.lock().unwrap().take() {
             handle.await.ok();
@@ -162,7 +163,8 @@ where
 
 impl<F> Drop for RepeatingTimer<F> {
     fn drop(&mut self) {
-        self.running.store(false, std::sync::atomic::Ordering::SeqCst);
+        self.running
+            .store(false, std::sync::atomic::Ordering::SeqCst);
     }
 }
 
@@ -204,8 +206,7 @@ pub mod triggers {
 
     impl TimeTrigger for OneTimeTrigger {
         fn should_fire(&self, current_time: std::time::Instant) -> bool {
-            !self.fired.load(std::sync::atomic::Ordering::SeqCst) &&
-            current_time >= self.fire_time
+            !self.fired.load(std::sync::atomic::Ordering::SeqCst) && current_time >= self.fire_time
         }
 
         fn next_fire_time(&self, _current_time: std::time::Instant) -> Option<std::time::Instant> {
@@ -420,7 +421,10 @@ pub mod windows {
 
         /// Cleanup expired windows
         pub fn cleanup(&self, current_time: std::time::Instant) {
-            self.windows.lock().unwrap().retain(|w| !w.is_expired(current_time));
+            self.windows
+                .lock()
+                .unwrap()
+                .retain(|w| !w.is_expired(current_time));
         }
     }
 }
@@ -458,7 +462,8 @@ pub mod rate_limiting {
 
             let current_tokens = self.tokens.load(std::sync::atomic::Ordering::SeqCst);
             if current_tokens > 0 {
-                self.tokens.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+                self.tokens
+                    .fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
                 true
             } else {
                 false
@@ -472,7 +477,8 @@ pub mod rate_limiting {
 
                 let current_tokens = self.tokens.load(std::sync::atomic::Ordering::SeqCst);
                 if current_tokens > 0 {
-                    self.tokens.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+                    self.tokens
+                        .fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
                     break;
                 }
 
@@ -491,7 +497,8 @@ pub mod rate_limiting {
             if tokens_to_add > 0 {
                 let current_tokens = self.tokens.load(std::sync::atomic::Ordering::SeqCst);
                 let new_tokens = std::cmp::min(current_tokens + tokens_to_add, self.capacity);
-                self.tokens.store(new_tokens, std::sync::atomic::Ordering::SeqCst);
+                self.tokens
+                    .store(new_tokens, std::sync::atomic::Ordering::SeqCst);
                 *last_refill = now;
             }
         }
@@ -534,12 +541,14 @@ pub mod rate_limiting {
             // Check if we need to start a new window
             if now.duration_since(*window_start) >= self.window_duration {
                 *window_start = now;
-                self.request_count.store(1, std::sync::atomic::Ordering::SeqCst);
+                self.request_count
+                    .store(1, std::sync::atomic::Ordering::SeqCst);
                 true
             } else {
                 let current_count = self.request_count.load(std::sync::atomic::Ordering::SeqCst);
                 if current_count < self.max_requests {
-                    self.request_count.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                    self.request_count
+                        .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
                     true
                 } else {
                     false

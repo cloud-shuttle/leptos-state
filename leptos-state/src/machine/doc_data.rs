@@ -30,7 +30,12 @@ impl GeneratedDocument {
 
     /// Get the full filename with extension
     pub fn full_filename(&self) -> String {
-        format!("{}.{}", self.filename.trim_end_matches(&format!(".{}", self.extension())), self.extension())
+        format!(
+            "{}.{}",
+            self.filename
+                .trim_end_matches(&format!(".{}", self.extension())),
+            self.extension()
+        )
     }
 }
 
@@ -253,7 +258,12 @@ pub struct DocumentationData {
 
 impl DocumentationData {
     /// Create new documentation data from a machine
-    pub fn new<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(machine: Machine<C, E, C>) -> Self {
+    pub fn new<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    >(
+        machine: Machine<C, E, C>,
+    ) -> Self {
         let mut data = Self {
             machine_name: "StateMachine".to_string(),
             machine_description: None,
@@ -271,9 +281,16 @@ impl DocumentationData {
     }
 
     /// Populate data from a machine
-    fn populate_from_machine<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(&mut self, machine: Machine<C, E, C>) {
+    fn populate_from_machine<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    >(
+        &mut self,
+        machine: Machine<C, E, C>,
+    ) {
         // Set initial state
-        self.metadata.insert("initial_state".to_string(), machine.initial.clone());
+        self.metadata
+            .insert("initial_state".to_string(), machine.initial.clone());
 
         // Populate states
         for state_name in machine.get_states() {
@@ -343,14 +360,16 @@ impl DocumentationData {
 
     /// Get transitions from a state
     pub fn get_transitions_from(&self, state_name: &str) -> Vec<&TransitionInfo> {
-        self.transitions.iter()
+        self.transitions
+            .iter()
             .filter(|t| t.from_state == state_name)
             .collect()
     }
 
     /// Get transitions to a state
     pub fn get_transitions_to(&self, state_name: &str) -> Vec<&TransitionInfo> {
-        self.transitions.iter()
+        self.transitions
+            .iter()
             .filter(|t| t.to_state == state_name)
             .collect()
     }
@@ -362,10 +381,16 @@ impl DocumentationData {
         // Check that all transition states exist
         for transition in &self.transitions {
             if !self.states.iter().any(|s| s.name == transition.from_state) {
-                errors.push(format!("Transition references unknown from_state: {}", transition.from_state));
+                errors.push(format!(
+                    "Transition references unknown from_state: {}",
+                    transition.from_state
+                ));
             }
             if !self.states.iter().any(|s| s.name == transition.to_state) {
-                errors.push(format!("Transition references unknown to_state: {}", transition.to_state));
+                errors.push(format!(
+                    "Transition references unknown to_state: {}",
+                    transition.to_state
+                ));
             }
         }
 
@@ -383,7 +408,7 @@ impl serde::Serialize for DocumentationData {
     where
         S: serde::Serializer,
     {
-        use serde::ser::{SerializeStruct, SerializeMap};
+        use serde::ser::{SerializeMap, SerializeStruct};
 
         let mut state = serializer.serialize_struct("DocumentationData", 9)?;
         state.serialize_field("machine_name", &self.machine_name)?;
@@ -394,7 +419,14 @@ impl serde::Serialize for DocumentationData {
         state.serialize_field("guards", &self.guards)?;
         state.serialize_field("events", &self.events)?;
         state.serialize_field("metadata", &self.metadata)?;
-        state.serialize_field("generated_at", &self.generated_at.duration_since(std::time::UNIX_EPOCH).unwrap().as_secs())?;
+        state.serialize_field(
+            "generated_at",
+            &self
+                .generated_at
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+        )?;
         state.end()
     }
 }
@@ -405,6 +437,8 @@ impl<'de> serde::Deserialize<'de> for DocumentationData {
         D: serde::Deserializer<'de>,
     {
         // Simplified deserialization - would need full implementation
-        Err(serde::de::Error::custom("DocumentationData deserialization not implemented"))
+        Err(serde::de::Error::custom(
+            "DocumentationData deserialization not implemented",
+        ))
     }
 }

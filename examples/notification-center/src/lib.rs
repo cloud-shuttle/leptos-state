@@ -1,5 +1,5 @@
-use leptos::*;
 use leptos::prelude::*;
+use leptos::*;
 use wasm_bindgen::prelude::*;
 
 // use console_error_panic_hook;
@@ -8,10 +8,7 @@ mod components;
 mod notification_machine;
 
 /// Window focus/blur callback logic
-pub fn setup_window_focus_listener<F, G>(
-    on_focus: F,
-    on_blur: G,
-) -> Option<()>
+pub fn setup_window_focus_listener<F, G>(on_focus: F, on_blur: G) -> Option<()>
 where
     F: Fn(()) + 'static,
     G: Fn(()) + 'static,
@@ -26,7 +23,8 @@ where
         on_blur(());
     }) as Box<dyn Fn()>);
 
-    let _ = window.add_event_listener_with_callback("focus", focus_callback.as_ref().unchecked_ref());
+    let _ =
+        window.add_event_listener_with_callback("focus", focus_callback.as_ref().unchecked_ref());
     let _ = window.add_event_listener_with_callback("blur", blur_callback.as_ref().unchecked_ref());
 
     // Leak the closures to keep them alive
@@ -39,7 +37,8 @@ where
 #[component]
 pub fn App() -> impl IntoView {
     // Reactive signal for notifications
-    let (notifications, set_notifications) = signal(Vec::<notification_machine::Notification>::new());
+    let (notifications, set_notifications) =
+        signal(Vec::<notification_machine::Notification>::new());
 
     // Window blur state
     let (window_blurred, set_window_blurred) = signal(false);
@@ -69,8 +68,14 @@ pub fn App() -> impl IntoView {
     });
 
     // Handle triggering new notifications
-    let handle_trigger_notification = move |(title, description, timeout, notification_type): (String, String, Option<u32>, notification_machine::NotificationType)| {
-        let mut notification = notification_machine::Notification::new(title, description, timeout, notification_type);
+    let handle_trigger_notification = move |(title, description, timeout, notification_type): (
+        String,
+        String,
+        Option<u32>,
+        notification_machine::NotificationType,
+    )| {
+        let mut notification =
+            notification_machine::Notification::new(title, description, timeout, notification_type);
         notification.set_window_blurred(window_blurred.get());
 
         set_notifications.update(|nots| {

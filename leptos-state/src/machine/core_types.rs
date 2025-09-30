@@ -4,8 +4,12 @@ use crate::StateResult;
 use std::collections::HashMap;
 
 /// State node in the machine definition
-#[derive(Clone, Debug)]
-pub struct StateNode<C: Clone + std::fmt::Debug + 'static, E: Send + Clone + std::fmt::Debug + 'static, S: Clone + std::fmt::Debug> {
+#[derive(Debug)]
+pub struct StateNode<
+    C: Clone + std::fmt::Debug + 'static,
+    E: Send + Clone + std::fmt::Debug + 'static,
+    S: Clone + std::fmt::Debug,
+> {
     pub id: String,
     pub transitions: Vec<Transition<C, E>>,
     pub entry_actions: Vec<Box<dyn Action<C, E>>>,
@@ -16,8 +20,11 @@ pub struct StateNode<C: Clone + std::fmt::Debug + 'static, E: Send + Clone + std
 }
 
 /// Transition definition
-#[derive(Clone, Debug)]
-pub struct Transition<C: Clone + std::fmt::Debug + 'static, E: Send + Clone + std::fmt::Debug + 'static> {
+#[derive(Debug)]
+pub struct Transition<
+    C: Clone + std::fmt::Debug + 'static,
+    E: Send + Clone + std::fmt::Debug + 'static,
+> {
     pub event: E,
     pub target: String,
     pub guards: Vec<Box<dyn Guard<C, E>>>,
@@ -25,15 +32,19 @@ pub struct Transition<C: Clone + std::fmt::Debug + 'static, E: Send + Clone + st
 }
 
 /// Complete machine implementation
-#[derive(Clone, Debug)]
-pub struct Machine<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Clone + std::fmt::Debug + 'static, S: Clone + std::fmt::Debug> {
+#[derive(Debug)]
+pub struct Machine<
+    C: Send + Sync + Clone + std::fmt::Debug + 'static,
+    E: Send + Clone + std::fmt::Debug + 'static,
+    S: Clone + std::fmt::Debug,
+> {
     pub states: HashMap<String, StateNode<C, E, C>>,
     pub initial: String,
     pub _phantom: std::marker::PhantomData<S>,
 }
 
 // Manual Clone implementation for Transition since trait objects can't be cloned
-impl<C: Clone, E: Clone> Clone for Transition<C, E> {
+impl<C: Clone, E: Clone + Send> Clone for Transition<C, E> {
     fn clone(&self) -> Self {
         Self {
             event: self.event.clone(),
@@ -45,7 +56,7 @@ impl<C: Clone, E: Clone> Clone for Transition<C, E> {
 }
 
 // Manual Clone implementation for StateNode since Action trait objects can't be cloned
-impl<C: Clone, E: Clone> Clone for StateNode<C, E, C> {
+impl<C: Clone, E: Clone + Send> Clone for StateNode<C, E, C> {
     fn clone(&self) -> Self {
         Self {
             id: self.id.clone(),
@@ -59,16 +70,6 @@ impl<C: Clone, E: Clone> Clone for StateNode<C, E, C> {
     }
 }
 
-// Manual Clone implementation for Machine
-impl<C: Clone + Send + Sync, E: Clone> Clone for Machine<C, E, C> {
-    fn clone(&self) -> Self {
-        Self {
-            states: self.states.clone(),
-            initial: self.initial.clone(),
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
 
 impl<C: Send + Sync + Clone + 'static, E: Clone> Machine<C, E, C> {
     /// Get all state IDs in the machine

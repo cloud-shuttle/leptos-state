@@ -308,8 +308,10 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Machine
     }
 }
 
-impl<C: Clone + 'static + std::fmt::Debug + Send + Sync, E: Clone + 'static + std::fmt::Debug + Send + Sync>
-    Default for MachineBuilder<C, E>
+impl<
+        C: Clone + 'static + std::fmt::Debug + Send + Sync,
+        E: Clone + 'static + std::fmt::Debug + Send + Sync,
+    > Default for MachineBuilder<C, E>
 {
     fn default() -> Self {
         Self::new()
@@ -357,7 +359,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBu
     /// Add a function-based entry action
     pub fn on_entry_fn<F>(mut self, func: F) -> Self
     where
-        F: Fn(&mut C, &E) + Send + Sync + 'static,
+        F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
     {
         self.entry_actions
             .push(Box::new(actions::FunctionAction::new(func)));
@@ -367,7 +369,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBu
     /// Add a function-based exit action
     pub fn on_exit_fn<F>(mut self, func: F) -> Self
     where
-        F: Fn(&mut C, &E) + Send + Sync + 'static,
+        F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
     {
         self.exit_actions
             .push(Box::new(actions::FunctionAction::new(func)));
@@ -399,7 +401,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBu
     /// Add a pure entry action (no context modification)
     pub fn on_entry_pure<F>(mut self, func: F) -> Self
     where
-        F: Fn() + Send + Sync + 'static,
+        F: Fn() + Clone + Send + Sync + 'static,
     {
         self.entry_actions
             .push(Box::new(actions::PureAction::new(func)));
@@ -409,7 +411,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBu
     /// Add a pure exit action (no context modification)
     pub fn on_exit_pure<F>(mut self, func: F) -> Self
     where
-        F: Fn() + Send + Sync + 'static,
+        F: Fn() + Clone + Send + Sync + 'static,
     {
         self.exit_actions
             .push(Box::new(actions::PureAction::new(func)));
@@ -519,7 +521,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildSt
     /// Add a function-based entry action
     pub fn on_entry_fn<F>(mut self, func: F) -> Self
     where
-        F: Fn(&mut C, &E) + Send + Sync + 'static,
+        F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
     {
         self.entry_actions
             .push(Box::new(actions::FunctionAction::new(func)));
@@ -529,7 +531,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildSt
     /// Add a function-based exit action
     pub fn on_exit_fn<F>(mut self, func: F) -> Self
     where
-        F: Fn(&mut C, &E) + Send + Sync + 'static,
+        F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
     {
         self.exit_actions
             .push(Box::new(actions::FunctionAction::new(func)));
@@ -561,7 +563,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildSt
     /// Add a pure entry action (no context modification)
     pub fn on_entry_pure<F>(mut self, func: F) -> Self
     where
-        F: Fn() + Send + Sync + 'static,
+        F: Fn() + Clone + Send + Sync + 'static,
     {
         self.entry_actions
             .push(Box::new(actions::PureAction::new(func)));
@@ -571,7 +573,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildSt
     /// Add a pure exit action (no context modification)
     pub fn on_exit_pure<F>(mut self, func: F) -> Self
     where
-        F: Fn() + Send + Sync + 'static,
+        F: Fn() + Clone + Send + Sync + 'static,
     {
         self.exit_actions
             .push(Box::new(actions::PureAction::new(func)));
@@ -624,7 +626,9 @@ pub struct ChildTransitionBuilder<C: Send + Sync, E: Send + Sync> {
     actions: Vec<Box<dyn Action<C, E>>>,
 }
 
-impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildTransitionBuilder<C, E> {
+impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static>
+    ChildTransitionBuilder<C, E>
+{
     pub fn new(child_builder: ChildStateBuilder<C, E>, event: E, target: String) -> Self {
         Self {
             child_builder,
@@ -652,7 +656,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildTr
     /// Add a field equality guard
     pub fn guard_field_equals<T, F>(mut self, field_extractor: F, expected_value: T) -> Self
     where
-        F: Fn(&C) -> T + Send + Sync + 'static,
+        F: Fn(&C) -> T + Clone + Send + Sync + 'static,
         T: PartialEq + Send + Sync + 'static,
     {
         self.guards.push(Box::new(guards::FieldEqualityGuard::new(
@@ -665,7 +669,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildTr
     /// Add a range guard
     pub fn guard_field_range<T, F>(mut self, field_extractor: F, min: T, max: T) -> Self
     where
-        F: Fn(&C) -> T + Send + Sync + 'static,
+        F: Fn(&C) -> T + Clone + Send + Sync + 'static,
         T: PartialOrd + Send + Sync + 'static,
     {
         self.guards
@@ -756,7 +760,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Transit
     /// Add a field equality guard
     pub fn guard_field_equals<T, F>(mut self, field_extractor: F, expected_value: T) -> Self
     where
-        F: Fn(&C) -> T + Send + Sync + 'static,
+        F: Fn(&C) -> T + Clone + Send + Sync + 'static,
         T: PartialEq + Send + Sync + 'static,
     {
         self.guards.push(Box::new(guards::FieldEqualityGuard::new(
@@ -769,7 +773,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Transit
     /// Add a range guard
     pub fn guard_field_range<T, F>(mut self, field_extractor: F, min: T, max: T) -> Self
     where
-        F: Fn(&C) -> T + Send + Sync + 'static,
+        F: Fn(&C) -> T + Clone + Send + Sync + 'static,
         T: PartialOrd + Send + Sync + 'static,
     {
         self.guards
@@ -839,7 +843,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Transit
     /// Finish the current transition and add an exit function to the current state
     pub fn on_exit_fn<F>(self, func: F) -> StateBuilder<C, E>
     where
-        F: Fn(&mut C, &E) + Send + Sync + 'static,
+        F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
     {
         let transition = Transition {
             event: self.event,

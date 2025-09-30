@@ -1,8 +1,8 @@
 //! Test case management and execution
 
 use super::*;
-use std::time::Duration;
 use std::hash::Hash;
+use std::time::Duration;
 
 /// Test case for state machine testing
 #[derive(Debug, Clone, PartialEq)]
@@ -107,14 +107,21 @@ impl<E> TestCaseStep<E> {
 }
 
 /// Test case executor
-pub struct TestCaseExecutor<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct TestCaseExecutor<
+    C: Send + Sync + Clone + PartialEq + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+> {
     /// Machine being tested
     pub machine: Machine<C, E, C>,
     /// Test configuration
     pub config: TestConfig,
 }
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> TestCaseExecutor<C, E> {
+impl<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    > TestCaseExecutor<C, E>
+{
     /// Create a new test case executor
     pub fn new(machine: Machine<C, E, C>, config: TestConfig) -> Self {
         Self { machine, config }
@@ -167,7 +174,11 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
             execution_time,
             transitions_executed,
             final_state: current_state.value.to_string(),
-            error_message: if passed { None } else { Some("Test expectations not met".to_string()) },
+            error_message: if passed {
+                None
+            } else {
+                Some("Test expectations not met".to_string())
+            },
             coverage: TestCoverage {
                 state_coverage: 0.0,
                 transition_coverage: 0.0,
@@ -186,7 +197,12 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
     }
 
     /// Check if test expectations are met
-    fn check_test_expectations(&self, test_case: &TestCase<C, E>, final_state: &MachineStateImpl<C>, final_context: &C) -> bool {
+    fn check_test_expectations(
+        &self,
+        test_case: &TestCase<C, E>,
+        final_state: &MachineStateImpl<C>,
+        final_context: &C,
+    ) -> bool {
         // Check final state expectation
         if let Some(expected_final_state) = &test_case.expected_final_state {
             if final_state.value.to_string() != *expected_final_state {
@@ -207,7 +223,8 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
 
     /// Execute multiple test cases
     pub fn execute_test_cases(&self, test_cases: &[TestCase<C, E>]) -> Vec<TestResult> {
-        test_cases.iter()
+        test_cases
+            .iter()
             .map(|test_case| self.execute_test_case(test_case))
             .collect()
     }
@@ -218,10 +235,10 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
 
         // Generate basic test cases
         test_cases.extend(self.generate_basic_test_cases());
-        
+
         // Generate edge case test cases
         test_cases.extend(self.generate_edge_case_test_cases());
-        
+
         // Generate error case test cases
         test_cases.extend(self.generate_error_case_test_cases());
 
@@ -240,10 +257,10 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
             // For now, we'll use a placeholder
             unsafe { std::mem::zeroed() }, // This is unsafe and should be replaced
         );
-        
+
         // Add steps to the test case
         // This would be populated with actual test steps
-        
+
         test_cases.push(basic_test);
 
         test_cases

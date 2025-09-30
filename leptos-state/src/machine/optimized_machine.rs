@@ -5,7 +5,10 @@ use std::collections::HashMap;
 use std::hash::Hash;
 
 /// Performance-optimized state machine
-pub struct OptimizedMachine<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct OptimizedMachine<
+    C: Send + Sync + Clone + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+> {
     /// Base machine
     base_machine: Machine<C, E, C>,
     /// Transition cache
@@ -18,7 +21,9 @@ pub struct OptimizedMachine<C: Send + Sync + Clone + 'static, E: Clone + Send + 
     optimization_level: OptimizationLevel,
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> OptimizedMachine<C, E> {
+impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+    OptimizedMachine<C, E>
+{
     /// Create a new optimized machine
     pub fn new(base_machine: Machine<C, E, C>, config: PerformanceConfig) -> Self {
         Self {
@@ -35,11 +40,7 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
         let start_time = std::time::Instant::now();
 
         // Create cache key
-        let cache_key = CacheKey::new(
-            current.value.to_string(),
-            event.clone(),
-            &current.context,
-        );
+        let cache_key = CacheKey::new(current.value.to_string(), event.clone(), &current.context);
 
         // Try cache first
         if let Some(cached) = self.cache.get(&cache_key) {
@@ -174,7 +175,8 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
     where
         T: 'static,
     {
-        self.lazy_evaluators.get(name)?
+        self.lazy_evaluators
+            .get(name)?
             .downcast_ref::<LazyEvaluator<T, Box<dyn Fn() -> T>>>()
     }
 }
@@ -207,12 +209,18 @@ impl OptimizationLevel {
 }
 
 /// Extension trait for adding performance optimization to machines
-pub trait MachinePerformanceExt<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub trait MachinePerformanceExt<
+    C: Send + Sync + Clone + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+>
+{
     /// Create an optimized version of this machine
     fn optimize(self, config: PerformanceConfig) -> OptimizedMachine<C, E>;
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> MachinePerformanceExt<C, E> for Machine<C, E, C> {
+impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+    MachinePerformanceExt<C, E> for Machine<C, E, C>
+{
     fn optimize(self, config: PerformanceConfig) -> OptimizedMachine<C, E> {
         OptimizedMachine::new(self, config)
     }

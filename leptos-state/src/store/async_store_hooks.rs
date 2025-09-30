@@ -1,9 +1,9 @@
 //! Hooks for async store integration
 
-use leptos::prelude::*;
-use crate::compat::resources::create_resource;
 use super::async_store_core::AsyncStore;
+use crate::compat::resources::create_resource;
 use crate::utils::StateResult;
+use leptos::prelude::*;
 
 /// Hook for using async stores with Resources
 #[cfg(feature = "serialization")]

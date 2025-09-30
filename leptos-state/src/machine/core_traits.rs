@@ -13,7 +13,7 @@ pub trait StateMachine: Sized + 'static {
 }
 
 /// Main builder trait for constructing state machines
-pub trait MachineBuilder<C, E, S> {
+pub trait MachineBuilder<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static, S: Clone + Send + Sync + 'static> {
     fn new() -> Self;
     fn state<Name: Into<String>>(self, name: Name) -> Self;
     fn initial<Name: Into<String>>(self, state: Name) -> Self;
@@ -32,7 +32,7 @@ pub trait MachineBuilder<C, E, S> {
 }
 
 /// Trait for machine states
-pub trait MachineState {
+pub trait MachineState: Clone + Send + Sync + 'static {
     type Context: Send + Sync + 'static;
 
     fn value(&self) -> &crate::machine::types_basic::StateValue;

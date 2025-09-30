@@ -94,11 +94,18 @@ This document provides comprehensive documentation for the state machine.
 
 {{performance_metrics}}
 {{/if}}
-"#.to_string();
+"#
+        .to_string();
 
         let mut template = TemplateData::new("default".to_string(), content);
-        template.set_variable("title".to_string(), "{{machine_name}} State Machine".to_string());
-        template.set_variable("description".to_string(), "Generated documentation for the state machine.".to_string());
+        template.set_variable(
+            "title".to_string(),
+            "{{machine_name}} State Machine".to_string(),
+        );
+        template.set_variable(
+            "description".to_string(),
+            "Generated documentation for the state machine.".to_string(),
+        );
         template
     }
 
@@ -111,7 +118,8 @@ This document provides comprehensive documentation for the state machine.
 
 ## Transitions
 {{transitions_list}}
-"#.to_string();
+"#
+        .to_string();
 
         let mut template = TemplateData::new("minimal".to_string(), content);
         template.set_variable("title".to_string(), "{{machine_name}}".to_string());
@@ -148,7 +156,8 @@ This document provides comprehensive documentation for the state machine.
 ## Type Information
 
 {{type_information}}
-"#.to_string();
+"#
+        .to_string();
 
         let mut template = TemplateData::new("technical".to_string(), content);
         template.set_variable("title".to_string(), "{{machine_name}}".to_string());
@@ -176,11 +185,15 @@ Welcome to the {{machine_name}} state machine documentation.
 ## Getting Help
 
 {{help_information}}
-"#.to_string();
+"#
+        .to_string();
 
         let mut template = TemplateData::new("user".to_string(), content);
         template.set_variable("title".to_string(), "{{machine_name}} Guide".to_string());
-        template.set_variable("description".to_string(), "This state machine manages {{purpose}}.".to_string());
+        template.set_variable(
+            "description".to_string(),
+            "This state machine manages {{purpose}}.".to_string(),
+        );
         template
     }
 
@@ -207,7 +220,8 @@ Welcome to the {{machine_name}} state machine documentation.
 ## Examples
 
 {{api_examples}}
-"#.to_string();
+"#
+        .to_string();
 
         let mut template = TemplateData::new("api".to_string(), content);
         template.set_variable("title".to_string(), "{{machine_name}} API".to_string());
@@ -300,7 +314,8 @@ tr:nth-child(even) {
     padding: 8px 12px;
     margin: 8px 0;
 }
-"#.to_string()
+"#
+        .to_string()
     }
 
     /// Get dark theme CSS
@@ -359,7 +374,8 @@ tr:nth-child(even) {
     background-color: #0b6623;
     border-left-color: #27ae60;
 }
-"#.to_string()
+"#
+        .to_string()
     }
 }
 
@@ -374,7 +390,13 @@ impl MarkdownStyling {
     }
 
     /// Format a transition as markdown
-    pub fn format_transition(from: &str, to: &str, event: &str, guards: &[String], actions: &[String]) -> String {
+    pub fn format_transition(
+        from: &str,
+        to: &str,
+        event: &str,
+        guards: &[String],
+        actions: &[String],
+    ) -> String {
         let mut result = format!("- **{}** → **{}** (on `{}`)\n", from, to, event);
 
         if !guards.is_empty() {

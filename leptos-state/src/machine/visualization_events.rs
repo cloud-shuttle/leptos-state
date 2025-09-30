@@ -252,11 +252,7 @@ pub enum StateChangeType {
 
 impl<C, E> StateChangeEvent<C, E> {
     /// Create a new state change event
-    pub fn new(
-        previous_state: String,
-        new_state: String,
-        change_type: StateChangeType,
-    ) -> Self {
+    pub fn new(previous_state: String, new_state: String, change_type: StateChangeType) -> Self {
         Self {
             previous_state,
             new_state,

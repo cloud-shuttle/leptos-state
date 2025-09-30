@@ -1,7 +1,7 @@
 //! Serialization and deserialization for state machines
 
-use super::*;
 use super::persistence_core::PersistenceError;
+use super::*;
 
 /// Serialized state machine data
 #[derive(Debug, Clone)]
@@ -90,29 +90,37 @@ impl<C, E, S> SerializedMachine<C, E, S> {
     /// Validate the serialized machine
     pub fn validate(&self) -> Result<(), PersistenceError> {
         if self.id.is_empty() {
-            return Err(PersistenceError::ValidationError("Machine ID cannot be empty".to_string()));
+            return Err(PersistenceError::ValidationError(
+                "Machine ID cannot be empty".to_string(),
+            ));
         }
 
         if self.states.is_empty() {
-            return Err(PersistenceError::ValidationError("Machine must have at least one state".to_string()));
+            return Err(PersistenceError::ValidationError(
+                "Machine must have at least one state".to_string(),
+            ));
         }
 
         if self.initial_state.is_empty() {
-            return Err(PersistenceError::ValidationError("Initial state cannot be empty".to_string()));
+            return Err(PersistenceError::ValidationError(
+                "Initial state cannot be empty".to_string(),
+            ));
         }
 
         // Check if initial state exists
         if !self.states.iter().any(|s| s.id == self.initial_state) {
-            return Err(PersistenceError::ValidationError(
-                format!("Initial state '{}' not found in states", self.initial_state)
-            ));
+            return Err(PersistenceError::ValidationError(format!(
+                "Initial state '{}' not found in states",
+                self.initial_state
+            )));
         }
 
         // Check if current state exists
         if !self.states.iter().any(|s| s.id == self.current_state) {
-            return Err(PersistenceError::ValidationError(
-                format!("Current state '{}' not found in states", self.current_state)
-            ));
+            return Err(PersistenceError::ValidationError(format!(
+                "Current state '{}' not found in states",
+                self.current_state
+            )));
         }
 
         // Validate states
@@ -135,7 +143,8 @@ impl<C, E, S> SerializedMachine<C, E, S> {
 
     /// Get transitions from a state
     pub fn get_transitions_from(&self, state_id: &str) -> Vec<&SerializedTransition<E>> {
-        self.transitions.iter()
+        self.transitions
+            .iter()
             .filter(|t| t.from_state == state_id)
             .collect()
     }
@@ -237,23 +246,27 @@ impl<C> SerializedState<C> {
     /// Validate the state
     pub fn validate(&self) -> Result<(), PersistenceError> {
         if self.id.is_empty() {
-            return Err(PersistenceError::ValidationError("State ID cannot be empty".to_string()));
+            return Err(PersistenceError::ValidationError(
+                "State ID cannot be empty".to_string(),
+            ));
         }
 
         // Validate child states
         if !self.child_states.is_empty() {
             if self.state_type == StateType::Atomic {
-                return Err(PersistenceError::ValidationError(
-                    format!("Atomic state '{}' cannot have child states", self.id)
-                ));
+                return Err(PersistenceError::ValidationError(format!(
+                    "Atomic state '{}' cannot have child states",
+                    self.id
+                )));
             }
 
             // Check initial child exists
             if let Some(ref initial) = self.initial_child {
                 if !self.child_states.iter().any(|s| s.id == *initial) {
-                    return Err(PersistenceError::ValidationError(
-                        format!("Initial child state '{}' not found in children of '{}'", initial, self.id)
-                    ));
+                    return Err(PersistenceError::ValidationError(format!(
+                        "Initial child state '{}' not found in children of '{}'",
+                        initial, self.id
+                    )));
                 }
             }
 
@@ -367,16 +380,18 @@ impl<E> SerializedTransition<E> {
     pub fn validate<C>(&self, states: &[SerializedState<C>]) -> Result<(), PersistenceError> {
         // Check from state exists
         if !states.iter().any(|s| s.id == self.from_state) {
-            return Err(PersistenceError::ValidationError(
-                format!("Transition from state '{}' not found", self.from_state)
-            ));
+            return Err(PersistenceError::ValidationError(format!(
+                "Transition from state '{}' not found",
+                self.from_state
+            )));
         }
 
         // Check to state exists
         if !states.iter().any(|s| s.id == self.to_state) {
-            return Err(PersistenceError::ValidationError(
-                format!("Transition to state '{}' not found", self.to_state)
-            ));
+            return Err(PersistenceError::ValidationError(format!(
+                "Transition to state '{}' not found",
+                self.to_state
+            )));
         }
 
         Ok(())

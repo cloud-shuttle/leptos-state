@@ -52,7 +52,10 @@ impl<C, E> GuardBuilder<C, E> {
         F: Fn(&C) -> &T + Clone + 'static,
         T: PartialEq + Clone + 'static,
     {
-        self.guards.push(Box::new(FieldEqualityGuard::new(field_extractor, expected_value)));
+        self.guards.push(Box::new(FieldEqualityGuard::new(
+            field_extractor,
+            expected_value,
+        )));
         self
     }
 
@@ -66,13 +69,22 @@ impl<C, E> GuardBuilder<C, E> {
     }
 
     /// Add a comparison guard
-    pub fn compare<T, F1, F2>(mut self, field1_extractor: F1, field2_extractor: F2, comparison: ComparisonOp) -> Self
+    pub fn compare<T, F1, F2>(
+        mut self,
+        field1_extractor: F1,
+        field2_extractor: F2,
+        comparison: ComparisonOp,
+    ) -> Self
     where
         F1: Fn(&C) -> &T + Clone + 'static,
         F2: Fn(&C) -> &T + Clone + 'static,
         T: PartialOrd + PartialEq + Clone + 'static,
     {
-        self.guards.push(Box::new(ComparisonGuard::new(field1_extractor, field2_extractor, comparison)));
+        self.guards.push(Box::new(ComparisonGuard::new(
+            field1_extractor,
+            field2_extractor,
+            comparison,
+        )));
         self
     }
 
@@ -81,7 +93,8 @@ impl<C, E> GuardBuilder<C, E> {
     where
         F: Fn(&C) -> Option<&T> + Clone + 'static,
     {
-        self.guards.push(Box::new(NullCheckGuard::is_null(field_extractor)));
+        self.guards
+            .push(Box::new(NullCheckGuard::is_null(field_extractor)));
         self
     }
 
@@ -90,13 +103,15 @@ impl<C, E> GuardBuilder<C, E> {
     where
         F: Fn(&C) -> Option<&T> + Clone + 'static,
     {
-        self.guards.push(Box::new(NullCheckGuard::is_not_null(field_extractor)));
+        self.guards
+            .push(Box::new(NullCheckGuard::is_not_null(field_extractor)));
         self
     }
 
     /// Add an event type guard
     pub fn event_type(mut self, expected_type: String) -> Self {
-        self.guards.push(Box::new(EventTypeGuard::new(expected_type)));
+        self.guards
+            .push(Box::new(EventTypeGuard::new(expected_type)));
         self
     }
 
@@ -105,7 +120,8 @@ impl<C, E> GuardBuilder<C, E> {
     where
         F: Fn(&C) -> String + Send + Sync + 'static,
     {
-        self.guards.push(Box::new(StateGuard::new(expected_state, state_getter)));
+        self.guards
+            .push(Box::new(StateGuard::new(expected_state, state_getter)));
         self
     }
 
@@ -123,7 +139,8 @@ impl<C, E> GuardBuilder<C, E> {
 
     /// Add a rate limit guard
     pub fn rate_limit(mut self, max_per_window: usize, window_ms: u64) -> Self {
-        self.guards.push(Box::new(RateLimitGuard::new(max_per_window, window_ms)));
+        self.guards
+            .push(Box::new(RateLimitGuard::new(max_per_window, window_ms)));
         self
     }
 
@@ -134,27 +151,32 @@ impl<C, E> GuardBuilder<C, E> {
     }
 
     /// Add a composite guard
-    pub fn composite(mut self, guards: Vec<Box<dyn GuardEvaluator<C, E>>>, logic: CompositeLogic) -> Self {
-        self.guards.push(Box::new(CompositeGuard::new(guards, logic)));
+    pub fn composite(
+        mut self,
+        guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
+        logic: CompositeLogic,
+    ) -> Self {
+        self.guards
+            .push(Box::new(CompositeGuard::new(guards, logic)));
         self
     }
 
     /// Create an AND guard from all added guards
     pub fn and(mut self) -> Box<dyn GuardEvaluator<C, E>> {
-        Box::new(AndGuard::new(std::mem::take(&mut self.guards))
-            .with_description(self.description))
+        Box::new(AndGuard::new(std::mem::take(&mut self.guards)).with_description(self.description))
     }
 
     /// Create an OR guard from all added guards
     pub fn or(mut self) -> Box<dyn GuardEvaluator<C, E>> {
-        Box::new(OrGuard::new(std::mem::take(&mut self.guards))
-            .with_description(self.description))
+        Box::new(OrGuard::new(std::mem::take(&mut self.guards)).with_description(self.description))
     }
 
     /// Create a composite guard from all added guards
     pub fn composite_guard(mut self, logic: CompositeLogic) -> Box<dyn GuardEvaluator<C, E>> {
-        Box::new(CompositeGuard::new(std::mem::take(&mut self.guards), logic)
-            .with_description(self.description))
+        Box::new(
+            CompositeGuard::new(std::mem::take(&mut self.guards), logic)
+                .with_description(self.description),
+        )
     }
 
     /// Get all built guards
@@ -268,14 +290,29 @@ impl GuardEvaluation {
 /// Extension trait for evaluating guards with detailed results
 pub trait GuardBatchEvaluator<C, E> {
     /// Evaluate a single guard and return detailed result
-    fn evaluate_guard(&self, guard: &dyn GuardEvaluator<C, E>, context: &C, event: &E) -> GuardEvaluation;
+    fn evaluate_guard(
+        &self,
+        guard: &dyn GuardEvaluator<C, E>,
+        context: &C,
+        event: &E,
+    ) -> GuardEvaluation;
 
     /// Evaluate multiple guards and return their results
-    fn evaluate_batch(&self, guards: &[Box<dyn GuardEvaluator<C, E>>], context: &C, event: &E) -> Vec<GuardEvaluation>;
+    fn evaluate_batch(
+        &self,
+        guards: &[Box<dyn GuardEvaluator<C, E>>],
+        context: &C,
+        event: &E,
+    ) -> Vec<GuardEvaluation>;
 }
 
 impl<C, E> GuardBatchEvaluator<C, E> for Vec<Box<dyn GuardEvaluator<C, E>>> {
-    fn evaluate_guard(&self, guard: &dyn GuardEvaluator<C, E>, context: &C, event: &E) -> GuardEvaluation {
+    fn evaluate_guard(
+        &self,
+        guard: &dyn GuardEvaluator<C, E>,
+        context: &C,
+        event: &E,
+    ) -> GuardEvaluation {
         let start = std::time::Instant::now();
         let result = guard.check(context, event);
         let duration = start.elapsed();
@@ -287,8 +324,14 @@ impl<C, E> GuardBatchEvaluator<C, E> for Vec<Box<dyn GuardEvaluator<C, E>>> {
         }
     }
 
-    fn evaluate_batch(&self, guards: &[Box<dyn GuardEvaluator<C, E>>], context: &C, event: &E) -> Vec<GuardEvaluation> {
-        guards.iter()
+    fn evaluate_batch(
+        &self,
+        guards: &[Box<dyn GuardEvaluator<C, E>>],
+        context: &C,
+        event: &E,
+    ) -> Vec<GuardEvaluation> {
+        guards
+            .iter()
             .map(|guard| self.evaluate_guard(guard.as_ref(), context, event))
             .collect()
     }
@@ -317,17 +360,23 @@ pub mod guards {
     }
 
     /// Create an AND guard
-    pub fn and<C: 'static, E: 'static>(guards: Vec<Box<dyn GuardEvaluator<C, E>>>) -> Box<dyn GuardEvaluator<C, E>> {
+    pub fn and<C: 'static, E: 'static>(
+        guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
+    ) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(AndGuard::new(guards))
     }
 
     /// Create an OR guard
-    pub fn or<C: 'static, E: 'static>(guards: Vec<Box<dyn GuardEvaluator<C, E>>>) -> Box<dyn GuardEvaluator<C, E>> {
+    pub fn or<C: 'static, E: 'static>(
+        guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
+    ) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(OrGuard::new(guards))
     }
 
     /// Create a NOT guard
-    pub fn not<C: 'static, E: 'static>(guard: Box<dyn GuardEvaluator<C, E>>) -> Box<dyn GuardEvaluator<C, E>> {
+    pub fn not<C: 'static, E: 'static>(
+        guard: Box<dyn GuardEvaluator<C, E>>,
+    ) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(NotGuard::new(guard))
     }
 
@@ -342,7 +391,10 @@ pub mod guards {
     }
 
     /// Create a composite guard
-    pub fn composite<C, E>(guards: Vec<Box<dyn GuardEvaluator<C, E>>>, logic: CompositeLogic) -> Box<dyn GuardEvaluator<C, E>> {
+    pub fn composite<C, E>(
+        guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
+        logic: CompositeLogic,
+    ) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(CompositeGuard::new(guards, logic))
     }
 }

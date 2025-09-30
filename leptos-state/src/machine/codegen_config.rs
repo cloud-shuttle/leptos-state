@@ -166,10 +166,12 @@ impl ProgrammingLanguage {
     /// Get comment syntax for this language
     pub fn comment_syntax(&self) -> (&'static str, Option<&'static str>) {
         match self {
-            ProgrammingLanguage::Rust | ProgrammingLanguage::Go | ProgrammingLanguage::CSharp |
-            ProgrammingLanguage::Java | ProgrammingLanguage::Kotlin | ProgrammingLanguage::Swift => {
-                ("//", Some("/* */"))
-            }
+            ProgrammingLanguage::Rust
+            | ProgrammingLanguage::Go
+            | ProgrammingLanguage::CSharp
+            | ProgrammingLanguage::Java
+            | ProgrammingLanguage::Kotlin
+            | ProgrammingLanguage::Swift => ("//", Some("/* */")),
             ProgrammingLanguage::TypeScript => ("//", Some("/* */")),
             ProgrammingLanguage::Python => ("#", Some("\"\"\" \"\"\"")),
         }
@@ -177,9 +179,14 @@ impl ProgrammingLanguage {
 
     /// Check if language supports async/await
     pub fn supports_async(&self) -> bool {
-        matches!(self, ProgrammingLanguage::Rust | ProgrammingLanguage::TypeScript |
-                       ProgrammingLanguage::Python | ProgrammingLanguage::CSharp |
-                       ProgrammingLanguage::Kotlin)
+        matches!(
+            self,
+            ProgrammingLanguage::Rust
+                | ProgrammingLanguage::TypeScript
+                | ProgrammingLanguage::Python
+                | ProgrammingLanguage::CSharp
+                | ProgrammingLanguage::Kotlin
+        )
     }
 }
 
@@ -250,11 +257,13 @@ impl<C, E> {machine_name}<C, E> {{
         &mut self.context
     }}
 }}
-"#.to_string(),
+"#
+            .to_string(),
             state_template: r#"
     /// State: {state_name}
     const {state_name}: &str = "{state_name}";
-"#.to_string(),
+"#
+            .to_string(),
             transition_template: r#"
     /// Transition from {from_state} to {to_state}
     pub fn {transition_name}(&mut self{event_param}) -> Result<(), String> {{
@@ -266,25 +275,29 @@ impl<C, E> {machine_name}<C, E> {{
         self.current_state = "{to_state}".to_string();
         Ok(())
     }}
-"#.to_string(),
+"#
+            .to_string(),
             guard_template: r#"
     /// Guard: {guard_name}
     fn {guard_name}(&self{context_param}) -> bool {{
         // Guard implementation
         true
     }}
-"#.to_string(),
+"#
+            .to_string(),
             action_template: r#"
     /// Action: {action_name}
     fn {action_name}(&mut self{context_param}) {{
         // Action implementation
     }}
-"#.to_string(),
+"#
+            .to_string(),
             event_template: r#"
     /// Event: {event_name}
     #[derive(Debug, Clone)]
     pub struct {event_name};
-"#.to_string(),
+"#
+            .to_string(),
         }
     }
 
@@ -326,11 +339,13 @@ export class {machine_name}<C, E> {{
         return this.context;
     }}
 }}
-"#.to_string(),
+"#
+            .to_string(),
             state_template: r#"
     // State: {state_name}
     public static readonly {state_name}: string = "{state_name}";
-"#.to_string(),
+"#
+            .to_string(),
             transition_template: r#"
     /**
      * Transition from {from_state} to {to_state}
@@ -343,7 +358,8 @@ export class {machine_name}<C, E> {{
         // Actions would be executed here
         this.currentState = "{to_state}";
     }}
-"#.to_string(),
+"#
+            .to_string(),
             guard_template: r#"
     /**
      * Guard: {guard_name}
@@ -352,7 +368,8 @@ export class {machine_name}<C, E> {{
         // Guard implementation
         return true;
     }}
-"#.to_string(),
+"#
+            .to_string(),
             action_template: r#"
     /**
      * Action: {action_name}
@@ -360,7 +377,8 @@ export class {machine_name}<C, E> {{
     private {action_name}({context_param}): void {{
         // Action implementation
     }}
-"#.to_string(),
+"#
+            .to_string(),
             event_template: r#"
     /**
      * Event: {event_name}
@@ -368,7 +386,8 @@ export class {machine_name}<C, E> {{
     export class {event_name} {{
         // Event implementation
     }}
-"#.to_string(),
+"#
+            .to_string(),
         }
     }
 
@@ -390,11 +409,13 @@ class {machine_name}:
 
     def get_context_mut(self):
         return self.context
-"#.to_string(),
+"#
+            .to_string(),
             state_template: r#"
     # State: {state_name}
     {state_name} = "{state_name}"
-"#.to_string(),
+"#
+            .to_string(),
             transition_template: r#"
     def {transition_name}(self{event_param}):
         if self.current_state != "{from_state}":
@@ -402,21 +423,25 @@ class {machine_name}:
         # Guard checks would go here
         # Actions would be executed here
         self.current_state = "{to_state}"
-"#.to_string(),
+"#
+            .to_string(),
             guard_template: r#"
     def {guard_name}(self{context_param}):
         # Guard implementation
         return True
-"#.to_string(),
+"#
+            .to_string(),
             action_template: r#"
     def {action_name}(self{context_param}):
         # Action implementation
         pass
-"#.to_string(),
+"#
+            .to_string(),
             event_template: r#"# Event: {event_name}
 class {event_name}:
     pass
-"#.to_string(),
+"#
+            .to_string(),
         }
     }
 }

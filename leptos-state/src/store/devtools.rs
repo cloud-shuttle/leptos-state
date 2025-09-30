@@ -6,6 +6,6 @@
 //! - `devtools_timeline`: Time travel debugging support
 
 // Re-export all devtools functionality from the split modules
-pub use super::devtools_core::*;
 pub use super::devtools_connectors::*;
+pub use super::devtools_core::*;
 pub use super::devtools_timeline::*;

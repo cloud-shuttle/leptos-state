@@ -89,9 +89,13 @@ impl<C, E> GuardEvaluator<C, E> for TimeGuard<C, E> {
     }
 
     fn description(&self) -> String {
-        let max_str = self.max_time_ms
+        let max_str = self
+            .max_time_ms
             .map_or("∞".to_string(), |t| format!("{}ms", t));
-        format!("{} ({}ms to {})", self.description, self.min_time_ms, max_str)
+        format!(
+            "{} ({}ms to {})",
+            self.description, self.min_time_ms, max_str
+        )
     }
 
     fn clone_guard(&self) -> Box<dyn GuardEvaluator<C, E>> {
@@ -199,9 +203,13 @@ impl<C, E> GuardEvaluator<C, E> for CounterGuard<C, E> {
     }
 
     fn description(&self) -> String {
-        let reset_str = self.reset_interval
+        let reset_str = self
+            .reset_interval
             .map_or("never".to_string(), |i| format!("every {}ms", i));
-        format!("{} (max {} times, reset {})", self.description, self.max_count, reset_str)
+        format!(
+            "{} (max {} times, reset {})",
+            self.description, self.max_count, reset_str
+        )
     }
 
     fn clone_guard(&self) -> Box<dyn GuardEvaluator<C, E>> {
@@ -282,7 +290,10 @@ impl<C, E> GuardEvaluator<C, E> for RateLimitGuard<C, E> {
     }
 
     fn description(&self) -> String {
-        format!("{} (max {} per {}ms window)", self.description, self.max_per_window, self.window_ms)
+        format!(
+            "{} (max {} per {}ms window)",
+            self.description, self.max_per_window, self.window_ms
+        )
     }
 
     fn clone_guard(&self) -> Box<dyn GuardEvaluator<C, E>> {

@@ -3,7 +3,6 @@
 //! Provides version-agnostic APIs for Leptos resources across different versions.
 //! This layer uses a simplified approach that avoids problematic APIs.
 
-
 /// Simple resource struct for compatibility
 pub struct Resource<S, T> {
     pub loading: bool,
@@ -12,7 +11,7 @@ pub struct Resource<S, T> {
     _phantom: std::marker::PhantomData<S>,
 }
 
-impl<S, T> Resource<S, T> 
+impl<S, T> Resource<S, T>
 where
     T: Clone,
 {
@@ -58,7 +57,7 @@ pub fn resource_loading<T: Send + Sync, U>(_resource: &Resource<T, U>) -> bool {
 }
 
 /// Version-agnostic resource error state
-pub fn resource_error<T: Send + Sync, U>(_resource: &Resource<T, U>) -> Option<U> 
+pub fn resource_error<T: Send + Sync, U>(_resource: &Resource<T, U>) -> Option<U>
 where
     U: Clone + PartialEq + Send + Sync + 'static,
 {
@@ -66,7 +65,7 @@ where
 }
 
 /// Version-agnostic resource success state
-pub fn resource_success<T: Send + Sync, U>(_resource: &Resource<T, U>) -> Option<U> 
+pub fn resource_success<T: Send + Sync, U>(_resource: &Resource<T, U>) -> Option<U>
 where
     U: Clone + PartialEq + Send + Sync + 'static,
 {
@@ -88,11 +87,7 @@ where
 }
 
 /// Version-agnostic resource with caching
-pub fn create_cached_resource<T, U, F>(
-    source: T,
-    fetcher: F,
-    _cache_key: String,
-) -> Resource<T, U>
+pub fn create_cached_resource<T, U, F>(source: T, fetcher: F, _cache_key: String) -> Resource<T, U>
 where
     T: Clone + PartialEq + Send + Sync + 'static,
     U: Clone + PartialEq + Send + Sync + 'static,
@@ -102,11 +97,7 @@ where
 }
 
 /// Version-agnostic resource with timeout
-pub fn create_timeout_resource<T, U, F>(
-    source: T,
-    fetcher: F,
-    _timeout_ms: u32,
-) -> Resource<T, U>
+pub fn create_timeout_resource<T, U, F>(source: T, fetcher: F, _timeout_ms: u32) -> Resource<T, U>
 where
     T: Clone + PartialEq + Send + Sync + 'static,
     U: Clone + PartialEq + Send + Sync + 'static,
@@ -118,17 +109,17 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_create_resource() {
         let resource = create_resource(42, |x| x * 2);
-        
+
         // The resource should be created successfully
         assert!(!resource.loading);
         assert!(resource.data.is_none());
         assert!(resource.error.is_none());
     }
-    
+
     #[test]
     fn test_resource_read() {
         let resource = Resource {
@@ -137,7 +128,7 @@ mod tests {
             error: None,
             _phantom: std::marker::PhantomData,
         };
-        
+
         let result = resource.read();
         assert!(result.is_some());
         assert_eq!(result.unwrap().unwrap(), 42);

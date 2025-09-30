@@ -19,21 +19,29 @@ pub struct StateDiagram<'a, C: Send + Sync, E> {
     pub generated_at: std::time::Instant,
 }
 
-impl<'a, C: Send + Sync, E> StateDiagram<'a, C, E> {
+impl<'a, C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateDiagram<'a, C, E> {
     /// Create a new state diagram from a machine
     pub fn new(machine: &'a Machine<C, E, C>, config: &VisualizationConfig) -> Self {
         let name = "StateMachine".to_string(); // Could be made configurable
         let initial_state = machine.initial_state();
-        let states = machine.get_states().iter()
+        let states = machine
+            .get_states()
+            .iter()
             .filter_map(|state_name| {
-                machine.states_map().get(state_name)
+                machine
+                    .states_map()
+                    .get(state_name)
                     .map(|state_node| StateInfo::new(state_name, state_node, config))
             })
             .collect();
 
-        let transitions = machine.states_map().iter()
+        let transitions = machine
+            .states_map()
+            .iter()
             .flat_map(|(from_state, state_node)| {
-                state_node.transitions.iter()
+                state_node
+                    .transitions
+                    .iter()
                     .map(move |transition| TransitionInfo::new(from_state, transition, config))
             })
             .collect();
@@ -55,14 +63,16 @@ impl<'a, C: Send + Sync, E> StateDiagram<'a, C, E> {
 
     /// Get transitions from a specific state
     pub fn transitions_from(&self, state_name: &str) -> Vec<&TransitionInfo<'a, C, E>> {
-        self.transitions.iter()
+        self.transitions
+            .iter()
             .filter(|t| t.from_state == state_name)
             .collect()
     }
 
     /// Get transitions to a specific state
     pub fn transitions_to(&self, state_name: &str) -> Vec<&TransitionInfo<'a, C, E>> {
-        self.transitions.iter()
+        self.transitions
+            .iter()
             .filter(|t| t.to_state == state_name)
             .collect()
     }
@@ -98,11 +108,17 @@ pub struct StateInfo<'a, C: Send + Sync, E> {
     pub metadata: std::collections::HashMap<String, String>,
 }
 
-impl<'a, C: Send + Sync, E> StateInfo<'a, C, E> {
+impl<'a, C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateInfo<'a, C, E> {
     /// Create state info from a state node
-    pub fn new(state_name: &str, state_node: &'a StateNode<C, E, C>, config: &VisualizationConfig) -> Self {
+    pub fn new(
+        state_name: &str,
+        state_node: &'a StateNode<C, E, C>,
+        config: &VisualizationConfig,
+    ) -> Self {
         let entry_actions = if config.show_actions {
-            state_node.entry_actions.iter()
+            state_node
+                .entry_actions
+                .iter()
                 .map(|action| action.description())
                 .collect()
         } else {
@@ -110,16 +126,16 @@ impl<'a, C: Send + Sync, E> StateInfo<'a, C, E> {
         };
 
         let exit_actions = if config.show_actions {
-            state_node.exit_actions.iter()
+            state_node
+                .exit_actions
+                .iter()
                 .map(|action| action.description())
                 .collect()
         } else {
             Vec::new()
         };
 
-        let child_states = state_node.child_states.keys()
-            .map(|s| s.clone())
-            .collect();
+        let child_states = state_node.child_states.keys().map(|s| s.clone()).collect();
 
         Self {
             name: state_name.to_string(),
@@ -144,7 +160,8 @@ impl<'a, C: Send + Sync, E> StateInfo<'a, C, E> {
 
     /// Get all actions (entry + exit)
     pub fn all_actions(&self) -> Vec<&str> {
-        self.entry_actions.iter()
+        self.entry_actions
+            .iter()
             .chain(self.exit_actions.iter())
             .map(|s| s.as_str())
             .collect()
@@ -168,11 +185,17 @@ pub struct TransitionInfo<'a, C: Send + Sync, E> {
     pub metadata: std::collections::HashMap<String, String>,
 }
 
-impl<'a, C: Send + Sync, E> TransitionInfo<'a, C, E> {
+impl<'a, C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> TransitionInfo<'a, C, E> {
     /// Create transition info from a transition
-    pub fn new(from_state: &str, transition: &'a Transition<C, E>, config: &VisualizationConfig) -> Self {
+    pub fn new(
+        from_state: &str,
+        transition: &'a Transition<C, E>,
+        config: &VisualizationConfig,
+    ) -> Self {
         let guards = if config.show_guards {
-            transition.guards.iter()
+            transition
+                .guards
+                .iter()
                 .map(|guard| guard.description())
                 .collect()
         } else {
@@ -180,7 +203,9 @@ impl<'a, C: Send + Sync, E> TransitionInfo<'a, C, E> {
         };
 
         let actions = if config.show_actions {
-            transition.actions.iter()
+            transition
+                .actions
+                .iter()
                 .map(|action| action.description())
                 .collect()
         } else {
@@ -242,7 +267,7 @@ pub struct MachineSnapshot<C: Send + Sync, E> {
     pub metadata: std::collections::HashMap<String, String>,
 }
 
-impl<C: Send + Sync, E> MachineSnapshot<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> MachineSnapshot<C, E> {
     /// Create a new snapshot
     pub fn new(machine: Machine<C, E, C>) -> Self {
         // This is a simplified implementation
@@ -321,7 +346,8 @@ where
             current_state: data.current_state,
             context: data.context,
             event_history: data.event_history,
-            timestamp: std::time::Instant::now() - std::time::Duration::from_nanos(data.timestamp as u64),
+            timestamp: std::time::Instant::now()
+                - std::time::Duration::from_nanos(data.timestamp as u64),
             metadata: data.metadata,
         })
     }

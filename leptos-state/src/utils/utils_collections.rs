@@ -64,7 +64,8 @@ impl CollectionUtils {
     /// Get unique items
     pub fn unique<T: Eq + std::hash::Hash + Clone>(items: Vec<T>) -> Vec<T> {
         let mut seen = std::collections::HashSet::new();
-        items.into_iter()
+        items
+            .into_iter()
             .filter(|item| seen.insert(item.clone()))
             .collect()
     }
@@ -128,7 +129,8 @@ impl<T: Clone + WithId> Registry<T> {
     /// Unregister an item
     pub fn unregister(&self, id: &str) -> Result<T, String> {
         let mut items = self.items.write().unwrap();
-        items.remove(id)
+        items
+            .remove(id)
             .ok_or_else(|| format!("Item with ID '{}' not found", id))
     }
 
@@ -172,7 +174,10 @@ impl<T: Clone + WithId> Registry<T> {
     where
         F: Fn(&T) -> bool,
     {
-        self.items.read().unwrap().values()
+        self.items
+            .read()
+            .unwrap()
+            .values()
             .filter(|item| predicate(item))
             .cloned()
             .collect()
@@ -183,7 +188,10 @@ impl<T: Clone + WithId> Registry<T> {
     where
         F: Fn(&T) -> bool,
     {
-        self.items.read().unwrap().values()
+        self.items
+            .read()
+            .unwrap()
+            .values()
             .find(|item| predicate(item))
             .cloned()
     }
@@ -248,7 +256,9 @@ impl<T: Clone + WithId> ObservableRegistry<T> {
     where
         F: FnOnce(&mut T),
     {
-        let mut item = self.registry.get(id)
+        let mut item = self
+            .registry
+            .get(id)
             .ok_or_else(|| format!("Item with ID '{}' not found", id))?;
 
         updater(&mut item);
@@ -396,7 +406,11 @@ where
 
     /// Remove a value from the cache
     pub fn remove(&self, key: &K) -> Option<V> {
-        self.storage.write().unwrap().remove(key).map(|entry| entry.value)
+        self.storage
+            .write()
+            .unwrap()
+            .remove(key)
+            .map(|entry| entry.value)
     }
 
     /// Clear the cache
@@ -433,7 +447,8 @@ where
     pub fn stats(&self) -> CacheStats {
         let storage = self.storage.read().unwrap();
         let total_entries = storage.len();
-        let expired_entries = storage.values()
+        let expired_entries = storage
+            .values()
             .filter(|entry| entry.is_expired(std::time::Instant::now()))
             .count();
         let total_accesses: usize = storage.values().map(|entry| entry.access_count).sum();
@@ -480,7 +495,9 @@ impl<T> PriorityQueue<T> {
 
     /// Push an item with priority
     pub fn push(&self, item: T, priority: i32) {
-        self.queues.write().unwrap()
+        self.queues
+            .write()
+            .unwrap()
             .entry(priority)
             .or_insert_with(Vec::new)
             .push(item);
@@ -537,7 +554,8 @@ impl<T> PriorityQueue<T> {
 /// Event bus for decoupled communication
 pub struct EventBus<E> {
     /// Event listeners
-    pub listeners: std::sync::RwLock<std::collections::HashMap<String, Vec<Box<dyn Fn(&E) + Send + Sync>>>>,
+    pub listeners:
+        std::sync::RwLock<std::collections::HashMap<String, Vec<Box<dyn Fn(&E) + Send + Sync>>>>,
 }
 
 impl<E> EventBus<E> {
@@ -553,7 +571,9 @@ impl<E> EventBus<E> {
     where
         F: Fn(&E) + Send + Sync + 'static,
     {
-        self.listeners.write().unwrap()
+        self.listeners
+            .write()
+            .unwrap()
             .entry(event_type.to_string())
             .or_insert_with(Vec::new)
             .push(Box::new(listener));
@@ -575,7 +595,9 @@ impl<E> EventBus<E> {
 
     /// Get the number of listeners for an event type
     pub fn listener_count(&self, event_type: &str) -> usize {
-        self.listeners.read().unwrap()
+        self.listeners
+            .read()
+            .unwrap()
             .get(event_type)
             .map(|listeners| listeners.len())
             .unwrap_or(0)

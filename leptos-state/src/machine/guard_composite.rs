@@ -89,7 +89,9 @@ impl<C, E> CompositeGuard<C, E> {
 
 impl<C, E> GuardEvaluator<C, E> for CompositeGuard<C, E> {
     fn check(&self, context: &C, event: &E) -> bool {
-        let results: Vec<bool> = self.guards.iter()
+        let results: Vec<bool> = self
+            .guards
+            .iter()
             .map(|guard| guard.check(context, event))
             .collect();
 
@@ -107,7 +109,12 @@ impl<C, E> GuardEvaluator<C, E> for CompositeGuard<C, E> {
     }
 
     fn description(&self) -> String {
-        format!("{} ({:?} of {} guards)", self.description, self.logic, self.guards.len())
+        format!(
+            "{} ({:?} of {} guards)",
+            self.description,
+            self.logic,
+            self.guards.len()
+        )
     }
 
     fn clone_guard(&self) -> Box<dyn GuardEvaluator<C, E>> {
@@ -131,7 +138,10 @@ pub struct WeightedCompositeGuard<C, E> {
 
 impl<C, E> WeightedCompositeGuard<C, E> {
     /// Create a new weighted composite guard
-    pub fn new(weighted_guards: Vec<(Box<dyn GuardEvaluator<C, E>>, f64)>, min_weight: f64) -> Self {
+    pub fn new(
+        weighted_guards: Vec<(Box<dyn GuardEvaluator<C, E>>, f64)>,
+        min_weight: f64,
+    ) -> Self {
         Self {
             weighted_guards,
             min_weight,
@@ -153,7 +163,9 @@ impl<C, E> WeightedCompositeGuard<C, E> {
 
 impl<C, E> GuardEvaluator<C, E> for WeightedCompositeGuard<C, E> {
     fn check(&self, context: &C, event: &E) -> bool {
-        let total_weight: f64 = self.weighted_guards.iter()
+        let total_weight: f64 = self
+            .weighted_guards
+            .iter()
             .map(|(guard, weight)| {
                 if guard.check(context, event) {
                     *weight
@@ -172,7 +184,9 @@ impl<C, E> GuardEvaluator<C, E> for WeightedCompositeGuard<C, E> {
 
     fn clone_guard(&self) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(Self {
-            weighted_guards: self.weighted_guards.iter()
+            weighted_guards: self
+                .weighted_guards
+                .iter()
                 .map(|(guard, weight)| (guard.clone_guard(), *weight))
                 .collect(),
             min_weight: self.min_weight,
@@ -294,7 +308,8 @@ where
             &self.false_guards
         };
 
-        let results: Vec<bool> = guards.iter()
+        let results: Vec<bool> = guards
+            .iter()
             .map(|guard| guard.check(context, event))
             .collect();
 

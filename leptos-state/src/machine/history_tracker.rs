@@ -39,10 +39,13 @@ impl<C: Send + Sync + Clone + 'static> HistoryTracker<C> {
             return;
         }
 
-        let entry = HistoryEntry::new(state_id.to_string(), context)
-            .with_event(event.unwrap_or_default());
+        let entry =
+            HistoryEntry::new(state_id.to_string(), context).with_event(event.unwrap_or_default());
 
-        let state_history = self.history.entry(state_id.to_string()).or_insert_with(Vec::new);
+        let state_history = self
+            .history
+            .entry(state_id.to_string())
+            .or_insert_with(Vec::new);
 
         // Add the entry
         state_history.push(entry);
@@ -59,20 +62,23 @@ impl<C: Send + Sync + Clone + 'static> HistoryTracker<C> {
 
     /// Get the last recorded state for a given state ID
     pub fn get_last_state(&self, state_id: &str) -> Option<&HistoryEntry<C>> {
-        self.history.get(state_id)
+        self.history
+            .get(state_id)
             .and_then(|entries| entries.last())
     }
 
     /// Get the last N states for a given state ID
     pub fn get_last_n_states(&self, state_id: &str, n: usize) -> Vec<&HistoryEntry<C>> {
-        self.history.get(state_id)
+        self.history
+            .get(state_id)
             .map(|entries| entries.iter().rev().take(n).collect())
             .unwrap_or_default()
     }
 
     /// Get all history for a specific state
     pub fn get_history(&self, state_id: &str) -> Vec<&HistoryEntry<C>> {
-        self.history.get(state_id)
+        self.history
+            .get(state_id)
             .map(|entries| entries.iter().collect())
             .unwrap_or_default()
     }
@@ -83,7 +89,9 @@ impl<C: Send + Sync + Clone + 'static> HistoryTracker<C> {
     }
 
     /// Get mutable access to all history (for persistence)
-    pub fn get_all_history_mut(&mut self) -> &mut std::collections::HashMap<String, Vec<HistoryEntry<C>>> {
+    pub fn get_all_history_mut(
+        &mut self,
+    ) -> &mut std::collections::HashMap<String, Vec<HistoryEntry<C>>> {
         &mut self.history
     }
 
@@ -144,10 +152,14 @@ impl<C: Send + Sync + Clone + 'static> HistoryTracker<C> {
             all_entries.truncate(max_total);
 
             // Rebuild history map with only kept entries
-            let mut new_history: std::collections::HashMap<String, Vec<HistoryEntry<C>>> = std::collections::HashMap::new();
+            let mut new_history: std::collections::HashMap<String, Vec<HistoryEntry<C>>> =
+                std::collections::HashMap::new();
 
             for (state_id, entry) in all_entries {
-                new_history.entry(state_id).or_insert_with(Vec::new).push(entry);
+                new_history
+                    .entry(state_id)
+                    .or_insert_with(Vec::new)
+                    .push(entry);
             }
 
             // Sort entries by timestamp within each state
@@ -213,36 +225,51 @@ impl<C: Send + Sync + Clone + 'static> HistoryTracker<C> {
 
     /// Check if a state has any history
     pub fn has_history(&self, state_id: &str) -> bool {
-        self.history.get(state_id)
+        self.history
+            .get(state_id)
             .map(|entries| !entries.is_empty())
             .unwrap_or(false)
     }
 
     /// Get the oldest entry for a state
     pub fn get_oldest_entry(&self, state_id: &str) -> Option<&HistoryEntry<C>> {
-        self.history.get(state_id)
+        self.history
+            .get(state_id)
             .and_then(|entries| entries.first())
     }
 
     /// Get the newest entry for a state
     pub fn get_newest_entry(&self, state_id: &str) -> Option<&HistoryEntry<C>> {
-        self.history.get(state_id)
+        self.history
+            .get(state_id)
             .and_then(|entries| entries.last())
     }
 
     /// Get entries for a state within a time range
-    pub fn get_entries_in_range(&self, state_id: &str, start: std::time::Instant, end: std::time::Instant) -> Vec<&HistoryEntry<C>> {
-        self.history.get(state_id)
-            .map(|entries| entries.iter()
-                .filter(|entry| entry.timestamp >= start && entry.timestamp <= end)
-                .collect())
+    pub fn get_entries_in_range(
+        &self,
+        state_id: &str,
+        start: std::time::Instant,
+        end: std::time::Instant,
+    ) -> Vec<&HistoryEntry<C>> {
+        self.history
+            .get(state_id)
+            .map(|entries| {
+                entries
+                    .iter()
+                    .filter(|entry| entry.timestamp >= start && entry.timestamp <= end)
+                    .collect()
+            })
             .unwrap_or_default()
     }
 
     /// Merge another history tracker into this one
     pub fn merge(&mut self, other: &HistoryTracker<C>) {
         for (state_id, other_entries) in &other.history {
-            let entries = self.history.entry(state_id.clone()).or_insert_with(Vec::new);
+            let entries = self
+                .history
+                .entry(state_id.clone())
+                .or_insert_with(Vec::new);
             entries.extend(other_entries.iter().cloned());
         }
 

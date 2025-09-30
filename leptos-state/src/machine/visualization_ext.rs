@@ -3,7 +3,7 @@
 use super::*;
 
 /// Extension trait for adding visualization to machines
-pub trait MachineVisualizationExt<C: Send + Sync, E> {
+pub trait MachineVisualizationExt<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
     /// Create a visualizer for this machine
     fn visualizer(&self) -> MachineVisualizer<C, E>;
 
@@ -20,7 +20,7 @@ pub trait MachineVisualizationExt<C: Send + Sync, E> {
     fn monitor(&self) -> StateMonitor<C, E>;
 }
 
-impl<C: Send + Sync, E> MachineVisualizationExt<C, E> for Machine<C, E, C> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> MachineVisualizationExt<C, E> for Machine<C, E, C> {
     fn visualizer(&self) -> MachineVisualizer<C, E> {
         MachineVisualizer::new().with_machine(self.clone())
     }
@@ -46,7 +46,7 @@ impl<C: Send + Sync, E> MachineVisualizationExt<C, E> for Machine<C, E, C> {
 
 /// A state machine with visualization capabilities
 #[derive(Debug)]
-pub struct VisualizedMachine<C: Send + Sync, E> {
+pub struct VisualizedMachine<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
     /// The underlying machine
     pub machine: Machine<C, E, C>,
     /// The visualizer
@@ -57,7 +57,7 @@ pub struct VisualizedMachine<C: Send + Sync, E> {
     pub debugger: TimeTravelDebugger<C, E>,
 }
 
-impl<C: Send + Sync, E> VisualizedMachine<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> VisualizedMachine<C, E> {
     /// Create a new visualized machine
     pub fn new(machine: Machine<C, E, C>) -> Self {
         let visualizer = machine.visualizer();
@@ -193,7 +193,7 @@ impl<C: Send + Sync, E> VisualizedMachine<C, E> {
 }
 
 /// Automatic visualization integration
-pub struct AutoVisualizer<C: Send + Sync, E> {
+pub struct AutoVisualizer<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
     /// The visualized machine
     pub machine: VisualizedMachine<C, E>,
     /// Auto-export settings
@@ -214,7 +214,7 @@ pub struct AutoExportSettings {
     pub last_export: Option<std::time::Instant>,
 }
 
-impl<C: Send + Sync, E> AutoVisualizer<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> AutoVisualizer<C, E> {
     /// Create a new auto visualizer
     pub fn new(machine: Machine<C, E, C>) -> Self {
         Self {
@@ -292,12 +292,12 @@ pub mod visualization {
     use super::*;
 
     /// Create a basic visualizer
-    pub fn visualizer<C: Send + Sync, E>(machine: &Machine<C, E, C>) -> MachineVisualizer<C, E> {
+    pub fn visualizer<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static>(machine: &Machine<C, E, C>) -> MachineVisualizer<C, E> {
         machine.visualizer()
     }
 
     /// Create a visualizer with custom config
-    pub fn visualizer_with_config<C: Send + Sync, E>(
+    pub fn visualizer_with_config<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static>(
         machine: &Machine<C, E, C>,
         config: VisualizationConfig,
     ) -> MachineVisualizer<C, E> {
@@ -305,12 +305,14 @@ pub mod visualization {
     }
 
     /// Create a visualized machine
-    pub fn visualized_machine<C: Send + Sync, E>(machine: Machine<C, E, C>) -> VisualizedMachine<C, E> {
+    pub fn visualized_machine<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static>(
+        machine: Machine<C, E, C>,
+    ) -> VisualizedMachine<C, E> {
         VisualizedMachine::new(machine)
     }
 
     /// Create an auto-visualizer
-    pub fn auto_visualizer<C: Send + Sync, E>(machine: Machine<C, E, C>) -> AutoVisualizer<C, E> {
+    pub fn auto_visualizer<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static>(machine: Machine<C, E, C>) -> AutoVisualizer<C, E> {
         AutoVisualizer::new(machine)
     }
 

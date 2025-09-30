@@ -140,7 +140,8 @@ impl CoverageTracker {
 
     /// Get uncovered states
     pub fn uncovered_states(&self, all_states: &[String]) -> Vec<String> {
-        all_states.iter()
+        all_states
+            .iter()
             .filter(|state| !self.covered_states.contains(*state))
             .cloned()
             .collect()
@@ -148,7 +149,8 @@ impl CoverageTracker {
 
     /// Get uncovered transitions
     pub fn uncovered_transitions(&self, all_transitions: &[String]) -> Vec<String> {
-        all_transitions.iter()
+        all_transitions
+            .iter()
             .filter(|transition| !self.covered_transitions.contains(*transition))
             .cloned()
             .collect()
@@ -156,7 +158,8 @@ impl CoverageTracker {
 
     /// Get uncovered guards
     pub fn uncovered_guards(&self, all_guards: &[String]) -> Vec<String> {
-        all_guards.iter()
+        all_guards
+            .iter()
             .filter(|guard| !self.covered_guards.contains(*guard))
             .cloned()
             .collect()
@@ -164,7 +167,8 @@ impl CoverageTracker {
 
     /// Get uncovered actions
     pub fn uncovered_actions(&self, all_actions: &[String]) -> Vec<String> {
-        all_actions.iter()
+        all_actions
+            .iter()
             .filter(|action| !self.covered_actions.contains(*action))
             .cloned()
             .collect()

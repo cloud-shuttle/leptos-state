@@ -3,7 +3,7 @@
 use super::*;
 
 /// Integration metrics
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct IntegrationMetrics {
     /// Total events sent
     pub events_sent: std::sync::atomic::AtomicU64,
@@ -27,6 +27,21 @@ pub struct IntegrationMetrics {
     pub last_reset: std::sync::Mutex<Option<std::time::Instant>>,
 }
 
+impl Clone for IntegrationMetrics {
+    fn clone(&self) -> Self {
+        Self {
+            events_sent: std::sync::atomic::AtomicU64::new(self.events_sent.load(std::sync::atomic::Ordering::SeqCst)),
+            events_received: std::sync::atomic::AtomicU64::new(self.events_received.load(std::sync::atomic::Ordering::SeqCst)),
+            events_filtered: std::sync::atomic::AtomicU64::new(self.events_filtered.load(std::sync::atomic::Ordering::SeqCst)),
+            events_unrouted: std::sync::atomic::AtomicU64::new(self.events_unrouted.load(std::sync::atomic::Ordering::SeqCst)),
+            errors_total: std::sync::atomic::AtomicU64::new(self.errors_total.load(std::sync::atomic::Ordering::SeqCst)),
+            adapter_metrics: std::sync::Mutex::new(self.adapter_metrics.lock().unwrap().clone()),
+            start_time: self.start_time,
+            last_reset: std::sync::Mutex::new(*self.last_reset.lock().unwrap()),
+        }
+    }
+}
+
 impl IntegrationMetrics {
     /// Create a new metrics instance
     pub fn new() -> Self {
@@ -46,44 +61,53 @@ impl IntegrationMetrics {
 
     /// Record a sent event
     pub fn record_sent_event(&self) {
-        self.events_sent.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        self.events_sent
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     }
 
     /// Record received events
     pub fn record_received_events(&self, count: usize) {
-        self.events_received.fetch_add(count as u64, std::sync::atomic::Ordering::Relaxed);
+        self.events_received
+            .fetch_add(count as u64, std::sync::atomic::Ordering::Relaxed);
     }
 
     /// Record a filtered event
     pub fn record_filtered_event(&self) {
-        self.events_filtered.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        self.events_filtered
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     }
 
     /// Record a filtered batch
     pub fn record_filtered_batch(&self, size: usize) {
-        self.batches_filtered.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-        self.events_filtered.fetch_add(size as u64, std::sync::atomic::Ordering::Relaxed);
+        self.batches_filtered
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        self.events_filtered
+            .fetch_add(size as u64, std::sync::atomic::Ordering::Relaxed);
     }
 
     /// Record an unrouted event
     pub fn record_unrouted_event(&self) {
-        self.events_unrouted.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        self.events_unrouted
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     }
 
     /// Record a processed batch
     pub fn record_processed_batch(&self) {
-        self.batches_processed.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        self.batches_processed
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     }
 
     /// Record an error
     pub fn record_error(&self) {
-        self.errors_total.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        self.errors_total
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     }
 
     /// Get adapter metrics
     pub fn get_adapter_metrics(&self, adapter_name: &str) -> AdapterMetrics {
         let mut metrics = self.adapter_metrics.lock().unwrap();
-        metrics.entry(adapter_name.to_string())
+        metrics
+            .entry(adapter_name.to_string())
             .or_insert_with(AdapterMetrics::new)
             .clone()
     }
@@ -97,11 +121,21 @@ impl IntegrationMetrics {
     /// Get summary statistics
     pub fn get_summary(&self) -> MetricsSummary {
         let events_sent = self.events_sent.load(std::sync::atomic::Ordering::Relaxed);
-        let events_received = self.events_received.load(std::sync::atomic::Ordering::Relaxed);
-        let events_filtered = self.events_filtered.load(std::sync::atomic::Ordering::Relaxed);
-        let events_unrouted = self.events_unrouted.load(std::sync::atomic::Ordering::Relaxed);
-        let batches_processed = self.batches_processed.load(std::sync::atomic::Ordering::Relaxed);
-        let batches_filtered = self.batches_filtered.load(std::sync::atomic::Ordering::Relaxed);
+        let events_received = self
+            .events_received
+            .load(std::sync::atomic::Ordering::Relaxed);
+        let events_filtered = self
+            .events_filtered
+            .load(std::sync::atomic::Ordering::Relaxed);
+        let events_unrouted = self
+            .events_unrouted
+            .load(std::sync::atomic::Ordering::Relaxed);
+        let batches_processed = self
+            .batches_processed
+            .load(std::sync::atomic::Ordering::Relaxed);
+        let batches_filtered = self
+            .batches_filtered
+            .load(std::sync::atomic::Ordering::Relaxed);
         let errors_total = self.errors_total.load(std::sync::atomic::Ordering::Relaxed);
 
         let total_events = events_sent + events_received;
@@ -127,13 +161,20 @@ impl IntegrationMetrics {
 
     /// Reset all metrics
     pub fn reset(&self) {
-        self.events_sent.store(0, std::sync::atomic::Ordering::Relaxed);
-        self.events_received.store(0, std::sync::atomic::Ordering::Relaxed);
-        self.events_filtered.store(0, std::sync::atomic::Ordering::Relaxed);
-        self.events_unrouted.store(0, std::sync::atomic::Ordering::Relaxed);
-        self.batches_processed.store(0, std::sync::atomic::Ordering::Relaxed);
-        self.batches_filtered.store(0, std::sync::atomic::Ordering::Relaxed);
-        self.errors_total.store(0, std::sync::atomic::Ordering::Relaxed);
+        self.events_sent
+            .store(0, std::sync::atomic::Ordering::Relaxed);
+        self.events_received
+            .store(0, std::sync::atomic::Ordering::Relaxed);
+        self.events_filtered
+            .store(0, std::sync::atomic::Ordering::Relaxed);
+        self.events_unrouted
+            .store(0, std::sync::atomic::Ordering::Relaxed);
+        self.batches_processed
+            .store(0, std::sync::atomic::Ordering::Relaxed);
+        self.batches_filtered
+            .store(0, std::sync::atomic::Ordering::Relaxed);
+        self.errors_total
+            .store(0, std::sync::atomic::Ordering::Relaxed);
 
         *self.adapter_metrics.lock().unwrap() = std::collections::HashMap::new();
         *self.last_reset.lock().unwrap() = Some(std::time::Instant::now());
@@ -146,23 +187,40 @@ impl IntegrationMetrics {
 
         output.push_str("# HELP integration_events_sent_total Total number of events sent\n");
         output.push_str("# TYPE integration_events_sent_total counter\n");
-        output.push_str(&format!("integration_events_sent_total {}\n", summary.events_sent));
+        output.push_str(&format!(
+            "integration_events_sent_total {}\n",
+            summary.events_sent
+        ));
 
-        output.push_str("# HELP integration_events_received_total Total number of events received\n");
+        output
+            .push_str("# HELP integration_events_received_total Total number of events received\n");
         output.push_str("# TYPE integration_events_received_total counter\n");
-        output.push_str(&format!("integration_events_received_total {}\n", summary.events_received));
+        output.push_str(&format!(
+            "integration_events_received_total {}\n",
+            summary.events_received
+        ));
 
-        output.push_str("# HELP integration_events_filtered_total Total number of events filtered\n");
+        output
+            .push_str("# HELP integration_events_filtered_total Total number of events filtered\n");
         output.push_str("# TYPE integration_events_filtered_total counter\n");
-        output.push_str(&format!("integration_events_filtered_total {}\n", summary.events_filtered));
+        output.push_str(&format!(
+            "integration_events_filtered_total {}\n",
+            summary.events_filtered
+        ));
 
         output.push_str("# HELP integration_errors_total Total number of errors\n");
         output.push_str("# TYPE integration_errors_total counter\n");
-        output.push_str(&format!("integration_errors_total {}\n", summary.errors_total));
+        output.push_str(&format!(
+            "integration_errors_total {}\n",
+            summary.errors_total
+        ));
 
         output.push_str("# HELP integration_success_rate Success rate percentage\n");
         output.push_str("# TYPE integration_success_rate gauge\n");
-        output.push_str(&format!("integration_success_rate {}\n", summary.success_rate));
+        output.push_str(&format!(
+            "integration_success_rate {}\n",
+            summary.success_rate
+        ));
 
         output
     }
@@ -325,14 +383,18 @@ impl PerformanceMonitor {
 
     /// Record response time
     pub fn record_response_time(&mut self, operation: &str, duration: std::time::Duration) {
-        let percentiles = self.response_times.entry(operation.to_string())
+        let percentiles = self
+            .response_times
+            .entry(operation.to_string())
             .or_insert_with(Percentiles::new);
         percentiles.add_sample(duration);
     }
 
     /// Record throughput
     pub fn record_throughput(&mut self, operation: &str, count: u64) {
-        let throughput = self.throughput.entry(operation.to_string())
+        let throughput = self
+            .throughput
+            .entry(operation.to_string())
             .or_insert_with(ThroughputMetrics::new);
         throughput.record_operations(count);
     }

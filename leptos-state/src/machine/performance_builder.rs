@@ -4,14 +4,19 @@ use super::*;
 use std::hash::Hash;
 
 /// Performance builder for fluent configuration
-pub struct PerformanceBuilder<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct PerformanceBuilder<
+    C: Send + Sync + Clone + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+> {
     /// Machine to optimize
     machine: Machine<C, E, C>,
     /// Performance configuration
     config: PerformanceConfig,
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> PerformanceBuilder<C, E> {
+impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+    PerformanceBuilder<C, E>
+{
     /// Create a new performance builder
     pub fn new(machine: Machine<C, E, C>) -> Self {
         Self {
@@ -181,12 +186,18 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
 }
 
 /// Extension trait for fluent performance optimization
-pub trait PerformanceOptimizationExt<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub trait PerformanceOptimizationExt<
+    C: Send + Sync + Clone + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+>
+{
     /// Start building performance optimizations
     fn optimize_performance(self) -> PerformanceBuilder<C, E>;
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> PerformanceOptimizationExt<C, E> for Machine<C, E, C> {
+impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+    PerformanceOptimizationExt<C, E> for Machine<C, E, C>
+{
     fn optimize_performance(self) -> PerformanceBuilder<C, E> {
         PerformanceBuilder::new(self)
     }
@@ -200,9 +211,9 @@ impl PerformancePresets {
     pub fn high_performance() -> PerformanceConfig {
         PerformanceConfig {
             enable_caching: true,
-            max_cache_size: 100 * 1024 * 1024, // 100MB
+            max_cache_size: 100 * 1024 * 1024,              // 100MB
             cache_ttl: std::time::Duration::from_secs(600), // 10 minutes
-            enable_lazy_evaluation: false, // Disable for speed
+            enable_lazy_evaluation: false,                  // Disable for speed
             enable_profiling: false,
             profile_sample_rate: 0.01, // Minimal profiling
             enable_memory_tracking: true,
@@ -217,7 +228,7 @@ impl PerformancePresets {
     pub fn memory_efficient() -> PerformanceConfig {
         PerformanceConfig {
             enable_caching: true,
-            max_cache_size: 10 * 1024 * 1024, // 10MB
+            max_cache_size: 10 * 1024 * 1024,              // 10MB
             cache_ttl: std::time::Duration::from_secs(60), // 1 minute
             enable_lazy_evaluation: true,
             enable_profiling: false,
@@ -234,7 +245,7 @@ impl PerformancePresets {
     pub fn development() -> PerformanceConfig {
         PerformanceConfig {
             enable_caching: true,
-            max_cache_size: 50 * 1024 * 1024, // 50MB
+            max_cache_size: 50 * 1024 * 1024,               // 50MB
             cache_ttl: std::time::Duration::from_secs(300), // 5 minutes
             enable_lazy_evaluation: true,
             enable_profiling: true,

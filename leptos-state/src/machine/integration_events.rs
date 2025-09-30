@@ -3,7 +3,7 @@
 use super::*;
 
 /// Integration event for external systems
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct IntegrationEvent {
     /// Unique event ID
     pub id: String,
@@ -147,7 +147,7 @@ impl EventPriority {
 }
 
 /// Error handling strategy
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum ErrorHandlingStrategy {
     /// Ignore errors and continue
     Ignore,
@@ -161,6 +161,19 @@ pub enum ErrorHandlingStrategy {
     DeadLetterQueue,
     /// Custom error handler
     Custom(Box<dyn Fn(&IntegrationError) -> ErrorAction + Send + Sync>),
+}
+
+impl Clone for ErrorHandlingStrategy {
+    fn clone(&self) -> Self {
+        match self {
+            Self::Ignore => Self::Ignore,
+            Self::LogAndContinue => Self::LogAndContinue,
+            Self::Retry => Self::Retry,
+            Self::FailFast => Self::FailFast,
+            Self::DeadLetterQueue => Self::DeadLetterQueue,
+            Self::Custom(_) => Self::Ignore, // Can't clone trait objects, fallback to Ignore
+        }
+    }
 }
 
 impl ErrorHandlingStrategy {
@@ -383,7 +396,7 @@ impl EventBatch {
 }
 
 /// Event filter for selective processing
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct EventFilter {
     /// Event types to include (None means all)
     pub include_event_types: Option<Vec<String>>,
@@ -399,6 +412,20 @@ pub struct EventFilter {
     pub max_priority: Option<EventPriority>,
     /// Custom filter function
     pub custom_filter: Option<Box<dyn Fn(&IntegrationEvent) -> bool + Send + Sync>>,
+}
+
+impl Clone for EventFilter {
+    fn clone(&self) -> Self {
+        Self {
+            include_event_types: self.include_event_types.clone(),
+            exclude_event_types: self.exclude_event_types.clone(),
+            include_sources: self.include_sources.clone(),
+            exclude_sources: self.exclude_sources.clone(),
+            min_priority: self.min_priority,
+            max_priority: self.max_priority,
+            custom_filter: None, // Can't clone trait objects
+        }
+    }
 }
 
 impl EventFilter {

@@ -21,7 +21,7 @@ use crate::machine::performance::{
 };
 
 /// Builder for creating state machines
-pub struct MachineBuilderImpl<C: Send + Sync, E: Send + Sync> {
+pub struct MachineBuilderImpl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
     pub states: HashMap<String, StateNode<C, E, C>>,
     pub initial: String,
     _phantom: PhantomData<(C, E)>,
@@ -277,8 +277,10 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Machine
     }
 }
 
-impl<C: Clone + 'static + std::fmt::Debug + Send + Sync, E: Clone + 'static + std::fmt::Debug + Send + Sync>
-    Default for MachineBuilderImpl<C, E>
+impl<
+        C: Clone + 'static + std::fmt::Debug + Send + Sync,
+        E: Clone + 'static + std::fmt::Debug + Send + Sync,
+    > Default for MachineBuilderImpl<C, E>
 {
     fn default() -> Self {
         Self::new()

@@ -171,7 +171,7 @@ impl RoutingRule {
 }
 
 /// Event pattern for routing
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct EventPattern {
     /// Event type pattern (supports wildcards)
     pub event_type: String,
@@ -181,6 +181,17 @@ pub struct EventPattern {
     pub priority: Option<EventPriority>,
     /// Custom match function
     pub custom_matcher: Option<Box<dyn Fn(&IntegrationEvent) -> bool + Send + Sync>>,
+}
+
+impl Clone for EventPattern {
+    fn clone(&self) -> Self {
+        Self {
+            event_type: self.event_type.clone(),
+            source: self.source.clone(),
+            priority: self.priority,
+            custom_matcher: None, // Can't clone trait objects
+        }
+    }
 }
 
 impl EventPattern {
@@ -273,7 +284,7 @@ impl EventPattern {
 }
 
 /// Event transformation for routing
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct EventTransformation {
     /// New event type
     pub new_event_type: Option<String>,
@@ -283,6 +294,17 @@ pub struct EventTransformation {
     pub new_priority: Option<EventPriority>,
     /// Data transformation function
     pub data_transformer: Option<Box<dyn Fn(serde_json::Value) -> serde_json::Value + Send + Sync>>,
+}
+
+impl Clone for EventTransformation {
+    fn clone(&self) -> Self {
+        Self {
+            new_event_type: self.new_event_type.clone(),
+            new_source: self.new_source.clone(),
+            new_priority: self.new_priority,
+            data_transformer: None, // Can't clone trait objects
+        }
+    }
 }
 
 impl EventTransformation {
@@ -504,7 +526,9 @@ pub enum Credentials {
     /// API key
     ApiKey { key: String, header_name: String },
     /// Custom credentials
-    Custom { headers: std::collections::HashMap<String, String> },
+    Custom {
+        headers: std::collections::HashMap<String, String>,
+    },
 }
 
 /// Connection pool configuration

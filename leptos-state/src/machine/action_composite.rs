@@ -41,7 +41,8 @@ where
     }
 }
 
-impl<C: Send + Sync + 'static, E: Send + Sync + 'static, F> Action<C, E> for ConditionalAction<C, E, F>
+impl<C: Send + Sync + 'static, E: Send + Sync + 'static, F> Action<C, E>
+    for ConditionalAction<C, E, F>
 where
     F: Fn(&C, &E) -> bool + Clone + Send + Sync + 'static,
 {
@@ -186,7 +187,11 @@ where
     }
 
     fn description(&self) -> String {
-        format!("{} ({} parallel actions)", self.description, self.actions.len())
+        format!(
+            "{} ({} parallel actions)",
+            self.description,
+            self.actions.len()
+        )
     }
 
     fn clone_action(&self) -> Box<dyn Action<C, E>> {
@@ -271,7 +276,8 @@ impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for Compos
                     let index = (std::time::SystemTime::now()
                         .duration_since(std::time::UNIX_EPOCH)
                         .unwrap()
-                        .as_nanos() as usize) % self.actions.len();
+                        .as_nanos() as usize)
+                        % self.actions.len();
                     if let Some(action) = self.actions.get(index) {
                         action.execute(context, event);
                     }
@@ -285,7 +291,8 @@ impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for Compos
                     let mut random = (std::time::SystemTime::now()
                         .duration_since(std::time::UNIX_EPOCH)
                         .unwrap()
-                        .as_nanos() as f64) % total_weight;
+                        .as_nanos() as f64)
+                        % total_weight;
 
                     for (i, weight) in weights.iter().enumerate() {
                         random -= weight;

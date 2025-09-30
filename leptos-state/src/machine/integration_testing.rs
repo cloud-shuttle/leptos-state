@@ -1,8 +1,8 @@
 //! Integration testing for state machines
 
 use super::*;
-use std::time::Duration;
 use std::hash::Hash;
+use std::time::Duration;
 
 /// Integration test scenario
 #[derive(Debug, Clone, PartialEq)]
@@ -43,7 +43,10 @@ pub struct IntegrationTestResult {
 }
 
 /// Integration test runner
-pub struct IntegrationTestRunner<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct IntegrationTestRunner<
+    C: Send + Sync + Clone + PartialEq + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+> {
     /// Machine being tested
     pub machine: Machine<C, E, C>,
     /// Test scenarios
@@ -52,7 +55,11 @@ pub struct IntegrationTestRunner<C: Send + Sync + Clone + PartialEq + 'static, E
     pub config: TestConfig,
 }
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> IntegrationTestRunner<C, E> {
+impl<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    > IntegrationTestRunner<C, E>
+{
     /// Create a new integration test runner
     pub fn new(machine: Machine<C, E, C>, config: TestConfig) -> Self {
         Self {
@@ -69,7 +76,8 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
 
     /// Run all integration tests
     pub fn run_all_tests(&self) -> Vec<IntegrationTestResult> {
-        self.scenarios.iter()
+        self.scenarios
+            .iter()
             .map(|scenario| self.run_scenario(scenario))
             .collect()
     }
@@ -92,15 +100,19 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
         let final_state = current_state.value.to_string();
 
         // Check if the test passed
-        let passed = final_state == scenario.expected_final_state && 
-                    current_context == scenario.expected_final_context;
+        let passed = final_state == scenario.expected_final_state
+            && current_context == scenario.expected_final_context;
 
         IntegrationTestResult {
             scenario_name: scenario.name.clone(),
             passed,
             execution_time,
             final_state,
-            error_message: if passed { None } else { Some("Integration test failed".to_string()) },
+            error_message: if passed {
+                None
+            } else {
+                Some("Integration test failed".to_string())
+            },
             coverage: TestCoverage {
                 state_coverage: 0.0,
                 transition_coverage: 0.0,
@@ -124,10 +136,10 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
 
         // Basic workflow scenario
         scenarios.push(self.create_basic_workflow_scenario());
-        
+
         // Error handling scenario
         scenarios.push(self.create_error_handling_scenario());
-        
+
         // Performance scenario
         scenarios.push(self.create_performance_scenario());
 

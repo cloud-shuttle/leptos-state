@@ -1,11 +1,11 @@
-use std::collections::HashMap;
-use std::marker::PhantomData;
 use super::core_actions::Action;
+use super::core_errors::MachineError;
 use super::core_guards::Guard;
+use super::core_state::StateNode;
 use super::types_config::MachineConfig;
 use super::types_history::MachineHistory;
-use super::core_errors::MachineError;
-use super::core_state::StateNode;
+use std::collections::HashMap;
+use std::marker::PhantomData;
 
 /// Core Machine implementation
 pub struct Machine<S, E, C>
@@ -55,7 +55,9 @@ where
     }
 
     pub fn transition(&mut self, event: E) -> Result<(), MachineError> {
-        let current_state = self.states.get(&self.current_state)
+        let current_state = self
+            .states
+            .get(&self.current_state)
             .ok_or_else(|| MachineError::InvalidState(self.current_state.clone()))?;
 
         let next_state = current_state.get_transition(&event)?;
@@ -110,7 +112,9 @@ where
         // Execute exit actions
         let from_state = self.states.get(from).unwrap();
         for action_name in &from_state.exit_actions {
-            let action = self.actions.get(action_name)
+            let action = self
+                .actions
+                .get(action_name)
                 .ok_or(MachineError::MissingAction(action_name.clone()))?;
             action.execute(&mut self.context, event);
         }
@@ -121,7 +125,9 @@ where
         // Execute entry actions
         let to_state = self.states.get(to).unwrap();
         for action_name in &to_state.entry_actions {
-            let action = self.actions.get(action_name)
+            let action = self
+                .actions
+                .get(action_name)
                 .ok_or(MachineError::MissingAction(action_name.clone()))?;
             action.execute(&mut self.context, event);
         }

@@ -103,6 +103,7 @@ macro_rules! create_store_type {
 }
 
 /// Reactive store that integrates with Leptos signals
+#[derive(Clone)]
 pub struct ReactiveStore<T: Clone + PartialEq + Send + Sync + 'static> {
     /// The current state value (simplified for now)
     state: std::sync::Arc<std::sync::RwLock<T>>,
@@ -149,6 +150,12 @@ impl<T: Clone + PartialEq + Send + Sync + 'static> Store for ReactiveStore<T> {
         let new_state = f(current);
         *self.state.write().unwrap() = new_state;
     }
+
+    fn update_boxed(&self, f: Box<dyn FnOnce(Self::State) -> Self::State + Send + Sync>) {
+        let current = self.state.read().unwrap().clone();
+        let new_state = f(current);
+        *self.state.write().unwrap() = new_state;
+    }
 }
 
 /// Async store for handling asynchronous state updates
@@ -157,6 +164,15 @@ pub struct AsyncStore<T: Clone + PartialEq + 'static> {
     pub store: SimpleStore<T>,
     /// Pending operations counter
     pub pending_ops: std::sync::atomic::AtomicU32,
+}
+
+impl<T: Clone + PartialEq + 'static> Clone for AsyncStore<T> {
+    fn clone(&self) -> Self {
+        Self {
+            store: self.store.clone(),
+            pending_ops: std::sync::atomic::AtomicU32::new(self.pending_ops.load(std::sync::atomic::Ordering::SeqCst)),
+        }
+    }
 }
 
 impl<T: Clone + PartialEq + 'static> AsyncStore<T> {
@@ -174,13 +190,15 @@ impl<T: Clone + PartialEq + 'static> AsyncStore<T> {
         F: FnOnce(T) -> Fut,
         Fut: std::future::Future<Output = T>,
     {
-        self.pending_ops.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        self.pending_ops
+            .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
 
         let current = self.store.get();
         let new_state = f(current).await;
 
         self.store.set(new_state);
-        self.pending_ops.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+        self.pending_ops
+            .fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
     }
 
     /// Check if there are pending operations
@@ -211,6 +229,10 @@ impl<T: Clone + PartialEq + Send + Sync + 'static> Store for AsyncStore<T> {
     {
         self.store.update(f);
     }
+
+    fn update_boxed(&self, f: Box<dyn FnOnce(Self::State) -> Self::State + Send + Sync>) {
+        self.store.update_boxed(f);
+    }
 }
 
 /// Middleware-enabled store
@@ -231,7 +253,8 @@ impl<T: Clone + PartialEq + 'static, M: 'static> MiddlewareStore<T, M> {
     }
 }
 
-impl<T: Clone + PartialEq + Send + Sync + 'static, M: Send + Sync + 'static> Store for MiddlewareStore<T, M>
+impl<T: Clone + PartialEq + Send + Sync + 'static, M: Send + Sync + 'static> Store
+    for MiddlewareStore<T, M>
 where
     M: StoreMiddleware<T>,
 {

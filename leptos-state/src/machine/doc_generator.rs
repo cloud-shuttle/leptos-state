@@ -1,14 +1,17 @@
 //! Documentation generator implementation
 
-use super::*;
-use std::hash::Hash;
 use super::doc_data::DocumentationData;
-use std::collections::HashMap;
-use crate::StateResult;
+use super::*;
 use crate::StateError;
+use crate::StateResult;
+use std::collections::HashMap;
+use std::hash::Hash;
 
 /// Documentation generator for state machines
-pub struct DocumentationGenerator<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct DocumentationGenerator<
+    C: Send + Sync + Clone + PartialEq + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+> {
     /// Machine being documented
     pub machine: Machine<C, E, C>,
     /// Configuration
@@ -17,7 +20,11 @@ pub struct DocumentationGenerator<C: Send + Sync + Clone + PartialEq + 'static, 
     pub data: DocumentationData,
 }
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> DocumentationGenerator<C, E> {
+impl<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    > DocumentationGenerator<C, E>
+{
     /// Create a new documentation generator
     pub fn new(machine: Machine<C, E, C>, config: DocumentationConfig) -> Self {
         Self {
@@ -44,20 +51,33 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
         let mut content = String::new();
 
         // Header
-        content.push_str(&format!("# {} State Machine Documentation\n\n", self.data.machine_name));
-        content.push_str(&format!("**Generated:** {}\n\n", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")));
+        content.push_str(&format!(
+            "# {} State Machine Documentation\n\n",
+            self.data.machine_name
+        ));
+        content.push_str(&format!(
+            "**Generated:** {}\n\n",
+            chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
+        ));
 
         // Overview
         content.push_str("## Overview\n\n");
-        content.push_str(&format!("This documentation describes a state machine with {} states and {} transitions.\n\n",
-            self.data.states.len(), self.data.transitions.len()));
+        content.push_str(&format!(
+            "This documentation describes a state machine with {} states and {} transitions.\n\n",
+            self.data.states.len(),
+            self.data.transitions.len()
+        ));
 
         // States section
         content.push_str("## States\n\n");
         content.push_str("| State | Description |\n");
         content.push_str("|-------|-------------|\n");
         for state in &self.data.states {
-            content.push_str(&format!("| {} | {} |\n", state.name, state.description.as_deref().unwrap_or("")));
+            content.push_str(&format!(
+                "| {} | {} |\n",
+                state.name,
+                state.description.as_deref().unwrap_or("")
+            ));
         }
         content.push_str("\n");
 
@@ -66,7 +86,8 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
         content.push_str("| From | To | Event | Guards | Actions |\n");
         content.push_str("|------|----|-------|--------|---------|\n");
         for transition in &self.data.transitions {
-            content.push_str(&format!("| {} | {} | {} | {} | {} |\n",
+            content.push_str(&format!(
+                "| {} | {} | {} | {} | {} |\n",
                 transition.from_state,
                 transition.to_state,
                 transition.event,
@@ -80,7 +101,10 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
         if self.config.include_details && !self.data.actions.is_empty() {
             content.push_str("## Actions\n\n");
             for action in &self.data.actions {
-                content.push_str(&format!("### {}\n\n{}\n\n", action.name, action.description));
+                content.push_str(&format!(
+                    "### {}\n\n{}\n\n",
+                    action.name, action.description
+                ));
             }
         }
 
@@ -110,7 +134,8 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
 
     /// Generate HTML documentation
     pub fn generate_html(&self) -> StateResult<GeneratedDocument> {
-        let mut content = format!(r#"<!DOCTYPE html>
+        let mut content = format!(
+            r#"<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -125,7 +150,11 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
     <p><strong>Generated:</strong> {}</p>
 "#,
             self.data.machine_name,
-            if self.config.styling.dark_theme { HtmlStyling::dark_theme_css() } else { HtmlStyling::default_css() },
+            if self.config.styling.dark_theme {
+                HtmlStyling::dark_theme_css()
+            } else {
+                HtmlStyling::default_css()
+            },
             self.data.machine_name,
             chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
         );
@@ -133,7 +162,8 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
         // States section
         content.push_str("<h2>States</h2>\n<table>\n<thead>\n<tr><th>State</th><th>Description</th></tr>\n</thead>\n<tbody>\n");
         for state in &self.data.states {
-            content.push_str(&format!("<tr><td>{}</td><td>{}</td></tr>\n",
+            content.push_str(&format!(
+                "<tr><td>{}</td><td>{}</td></tr>\n",
                 state.name,
                 state.description.as_deref().unwrap_or("")
             ));
@@ -143,7 +173,8 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
         // Transitions section
         content.push_str("<h2>Transitions</h2>\n<table>\n<thead>\n<tr><th>From</th><th>To</th><th>Event</th><th>Guards</th><th>Actions</th></tr>\n</thead>\n<tbody>\n");
         for transition in &self.data.transitions {
-            content.push_str(&format!("<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>\n",
+            content.push_str(&format!(
+                "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>\n",
                 transition.from_state,
                 transition.to_state,
                 transition.event,
@@ -165,8 +196,9 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
 
     /// Generate JSON documentation
     pub fn generate_json(&self) -> StateResult<GeneratedDocument> {
-        let json_data = serde_json::to_string_pretty(&self.data)
-            .map_err(|e| StateError::DocumentationError(format!("JSON serialization failed: {}", e)))?;
+        let json_data = serde_json::to_string_pretty(&self.data).map_err(|e| {
+            StateError::DocumentationError(format!("JSON serialization failed: {}", e))
+        })?;
 
         Ok(GeneratedDocument {
             format: DocumentationFormat::Json,
@@ -179,16 +211,26 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
     /// Generate plain text documentation
     pub fn generate_text(&self) -> StateResult<GeneratedDocument> {
         let mut content = format!("{} State Machine Documentation\n", self.data.machine_name);
-        content.push_str(&format!("Generated: {}\n\n", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")));
+        content.push_str(&format!(
+            "Generated: {}\n\n",
+            chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
+        ));
 
         content.push_str("STATES:\n");
         for state in &self.data.states {
-            content.push_str(&format!("  {}: {}\n", state.name, state.description.as_deref().unwrap_or("")));
+            content.push_str(&format!(
+                "  {}: {}\n",
+                state.name,
+                state.description.as_deref().unwrap_or("")
+            ));
         }
 
         content.push_str("\nTRANSITIONS:\n");
         for transition in &self.data.transitions {
-            content.push_str(&format!("  {} -> {} on {}\n", transition.from_state, transition.to_state, transition.event));
+            content.push_str(&format!(
+                "  {} -> {} on {}\n",
+                transition.from_state, transition.to_state, transition.event
+            ));
             if !transition.guards.is_empty() {
                 content.push_str(&format!("    Guards: {}\n", transition.guards.join(", ")));
             }
@@ -207,7 +249,11 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
 
     /// Generate DOT format for graphviz
     pub fn generate_dot(&self) -> StateResult<GeneratedDocument> {
-        let content = format!("digraph \"{}\" {{\n{}\n}}\n", self.data.machine_name, self.generate_dot_content());
+        let content = format!(
+            "digraph \"{}\" {{\n{}\n}}\n",
+            self.data.machine_name,
+            self.generate_dot_content()
+        );
 
         Ok(GeneratedDocument {
             format: DocumentationFormat::Dot,
@@ -231,10 +277,9 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
 
         // Transitions
         for transition in &self.data.transitions {
-            content.push_str(&format!("{} --> {} : {}\n",
-                transition.from_state,
-                transition.to_state,
-                transition.event
+            content.push_str(&format!(
+                "{} --> {} : {}\n",
+                transition.from_state, transition.to_state, transition.event
             ));
         }
 
@@ -267,10 +312,9 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
 
         // Transitions
         for transition in &self.data.transitions {
-            content.push_str(&format!("  {} -> {} [label=\"{}\"];\n",
-                transition.from_state,
-                transition.to_state,
-                transition.event
+            content.push_str(&format!(
+                "  {} -> {} [label=\"{}\"];\n",
+                transition.from_state, transition.to_state, transition.event
             ));
         }
 
@@ -299,7 +343,8 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
     fn generate_states_table(&self) -> String {
         let mut table = "| State | Description |\n|-------|-------------|\n".to_string();
         for state in &self.data.states {
-            table.push_str(&format!("| {} | {} |\n",
+            table.push_str(&format!(
+                "| {} | {} |\n",
                 state.name,
                 state.description.as_deref().unwrap_or("")
             ));
@@ -309,9 +354,12 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
 
     /// Generate transitions table for templates
     fn generate_transitions_table(&self) -> String {
-        let mut table = "| From | To | Event | Guards | Actions |\n|------|----|-------|--------|---------|\n".to_string();
+        let mut table =
+            "| From | To | Event | Guards | Actions |\n|------|----|-------|--------|---------|\n"
+                .to_string();
         for transition in &self.data.transitions {
-            table.push_str(&format!("| {} | {} | {} | {} | {} |\n",
+            table.push_str(&format!(
+                "| {} | {} | {} | {} | {} |\n",
                 transition.from_state,
                 transition.to_state,
                 transition.event,

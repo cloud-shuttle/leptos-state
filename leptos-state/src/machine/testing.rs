@@ -17,13 +17,13 @@
 //! - `test_macros`: Test macros and utilities
 
 // Re-export all testing functionality from the split modules
-pub use super::test_types::*;
-pub use super::test_runner::*;
-pub use super::test_cases::*;
-pub use super::property_testing::*;
-pub use super::integration_testing::*;
-pub use super::test_data_generation::*;
 pub use super::coverage_tracking::*;
+pub use super::integration_testing::*;
 pub use super::performance_tracking::*;
+pub use super::property_testing::*;
 pub use super::test_builder::*;
+pub use super::test_cases::*;
+pub use super::test_data_generation::*;
 pub use super::test_macros::*;
+pub use super::test_runner::*;
+pub use super::test_types::*;

@@ -69,7 +69,8 @@ impl PerformanceMetrics {
         } else {
             self.avg_transition_time = Duration::from_nanos(
                 ((self.avg_transition_time.as_nanos() * (self.total_transitions - 1) as u128)
-                 + duration.as_nanos()) / self.total_transitions as u128
+                    + duration.as_nanos())
+                    / self.total_transitions as u128,
             );
 
             if duration > self.max_transition_time {
@@ -301,16 +302,15 @@ impl PerformanceAnalysis {
 
     /// Update the performance score based on bottlenecks
     fn update_score(&mut self) {
-        let bottleneck_penalty: f64 = self.bottlenecks.iter()
-            .map(|b| b.severity)
-            .sum();
+        let bottleneck_penalty: f64 = self.bottlenecks.iter().map(|b| b.severity).sum();
 
         self.performance_score = (1.0 - bottleneck_penalty).max(0.0);
     }
 
     /// Get the most critical bottleneck
     pub fn critical_bottleneck(&self) -> Option<&PerformanceBottleneck> {
-        self.bottlenecks.iter()
+        self.bottlenecks
+            .iter()
             .max_by(|a, b| a.severity.partial_cmp(&b.severity).unwrap())
     }
 

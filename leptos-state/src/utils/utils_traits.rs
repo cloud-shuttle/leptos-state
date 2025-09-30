@@ -133,14 +133,19 @@ pub struct ErasedObservable {
     /// The observable implementation
     pub inner: Box<dyn std::any::Any + Send + Sync>,
     /// Clone function
-    pub clone_fn: Box<dyn Fn(&Box<dyn std::any::Any + Send + Sync>) -> Box<dyn std::any::Any + Send + Sync> + Send + Sync>,
+    pub clone_fn: Box<
+        dyn Fn(&Box<dyn std::any::Any + Send + Sync>) -> Box<dyn std::any::Any + Send + Sync>
+            + Send
+            + Sync,
+    >,
 }
 
 impl ErasedObservable {
     /// Create a new erased observable
     pub fn new<T: Clone + Send + Sync + 'static>(value: T) -> Self {
         let clone_fn = |inner: &Box<dyn std::any::Any + Send + Sync>| {
-            inner.downcast_ref::<T>()
+            inner
+                .downcast_ref::<T>()
                 .map(|v| Box::new(v.clone()) as Box<dyn std::any::Any + Send + Sync>)
                 .unwrap_or_else(|| Box::new(()) as Box<dyn std::any::Any + Send + Sync>)
         };
@@ -155,7 +160,6 @@ impl ErasedObservable {
     pub fn as_ref<T: 'static>(&self) -> Option<&T> {
         self.inner.downcast_ref()
     }
-
 }
 
 /// Builder pattern trait

@@ -63,7 +63,8 @@ impl<C, E> ActionBuilder<C, E> {
     where
         F: Fn(&C, &E) -> bool + Clone + 'static,
     {
-        self.actions.push(Box::new(ConditionalAction::new(condition, action)));
+        self.actions
+            .push(Box::new(ConditionalAction::new(condition, action)));
         self
     }
 
@@ -81,56 +82,59 @@ impl<C, E> ActionBuilder<C, E> {
 
     /// Add a retry action
     pub fn retry(mut self, action: Box<dyn Action<C, E>>, max_attempts: usize) -> Self {
-        self.actions.push(Box::new(RetryAction::new(action, max_attempts)));
+        self.actions
+            .push(Box::new(RetryAction::new(action, max_attempts)));
         self
     }
 
     /// Add a timer action
     pub fn timer(mut self, action: Box<dyn Action<C, E>>, timer_name: String) -> Self {
-        self.actions.push(Box::new(TimerAction::new(action, timer_name)));
+        self.actions
+            .push(Box::new(TimerAction::new(action, timer_name)));
         self
     }
 
     /// Add a metrics action
     pub fn metrics(mut self, action: Box<dyn Action<C, E>>, metrics_name: String) -> Self {
-        self.actions.push(Box::new(MetricsAction::new(action, metrics_name)));
+        self.actions
+            .push(Box::new(MetricsAction::new(action, metrics_name)));
         self
     }
 
     /// Add a timeout action
     pub fn timeout(mut self, action: Box<dyn Action<C, E>>, timeout: std::time::Duration) -> Self {
-        self.actions.push(Box::new(TimeoutAction::new(action, timeout)));
+        self.actions
+            .push(Box::new(TimeoutAction::new(action, timeout)));
         self
     }
 
     /// Add a circuit breaker action
     pub fn circuit_breaker(mut self, action: Box<dyn Action<C, E>>, name: String) -> Self {
-        self.actions.push(Box::new(CircuitBreakerAction::new(action, name)));
+        self.actions
+            .push(Box::new(CircuitBreakerAction::new(action, name)));
         self
     }
 
     /// Add a composite action
     pub fn composite(mut self, actions: Vec<Box<dyn Action<C, E>>>, logic: CompositeLogic) -> Self {
-        self.actions.push(Box::new(CompositeAction::new(actions, logic)));
+        self.actions
+            .push(Box::new(CompositeAction::new(actions, logic)));
         self
     }
 
     /// Build a sequential action from all added actions
     pub fn build_sequential(self) -> Box<dyn Action<C, E>> {
-        Box::new(SequentialAction::new(self.actions)
-            .with_description(self.description))
+        Box::new(SequentialAction::new(self.actions).with_description(self.description))
     }
 
     /// Build a parallel action from all added actions
     pub fn build_parallel(self) -> Box<dyn Action<C, E>> {
-        Box::new(ParallelAction::new(self.actions)
-            .with_description(self.description))
+        Box::new(ParallelAction::new(self.actions).with_description(self.description))
     }
 
     /// Build a composite action from all added actions
     pub fn build_composite(self, logic: CompositeLogic) -> Box<dyn Action<C, E>> {
-        Box::new(CompositeAction::new(self.actions, logic)
-            .with_description(self.description))
+        Box::new(CompositeAction::new(self.actions, logic).with_description(self.description))
     }
 
     /// Get all built actions
@@ -259,17 +263,37 @@ impl ActionExecution {
 /// Extension trait for executing actions with detailed results
 pub trait ActionExecutor<C, E> {
     /// Execute an action and return detailed execution information
-    fn execute_with_result(&self, action: &dyn Action<C, E>, context: &mut C, event: &E) -> ActionExecution;
+    fn execute_with_result(
+        &self,
+        action: &dyn Action<C, E>,
+        context: &mut C,
+        event: &E,
+    ) -> ActionExecution;
 
     /// Execute multiple actions and return their results
-    fn execute_batch(&self, actions: &[Box<dyn Action<C, E>>], context: &mut C, event: &E) -> Vec<ActionExecution>;
+    fn execute_batch(
+        &self,
+        actions: &[Box<dyn Action<C, E>>],
+        context: &mut C,
+        event: &E,
+    ) -> Vec<ActionExecution>;
 
     /// Execute actions with error handling
-    fn execute_safe(&self, actions: &[Box<dyn Action<C, E>>], context: &mut C, event: &E) -> Vec<Result<ActionExecution, String>>;
+    fn execute_safe(
+        &self,
+        actions: &[Box<dyn Action<C, E>>],
+        context: &mut C,
+        event: &E,
+    ) -> Vec<Result<ActionExecution, String>>;
 }
 
 impl<C, E> ActionExecutor<C, E> for Vec<Box<dyn Action<C, E>>> {
-    fn execute_with_result(&self, action: &dyn Action<C, E>, context: &mut C, event: &E) -> ActionExecution {
+    fn execute_with_result(
+        &self,
+        action: &dyn Action<C, E>,
+        context: &mut C,
+        event: &E,
+    ) -> ActionExecution {
         let mut execution = ActionExecution::new(action.description());
 
         // Record memory before (simplified)
@@ -285,19 +309,29 @@ impl<C, E> ActionExecutor<C, E> for Vec<Box<dyn Action<C, E>>> {
         // Record memory after (simplified)
         let memory_after = 0; // Would get actual memory usage
 
-        execution
-            .with_memory(memory_before, memory_after)
-            .success()
+        execution.with_memory(memory_before, memory_after).success()
     }
 
-    fn execute_batch(&self, actions: &[Box<dyn Action<C, E>>], context: &mut C, event: &E) -> Vec<ActionExecution> {
-        actions.iter()
+    fn execute_batch(
+        &self,
+        actions: &[Box<dyn Action<C, E>>],
+        context: &mut C,
+        event: &E,
+    ) -> Vec<ActionExecution> {
+        actions
+            .iter()
             .map(|action| self.execute_with_result(action.as_ref(), context, event))
             .collect()
     }
 
-    fn execute_safe(&self, actions: &[Box<dyn Action<C, E>>], context: &mut C, event: &E) -> Vec<Result<ActionExecution, String>> {
-        actions.iter()
+    fn execute_safe(
+        &self,
+        actions: &[Box<dyn Action<C, E>>],
+        context: &mut C,
+        event: &E,
+    ) -> Vec<Result<ActionExecution, String>> {
+        actions
+            .iter()
             .map(|action| {
                 // In a real implementation, this would catch panics and errors
                 Ok(self.execute_with_result(action.as_ref(), context, event))
@@ -332,7 +366,10 @@ pub mod actions {
     }
 
     /// Create a conditional action
-    pub fn conditional<C, E, F>(condition: F, action: Box<dyn Action<C, E>>) -> Box<dyn Action<C, E>>
+    pub fn conditional<C, E, F>(
+        condition: F,
+        action: Box<dyn Action<C, E>>,
+    ) -> Box<dyn Action<C, E>>
     where
         F: Fn(&C, &E) -> bool + Clone + 'static,
     {
@@ -350,7 +387,10 @@ pub mod actions {
     }
 
     /// Create a retry action
-    pub fn retry<C, E>(action: Box<dyn Action<C, E>>, max_attempts: usize) -> Box<dyn Action<C, E>> {
+    pub fn retry<C, E>(
+        action: Box<dyn Action<C, E>>,
+        max_attempts: usize,
+    ) -> Box<dyn Action<C, E>> {
         Box::new(RetryAction::new(action, max_attempts))
     }
 
@@ -360,7 +400,10 @@ pub mod actions {
     }
 
     /// Create a metrics action
-    pub fn metrics<C, E>(action: Box<dyn Action<C, E>>, metrics_name: String) -> Box<dyn Action<C, E>> {
+    pub fn metrics<C, E>(
+        action: Box<dyn Action<C, E>>,
+        metrics_name: String,
+    ) -> Box<dyn Action<C, E>> {
         Box::new(MetricsAction::new(action, metrics_name))
     }
 }

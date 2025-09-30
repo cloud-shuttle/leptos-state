@@ -1,6 +1,6 @@
 //! DevTools connector implementations
 
-use super::devtools_core::{DevToolsConnector, DevToolsConnection, StateUpdate};
+use super::devtools_core::{DevToolsConnection, DevToolsConnector, StateUpdate};
 use crate::utils::StateResult;
 
 /// WebSocket-based DevTools connector

@@ -11,8 +11,8 @@
 //! - `doc_builder`: Documentation builder for fluent configuration
 
 // Re-export all documentation functionality from the split modules
-pub use super::doc_config::*;
-pub use super::doc_styling::*;
-pub use super::doc_generator::*;
-pub use super::doc_data::*;
 pub use super::doc_builder::*;
+pub use super::doc_config::*;
+pub use super::doc_data::*;
+pub use super::doc_generator::*;
+pub use super::doc_styling::*;

@@ -1,11 +1,11 @@
 //! Property-based testing for state machines
 
 use super::*;
-use std::hash::Hash;
 use std::collections::HashMap;
+use std::hash::Hash;
 
 /// Property for property-based testing
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Property<C: Send + Sync, E> {
     /// Name of the property
     pub name: String,
@@ -48,7 +48,10 @@ pub struct PropertyTestResult {
 }
 
 /// Property-based test runner
-pub struct PropertyTestRunner<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct PropertyTestRunner<
+    C: Send + Sync + Clone + PartialEq + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+> {
     /// Machine being tested
     pub machine: Machine<C, E, C>,
     /// Properties to test
@@ -57,7 +60,11 @@ pub struct PropertyTestRunner<C: Send + Sync + Clone + PartialEq + 'static, E: C
     pub config: TestConfig,
 }
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> PropertyTestRunner<C, E> {
+impl<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    > PropertyTestRunner<C, E>
+{
     /// Create a new property test runner
     pub fn new(machine: Machine<C, E, C>, config: TestConfig) -> Self {
         Self {
@@ -74,7 +81,8 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
 
     /// Run all property tests
     pub fn run_all_tests(&self) -> Vec<PropertyTestResult> {
-        self.properties.iter()
+        self.properties
+            .iter()
             .map(|property| self.test_property(property))
             .collect()
     }
@@ -87,20 +95,24 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
 
         for i in 0..property.test_count {
             let test_start = std::time::Instant::now();
-            
+
             // Generate test data
             let (context, event, state) = self.generate_test_data();
-            
+
             // Check the property
             let passed = (property.check_fn)(&context, &event, &state);
-            
+
             let execution_time = test_start.elapsed();
-            
+
             results.push(PropertyResult {
                 passed,
                 tests_run: 1,
                 tests_passed: if passed { 1 } else { 0 },
-                counterexample: if !passed { Some(format!("Test {} failed", i)) } else { None },
+                counterexample: if !passed {
+                    Some(format!("Test {} failed", i))
+                } else {
+                    None
+                },
                 execution_time,
             });
 
@@ -131,13 +143,17 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
                 MachineStateImpl {
                     value: crate::machine::states::StateValue::Simple("test".to_string()),
                     context: std::mem::zeroed(), // This is unsafe and should be replaced
-                }
+                },
             )
         }
     }
 
     /// Create a property that checks state invariants
-    pub fn create_state_invariant_property(&self, name: String, description: String) -> Property<C, E> {
+    pub fn create_state_invariant_property(
+        &self,
+        name: String,
+        description: String,
+    ) -> Property<C, E> {
         Property {
             name,
             description,
@@ -151,7 +167,11 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
     }
 
     /// Create a property that checks transition invariants
-    pub fn create_transition_invariant_property(&self, name: String, description: String) -> Property<C, E> {
+    pub fn create_transition_invariant_property(
+        &self,
+        name: String,
+        description: String,
+    ) -> Property<C, E> {
         Property {
             name,
             description,

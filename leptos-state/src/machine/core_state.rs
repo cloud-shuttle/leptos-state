@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use super::types_basic::StateType;
 use super::core_errors::MachineError;
+use super::types_basic::StateType;
+use std::collections::HashMap;
 
 /// State node definition
 #[derive(Debug)]
@@ -47,7 +47,8 @@ where
     }
 
     pub fn get_transition(&self, event: &E) -> Result<&String, MachineError> {
-        self.transitions.get(event)
+        self.transitions
+            .get(event)
             .ok_or(MachineError::InvalidTransition)
     }
 

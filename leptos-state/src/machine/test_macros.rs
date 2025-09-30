@@ -6,7 +6,11 @@ use super::*;
 #[macro_export]
 macro_rules! test_case {
     ($name:expr, $description:expr, $initial_context:expr) => {
-        TestCase::new($name.to_string(), $description.to_string(), $initial_context)
+        TestCase::new(
+            $name.to_string(),
+            $description.to_string(),
+            $initial_context,
+        )
     };
 }
 
@@ -46,21 +50,17 @@ macro_rules! test_step {
     ($event:expr) => {
         TestCaseStep::new($event)
     };
-    ($event:expr, $expected_state:expr) => {
-        {
-            let mut step = TestCaseStep::new($event);
-            step.expect_state($expected_state.to_string());
-            step
-        }
-    };
-    ($event:expr, $expected_state:expr, $expected_context:expr) => {
-        {
-            let mut step = TestCaseStep::new($event);
-            step.expect_state($expected_state.to_string());
-            step.expect_context($expected_context.to_string());
-            step
-        }
-    };
+    ($event:expr, $expected_state:expr) => {{
+        let mut step = TestCaseStep::new($event);
+        step.expect_state($expected_state.to_string());
+        step
+    }};
+    ($event:expr, $expected_state:expr, $expected_context:expr) => {{
+        let mut step = TestCaseStep::new($event);
+        step.expect_state($expected_state.to_string());
+        step.expect_context($expected_context.to_string());
+        step
+    }};
 }
 
 /// Macro for creating test configurations
@@ -69,27 +69,21 @@ macro_rules! test_config {
     () => {
         TestConfig::default()
     };
-    (max_iterations: $max_iterations:expr) => {
-        {
-            let mut config = TestConfig::default();
-            config.max_iterations = $max_iterations;
-            config
-        }
-    };
-    (timeout: $timeout:expr) => {
-        {
-            let mut config = TestConfig::default();
-            config.timeout = $timeout;
-            config
-        }
-    };
-    (coverage_threshold: $threshold:expr) => {
-        {
-            let mut config = TestConfig::default();
-            config.coverage_threshold = $threshold;
-            config
-        }
-    };
+    (max_iterations: $max_iterations:expr) => {{
+        let mut config = TestConfig::default();
+        config.max_iterations = $max_iterations;
+        config
+    }};
+    (timeout: $timeout:expr) => {{
+        let mut config = TestConfig::default();
+        config.timeout = $timeout;
+        config
+    }};
+    (coverage_threshold: $threshold:expr) => {{
+        let mut config = TestConfig::default();
+        config.coverage_threshold = $threshold;
+        config
+    }};
 }
 
 /// Macro for creating data generation configurations
@@ -98,20 +92,16 @@ macro_rules! data_gen_config {
     () => {
         DataGenerationConfig::default()
     };
-    (strategy: $strategy:expr) => {
-        {
-            let mut config = DataGenerationConfig::default();
-            config.strategy = $strategy;
-            config
-        }
-    };
-    (test_case_count: $count:expr) => {
-        {
-            let mut config = DataGenerationConfig::default();
-            config.test_case_count = $count;
-            config
-        }
-    };
+    (strategy: $strategy:expr) => {{
+        let mut config = DataGenerationConfig::default();
+        config.strategy = $strategy;
+        config
+    }};
+    (test_case_count: $count:expr) => {{
+        let mut config = DataGenerationConfig::default();
+        config.test_case_count = $count;
+        config
+    }};
 }
 
 /// Macro for creating test suites
@@ -153,9 +143,12 @@ macro_rules! assert_test_passed_with_message {
 #[macro_export]
 macro_rules! assert_coverage {
     ($result:expr, $threshold:expr) => {
-        assert!($result.coverage.overall_coverage() >= $threshold, 
-                "Coverage {} below threshold {}", 
-                $result.coverage.overall_coverage(), $threshold);
+        assert!(
+            $result.coverage.overall_coverage() >= $threshold,
+            "Coverage {} below threshold {}",
+            $result.coverage.overall_coverage(),
+            $threshold
+        );
     };
 }
 
@@ -163,12 +156,18 @@ macro_rules! assert_coverage {
 #[macro_export]
 macro_rules! assert_performance {
     ($result:expr, $max_time:expr, $max_memory:expr) => {
-        assert!($result.performance.max_transition_time <= $max_time, 
-                "Transition time {} exceeds maximum {}", 
-                $result.performance.max_transition_time, $max_time);
-        assert!($result.performance.memory_usage <= $max_memory, 
-                "Memory usage {} exceeds maximum {}", 
-                $result.performance.memory_usage, $max_memory);
+        assert!(
+            $result.performance.max_transition_time <= $max_time,
+            "Transition time {} exceeds maximum {}",
+            $result.performance.max_transition_time,
+            $max_time
+        );
+        assert!(
+            $result.performance.memory_usage <= $max_memory,
+            "Memory usage {} exceeds maximum {}",
+            $result.performance.memory_usage,
+            $max_memory
+        );
     };
 }
 
@@ -189,13 +188,11 @@ macro_rules! coverage_tracker {
     () => {
         CoverageTracker::new()
     };
-    ($states:expr, $transitions:expr, $guards:expr, $actions:expr) => {
-        {
-            let mut tracker = CoverageTracker::new();
-            tracker.set_totals($states, $transitions, $guards, $actions);
-            tracker
-        }
-    };
+    ($states:expr, $transitions:expr, $guards:expr, $actions:expr) => {{
+        let mut tracker = CoverageTracker::new();
+        tracker.set_totals($states, $transitions, $guards, $actions);
+        tracker
+    }};
 }
 
 /// Macro for creating performance trackers
@@ -209,26 +206,24 @@ macro_rules! performance_tracker {
 /// Macro for creating test reports
 #[macro_export]
 macro_rules! test_report {
-    ($results:expr) => {
-        {
-            let total_tests = $results.len();
-            let passed_tests = $results.iter().filter(|r| r.passed).count();
-            let failed_tests = total_tests - passed_tests;
-            let total_time: Duration = $results.iter().map(|r| r.execution_time).sum();
-            
-            format!(
-                "Test Report:\n\
+    ($results:expr) => {{
+        let total_tests = $results.len();
+        let passed_tests = $results.iter().filter(|r| r.passed).count();
+        let failed_tests = total_tests - passed_tests;
+        let total_time: Duration = $results.iter().map(|r| r.execution_time).sum();
+
+        format!(
+            "Test Report:\n\
                 Total Tests: {}\n\
                 Passed: {}\n\
                 Failed: {}\n\
                 Pass Rate: {:.1}%\n\
                 Total Time: {:?}",
-                total_tests,
-                passed_tests,
-                failed_tests,
-                (passed_tests as f64 / total_tests as f64) * 100.0,
-                total_time
-            )
-        }
-    };
+            total_tests,
+            passed_tests,
+            failed_tests,
+            (passed_tests as f64 / total_tests as f64) * 100.0,
+            total_time
+        )
+    }};
 }

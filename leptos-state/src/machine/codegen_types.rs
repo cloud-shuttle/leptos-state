@@ -258,7 +258,8 @@ impl StateGenInfo {
 
     /// Get all actions
     pub fn all_actions(&self) -> Vec<&str> {
-        self.entry_actions.iter()
+        self.entry_actions
+            .iter()
             .chain(self.exit_actions.iter())
             .map(|s| s.as_str())
             .collect()

@@ -1,9 +1,9 @@
 //! Infinite loading store for paginated data
 
-use leptos::prelude::*;
-use crate::compat::resources::create_resource;
 use super::async_store_core::AsyncStore;
+use crate::compat::resources::create_resource;
 use crate::utils::StateResult;
+use leptos::prelude::*;
 
 /// Infinite loading store for paginated data
 #[allow(async_fn_in_trait)]
@@ -43,13 +43,11 @@ where
 
     // Create resource for async loading using simplified API
     // Using simplified create_resource to avoid closure trait issues
-    let resource_handle: crate::compat::resources::Resource<_, I::State> = create_resource(
-        initial_input.clone(),
-        |input| {
+    let resource_handle: crate::compat::resources::Resource<_, I::State> =
+        create_resource(initial_input.clone(), |input| {
             // Simplified implementation that doesn't rely on async closures
             Default::default()
-        }
-    );
+        });
 
     // Effect to handle resource state changes
     Effect::new(move |_| {

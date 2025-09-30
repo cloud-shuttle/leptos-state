@@ -7,7 +7,7 @@
 //! - `async_store_infinite`: Infinite loading store for paginated data
 
 // Re-export all async store functionality from the split modules
+pub use super::async_store_cached::*;
 pub use super::async_store_core::*;
 pub use super::async_store_hooks::*;
-pub use super::async_store_cached::*;
 pub use super::async_store_infinite::*;

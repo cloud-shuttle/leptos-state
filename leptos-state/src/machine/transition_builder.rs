@@ -1,7 +1,7 @@
 use super::*;
 
 /// Transition builder for fluent API
-pub struct TransitionBuilder<C: Send + Sync, E: Send + Sync> {
+pub struct TransitionBuilder<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
     state_builder: StateBuilder<C, E>,
     event: E,
     target: String,
@@ -37,7 +37,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Transit
     /// Add a field equality guard
     pub fn guard_field_equals<T, F>(mut self, field_extractor: F, expected_value: T) -> Self
     where
-        F: Fn(&C) -> T + Send + Sync + 'static,
+        F: Fn(&C) -> T + Clone + Send + Sync + 'static,
         T: PartialEq + Send + Sync + 'static,
     {
         self.guards.push(Box::new(guards::FieldEqualityGuard::new(
@@ -120,7 +120,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Transit
     /// Finish the current transition and add an exit function to the current state
     pub fn on_exit_fn<F>(self, func: F) -> StateBuilder<C, E>
     where
-        F: Fn(&mut C, &E) + Send + Sync + 'static,
+        F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
     {
         let transition = Transition {
             event: self.event,

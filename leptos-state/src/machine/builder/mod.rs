@@ -1,8 +1,8 @@
+use crate::machine::core_errors::{MachineError, MachineResult};
 use crate::machine::core_machine::Machine;
 use crate::machine::core_state::StateNode;
-use crate::machine::types_basic::StateType;
-use crate::machine::core_errors::{MachineError, MachineResult};
 use crate::machine::core_traits::MachineBuilder;
+use crate::machine::types_basic::StateType;
 use std::collections::HashMap;
 
 // MachineBuilder trait is now defined in core.rs to avoid conflicts
@@ -27,7 +27,6 @@ where
     E: Clone + Send + Sync + 'static + std::hash::Hash + Eq,
     C: Clone + PartialEq + Send + Sync + Default + 'static,
 {
-
     fn new() -> Self {
         Self {
             states: HashMap::new(),
@@ -65,11 +64,15 @@ where
     }
 
     fn build_with_context(self, context: C) -> crate::StateResult<Machine<C, E, S>> {
-        let initial_state = self.initial_state
-            .ok_or(crate::StateError::StateNotFound("No initial state set".to_string()))?;
+        let initial_state = self.initial_state.ok_or(crate::StateError::StateNotFound(
+            "No initial state set".to_string(),
+        ))?;
 
         if !self.states.contains_key(&initial_state) {
-            return Err(crate::StateError::StateNotFound(format!("Initial state '{}' not found", initial_state)));
+            return Err(crate::StateError::StateNotFound(format!(
+                "Initial state '{}' not found",
+                initial_state
+            )));
         }
 
         let mut machine = Machine::new("built_machine".to_string(), context);
@@ -147,7 +150,7 @@ macro_rules! machine {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::machine::core::{StateType, StateNode};
+    use crate::machine::core::{StateNode, StateType};
     use crate::machine::machine::MachineState;
 
     #[derive(Clone, Debug, PartialEq)]

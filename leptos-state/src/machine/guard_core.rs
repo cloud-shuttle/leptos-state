@@ -129,12 +129,16 @@ pub trait GuardBatchEvaluator<C, E> {
 
     /// Check if all guards in the batch pass
     fn check_all(&self, context: &C, event: &E) -> bool {
-        self.evaluate_batch(context, event).iter().all(|(_, result)| *result)
+        self.evaluate_batch(context, event)
+            .iter()
+            .all(|(_, result)| *result)
     }
 
     /// Check if any guard in the batch passes
     fn check_any(&self, context: &C, event: &E) -> bool {
-        self.evaluate_batch(context, event).iter().any(|(_, result)| *result)
+        self.evaluate_batch(context, event)
+            .iter()
+            .any(|(_, result)| *result)
     }
 }
 

@@ -34,7 +34,7 @@ impl Default for PerformanceConfig {
     fn default() -> Self {
         Self {
             enable_caching: true,
-            max_cache_size: 10 * 1024 * 1024, // 10MB
+            max_cache_size: 10 * 1024 * 1024,    // 10MB
             cache_ttl: Duration::from_secs(300), // 5 minutes
             enable_lazy_evaluation: true,
             enable_profiling: false,

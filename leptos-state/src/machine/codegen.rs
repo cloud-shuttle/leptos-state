@@ -11,8 +11,8 @@
 //! - `codegen_builder`: Builder pattern for fluent configuration
 
 // Re-export all codegen functionality from the split modules
+pub use super::codegen_builder::*;
 pub use super::codegen_config::*;
 pub use super::codegen_core::*;
-pub use super::codegen_types::*;
 pub use super::codegen_ext::*;
-pub use super::codegen_builder::*;
+pub use super::codegen_types::*;

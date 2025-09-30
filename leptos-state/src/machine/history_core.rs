@@ -89,7 +89,8 @@ impl HistoryState {
 
     /// Get the default target, panicking if none is set
     pub fn default_target_required(&self) -> &str {
-        self.default_target.as_ref()
+        self.default_target
+            .as_ref()
             .expect("History state must have a default target")
     }
 
@@ -214,7 +215,8 @@ impl HistoryConfig {
 
     /// Get persistence key, panicking if persistence is not enabled
     pub fn persistence_key_required(&self) -> &str {
-        self.persistence_key.as_ref()
+        self.persistence_key
+            .as_ref()
             .expect("Persistence key must be set when persistence is enabled")
     }
 }
@@ -288,7 +290,11 @@ pub struct HistoryStats {
 
 impl HistoryStats {
     /// Update statistics with current history data
-    pub fn update<C: Clone + PartialEq + 'static>(&mut self, history: &[HistoryEntry<C>], state_count: usize) {
+    pub fn update<C: Clone + PartialEq + 'static>(
+        &mut self,
+        history: &[HistoryEntry<C>],
+        state_count: usize,
+    ) {
         self.total_entries = history.len();
         self.restored_entries = history.iter().filter(|e| e.restored).count();
         self.transitions_recorded = history.iter().filter(|e| e.event.is_some()).count();
@@ -298,11 +304,12 @@ impl HistoryStats {
         }
 
         // Rough memory estimate
-        self.memory_usage = history.iter()
+        self.memory_usage = history
+            .iter()
             .map(|entry| {
-                std::mem::size_of::<HistoryEntry<C>>() +
-                entry.state.len() +
-                entry.event.as_ref().map(|e| e.len()).unwrap_or(0)
+                std::mem::size_of::<HistoryEntry<C>>()
+                    + entry.state.len()
+                    + entry.event.as_ref().map(|e| e.len()).unwrap_or(0)
             })
             .sum();
     }

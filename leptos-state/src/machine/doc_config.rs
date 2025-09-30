@@ -79,7 +79,10 @@ impl DocumentationFormat {
 
     /// Check if this format supports diagrams
     pub fn supports_diagrams(&self) -> bool {
-        matches!(self, DocumentationFormat::Dot | DocumentationFormat::PlantUml | DocumentationFormat::Html)
+        matches!(
+            self,
+            DocumentationFormat::Dot | DocumentationFormat::PlantUml | DocumentationFormat::Html
+        )
     }
 }
 
@@ -120,7 +123,12 @@ impl DocumentationTemplate {
 
     /// Check if this template includes technical details
     pub fn includes_technical_details(&self) -> bool {
-        matches!(self, DocumentationTemplate::Default | DocumentationTemplate::Technical | DocumentationTemplate::Api)
+        matches!(
+            self,
+            DocumentationTemplate::Default
+                | DocumentationTemplate::Technical
+                | DocumentationTemplate::Api
+        )
     }
 }
 

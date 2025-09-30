@@ -3,7 +3,7 @@
 use super::*;
 
 /// Core trait for defining stores
-pub trait Store: Clone + Send + Sync + 'static {
+pub trait Store: Send + Sync + 'static {
     /// The state type this store manages
     type State: Clone + PartialEq + Send + Sync + 'static;
 
@@ -14,9 +14,15 @@ pub trait Store: Clone + Send + Sync + 'static {
     fn set(&self, state: Self::State);
 
     /// Update the state using a function
+    fn update_boxed(&self, f: Box<dyn FnOnce(Self::State) -> Self::State + Send + Sync>);
+
+    /// Update the state using a function (convenience method)
     fn update<F>(&self, f: F)
     where
-        F: FnOnce(Self::State) -> Self::State;
+        F: FnOnce(Self::State) -> Self::State + Send + Sync + 'static,
+    {
+        self.update_boxed(Box::new(f));
+    }
 }
 
 /// Context wrapper for store state

@@ -20,8 +20,14 @@ impl<C, E> AndGuard<C, E> {
     }
 
     /// Create a new AND guard with description
-    pub fn with_description(guards: Vec<Box<dyn GuardEvaluator<C, E>>>, description: String) -> Self {
-        Self { guards, description }
+    pub fn with_description(
+        guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
+        description: String,
+    ) -> Self {
+        Self {
+            guards,
+            description,
+        }
     }
 
     /// Add a guard to the AND condition
@@ -65,8 +71,14 @@ impl<C, E> OrGuard<C, E> {
     }
 
     /// Create a new OR guard with description
-    pub fn with_description(guards: Vec<Box<dyn GuardEvaluator<C, E>>>, description: String) -> Self {
-        Self { guards, description }
+    pub fn with_description(
+        guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
+        description: String,
+    ) -> Self {
+        Self {
+            guards,
+            description,
+        }
     }
 
     /// Add a guard to the OR condition
@@ -150,8 +162,14 @@ impl<C, E> XorGuard<C, E> {
     }
 
     /// Create a new XOR guard with description
-    pub fn with_description(guards: Vec<Box<dyn GuardEvaluator<C, E>>>, description: String) -> Self {
-        Self { guards, description }
+    pub fn with_description(
+        guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
+        description: String,
+    ) -> Self {
+        Self {
+            guards,
+            description,
+        }
     }
 
     /// Add a guard to the XOR condition
@@ -162,11 +180,19 @@ impl<C, E> XorGuard<C, E> {
 
 impl<C, E> GuardEvaluator<C, E> for XorGuard<C, E> {
     fn check(&self, context: &C, event: &E) -> bool {
-        self.guards.iter().filter(|guard| guard.check(context, event)).count() == 1
+        self.guards
+            .iter()
+            .filter(|guard| guard.check(context, event))
+            .count()
+            == 1
     }
 
     fn description(&self) -> String {
-        format!("{} (exactly one of {} conditions)", self.description, self.guards.len())
+        format!(
+            "{} (exactly one of {} conditions)",
+            self.description,
+            self.guards.len()
+        )
     }
 
     fn clone_guard(&self) -> Box<dyn GuardEvaluator<C, E>> {
@@ -195,8 +221,14 @@ impl<C, E> MajorityGuard<C, E> {
     }
 
     /// Create a new majority guard with description
-    pub fn with_description(guards: Vec<Box<dyn GuardEvaluator<C, E>>>, description: String) -> Self {
-        Self { guards, description }
+    pub fn with_description(
+        guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
+        description: String,
+    ) -> Self {
+        Self {
+            guards,
+            description,
+        }
     }
 
     /// Add a guard to the majority condition
@@ -207,12 +239,20 @@ impl<C, E> MajorityGuard<C, E> {
 
 impl<C, E> GuardEvaluator<C, E> for MajorityGuard<C, E> {
     fn check(&self, context: &C, event: &E) -> bool {
-        let passing_count = self.guards.iter().filter(|guard| guard.check(context, event)).count();
+        let passing_count = self
+            .guards
+            .iter()
+            .filter(|guard| guard.check(context, event))
+            .count();
         passing_count > self.guards.len() / 2
     }
 
     fn description(&self) -> String {
-        format!("{} (majority of {} conditions)", self.description, self.guards.len())
+        format!(
+            "{} (majority of {} conditions)",
+            self.description,
+            self.guards.len()
+        )
     }
 
     fn clone_guard(&self) -> Box<dyn GuardEvaluator<C, E>> {

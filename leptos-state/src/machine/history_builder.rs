@@ -4,7 +4,11 @@ use super::*;
 use std::hash::Hash;
 
 /// Builder extension for adding history states
-pub trait HistoryMachineBuilder<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub trait HistoryMachineBuilder<
+    C: Send + Sync + Clone + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+>
+{
     /// Add a history state to the machine being built
     fn history_state(&mut self, state: HistoryState) -> &mut Self;
 
@@ -16,7 +20,10 @@ pub trait HistoryMachineBuilder<C: Send + Sync + Clone + 'static, E: Clone + Sen
 }
 
 /// History-enabled machine builder
-pub struct HistoryMachineBuilderImpl<C: Send + Sync + Clone + Eq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct HistoryMachineBuilderImpl<
+    C: Send + Sync + Clone + Eq + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+> {
     /// The base machine builder
     pub base_builder: crate::machine::builder::MachineBuilderImpl<C, E, C>,
     /// History configuration
@@ -25,7 +32,9 @@ pub struct HistoryMachineBuilderImpl<C: Send + Sync + Clone + Eq + 'static, E: C
     pub history_states: Vec<HistoryState>,
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> HistoryMachineBuilderImpl<C, E> {
+impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+    HistoryMachineBuilderImpl<C, E>
+{
     /// Create a new history-enabled machine builder
     pub fn new(base_builder: crate::machine::builder::MachineBuilderImpl<C, E, C>) -> Self {
         Self {
@@ -59,7 +68,9 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
     }
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> HistoryMachineBuilder<C, E> for HistoryMachineBuilderImpl<C, E> {
+impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+    HistoryMachineBuilder<C, E> for HistoryMachineBuilderImpl<C, E>
+{
     fn history_state(&mut self, state: HistoryState) -> &mut Self {
         self.add_history_state(state);
         self
@@ -80,7 +91,10 @@ pub mod history_builder {
     use super::*;
 
     /// Create a new history machine builder
-    pub fn create_history_machine<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>() -> HistoryMachineBuilderImpl<C, E> {
+    pub fn create_history_machine<
+        C: Send + Sync + Clone + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    >() -> HistoryMachineBuilderImpl<C, E> {
         let base_builder = crate::machine::create_machine_builder();
         HistoryMachineBuilderImpl::new(base_builder)
     }
@@ -101,7 +115,10 @@ pub mod history_builder {
     }
 
     /// Create a history machine with common defaults
-    pub fn default_history_machine<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(
+    pub fn default_history_machine<
+        C: Send + Sync + Clone + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    >(
         initial_state: &str,
     ) -> HistoryMachineBuilderImpl<C, E> {
         let mut builder = create_history_machine();
@@ -118,8 +135,8 @@ pub mod history_builder {
         builder.with_history_config(config);
 
         // Add a default shallow history state
-        let history_state = HistoryState::shallow("H".to_string())
-            .default_target(initial_state.to_string());
+        let history_state =
+            HistoryState::shallow("H".to_string()).default_target(initial_state.to_string());
 
         builder.history_state(history_state);
 
@@ -132,12 +149,18 @@ pub mod factory {
     use super::*;
 
     /// Create a simple history machine
-    pub fn simple_history_machine<C: Send + Sync + Clone + Default + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(
+    pub fn simple_history_machine<
+        C: Send + Sync + Clone + Default + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    >(
         _states: Vec<&str>,
         initial_state: &str,
     ) -> Result<HistoryMachine<C, E>, String> {
         if !_states.contains(&initial_state) {
-            return Err(format!("Initial state '{}' not in states list", initial_state));
+            return Err(format!(
+                "Initial state '{}' not in states list",
+                initial_state
+            ));
         }
 
         let mut builder = history_builder::create_history_machine();
@@ -151,7 +174,10 @@ pub mod factory {
     }
 
     /// Create a history machine with persistence
-    pub fn persistent_history_machine<C: Send + Sync + Clone + Default + serde::Serialize + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(
+    pub fn persistent_history_machine<
+        C: Send + Sync + Clone + Default + serde::Serialize + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    >(
         _states: Vec<&str>,
         initial_state: &str,
         persistence_key: &str,
@@ -163,15 +189,18 @@ pub mod factory {
         builder.with_history_config(config);
 
         // Add history state
-        let history_state = HistoryState::deep("H".to_string())
-            .default_target(initial_state.to_string());
+        let history_state =
+            HistoryState::deep("H".to_string()).default_target(initial_state.to_string());
         builder.history_state(history_state);
 
         Ok(builder.build_with_history())
     }
 
     /// Create a memory-efficient history machine
-    pub fn memory_efficient_history_machine<C: Send + Sync + Clone + Default + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(
+    pub fn memory_efficient_history_machine<
+        C: Send + Sync + Clone + Default + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    >(
         _max_history_per_state: usize,
         max_total_history: usize,
     ) -> HistoryMachineBuilderImpl<C, E> {
@@ -249,7 +278,8 @@ pub mod utils {
     pub fn merge_history_snapshots<C: Send + Sync + Clone + 'static>(
         snapshots: Vec<HistorySnapshot<C>>,
     ) -> HistorySnapshot<C> {
-        let mut merged_history: std::collections::HashMap<String, Vec<HistoryEntry<C>>> = std::collections::HashMap::new();
+        let mut merged_history: std::collections::HashMap<String, Vec<HistoryEntry<C>>> =
+            std::collections::HashMap::new();
 
         for snapshot in snapshots {
             for (state_id, entries) in snapshot.history {
@@ -279,11 +309,12 @@ pub mod utils {
     }
 
     /// Import history from JSON
-    pub fn import_history_from_json<C: Send + Sync + Clone + for<'de> serde::Deserialize<'de> + 'static>(
+    pub fn import_history_from_json<
+        C: Send + Sync + Clone + for<'de> serde::Deserialize<'de> + 'static,
+    >(
         json: &str,
     ) -> Result<std::collections::HashMap<String, Vec<HistoryEntry<C>>>, String> {
-        serde_json::from_str(json)
-            .map_err(|e| format!("Failed to import history: {}", e))
+        serde_json::from_str(json).map_err(|e| format!("Failed to import history: {}", e))
     }
 }
 
@@ -328,21 +359,25 @@ pub mod handlers {
         }
 
         pub fn get_events_recorded(&self) -> u64 {
-            self.events_recorded.load(std::sync::atomic::Ordering::Relaxed)
+            self.events_recorded
+                .load(std::sync::atomic::Ordering::Relaxed)
         }
 
         pub fn get_cleanups_performed(&self) -> u64 {
-            self.cleanups_performed.load(std::sync::atomic::Ordering::Relaxed)
+            self.cleanups_performed
+                .load(std::sync::atomic::Ordering::Relaxed)
         }
     }
 
     impl<C: Send + Sync + Clone + 'static> HistoryEventHandler<C> for MetricsHistoryHandler {
         fn handle_event(&self, _event: &HistoryEntry<C>) {
-            self.events_recorded.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            self.events_recorded
+                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         }
 
         fn handle_cleanup(&self, _removed_count: usize) {
-            self.cleanups_performed.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            self.cleanups_performed
+                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         }
     }
 }

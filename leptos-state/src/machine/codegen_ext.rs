@@ -4,35 +4,61 @@ use super::*;
 use std::hash::Hash;
 
 /// Extension trait for adding code generation to machines
-pub trait MachineCodeGenExt<C: Send + Sync + Clone + PartialEq, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub trait MachineCodeGenExt<
+    C: Send + Sync + Clone + PartialEq,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+>
+{
     /// Generate code for this machine
     fn generate_code(&self, config: CodeGenConfig) -> Result<GeneratedFile, String>;
 
     /// Generate code with custom templates
-    fn generate_code_with_templates(&self, config: CodeGenConfig, templates: CodeTemplates) -> Result<GeneratedFile, String>;
+    fn generate_code_with_templates(
+        &self,
+        config: CodeGenConfig,
+        templates: CodeTemplates,
+    ) -> Result<GeneratedFile, String>;
 
     /// Generate code in multiple languages
-    fn generate_multi_language(&self, configs: Vec<CodeGenConfig>) -> Result<Vec<GeneratedFile>, String>;
+    fn generate_multi_language(
+        &self,
+        configs: Vec<CodeGenConfig>,
+    ) -> Result<Vec<GeneratedFile>, String>;
 
     /// Generate code and save to files
-    fn generate_and_save(&self, config: CodeGenConfig, output_dir: &std::path::Path) -> Result<Vec<std::path::PathBuf>, String>;
+    fn generate_and_save(
+        &self,
+        config: CodeGenConfig,
+        output_dir: &std::path::Path,
+    ) -> Result<Vec<std::path::PathBuf>, String>;
 }
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> MachineCodeGenExt<C, E> for Machine<C, E, C> {
+impl<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    > MachineCodeGenExt<C, E> for Machine<C, E, C>
+{
     fn generate_code(&self, config: CodeGenConfig) -> Result<GeneratedFile, String> {
         let mut generator: CodeGenerator<C, E> = CodeGenerator::new(config);
         let result: Result<GeneratedFile, String> = generator.generate(self);
         result
     }
 
-    fn generate_code_with_templates(&self, config: CodeGenConfig, templates: CodeTemplates) -> Result<GeneratedFile, String> {
+    fn generate_code_with_templates(
+        &self,
+        config: CodeGenConfig,
+        templates: CodeTemplates,
+    ) -> Result<GeneratedFile, String> {
         let mut generator: CodeGenerator<C, E> = CodeGenerator::new(config);
         generator.templates = templates;
         let result: Result<GeneratedFile, String> = generator.generate(self);
         result
     }
 
-    fn generate_multi_language(&self, configs: Vec<CodeGenConfig>) -> Result<Vec<GeneratedFile>, String> {
+    fn generate_multi_language(
+        &self,
+        configs: Vec<CodeGenConfig>,
+    ) -> Result<Vec<GeneratedFile>, String> {
         let mut results: Vec<GeneratedFile> = Vec::new();
 
         for config in configs {
@@ -44,7 +70,11 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
         Ok(results)
     }
 
-    fn generate_and_save(&self, config: CodeGenConfig, output_dir: &std::path::Path) -> Result<Vec<std::path::PathBuf>, String> {
+    fn generate_and_save(
+        &self,
+        config: CodeGenConfig,
+        output_dir: &std::path::Path,
+    ) -> Result<Vec<std::path::PathBuf>, String> {
         let mut generator: CodeGenerator<C, E> = CodeGenerator::new(config);
         let files: Vec<GeneratedFile> = generator.generate_separate_files(self)?;
 
@@ -59,13 +89,27 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
 }
 
 /// Extension trait for state machine builders
-pub trait MachineBuilderCodeGenExt<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub trait MachineBuilderCodeGenExt<
+    C: Send + Sync + Clone + PartialEq + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+>
+{
     /// Build and generate code
-    fn build_and_generate(self, config: CodeGenConfig) -> Result<(Machine<C, E, C>, GeneratedFile), String>;
+    fn build_and_generate(
+        self,
+        config: CodeGenConfig,
+    ) -> Result<(Machine<C, E, C>, GeneratedFile), String>;
 }
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> MachineBuilderCodeGenExt<C, E> for crate::machine::MachineBuilder<C, E> {
-    fn build_and_generate(self, config: CodeGenConfig) -> Result<(Machine<C, E, C>, GeneratedFile), String> {
+impl<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    > MachineBuilderCodeGenExt<C, E> for crate::machine::MachineBuilder<C, E>
+{
+    fn build_and_generate(
+        self,
+        config: CodeGenConfig,
+    ) -> Result<(Machine<C, E, C>, GeneratedFile), String> {
         let machine = self.build()?;
         let generated = machine.generate_code(config)?;
         Ok((machine, generated))
@@ -77,7 +121,10 @@ pub mod codegen {
     use super::*;
 
     /// Create a code generator for Rust
-    pub fn rust<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>() -> CodeGenerator<C, E> {
+    pub fn rust<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    >() -> CodeGenerator<C, E> {
         let config = CodeGenConfig {
             language: ProgrammingLanguage::Rust,
             ..Default::default()
@@ -86,7 +133,10 @@ pub mod codegen {
     }
 
     /// Create a code generator for TypeScript
-    pub fn typescript<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>() -> CodeGenerator<C, E> {
+    pub fn typescript<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    >() -> CodeGenerator<C, E> {
         let config = CodeGenConfig {
             language: ProgrammingLanguage::TypeScript,
             ..Default::default()
@@ -95,7 +145,10 @@ pub mod codegen {
     }
 
     /// Create a code generator for Python
-    pub fn python<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>() -> CodeGenerator<C, E> {
+    pub fn python<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    >() -> CodeGenerator<C, E> {
         let config = CodeGenConfig {
             language: ProgrammingLanguage::Python,
             ..Default::default()
@@ -104,12 +157,20 @@ pub mod codegen {
     }
 
     /// Create a code generator with custom config
-    pub fn with_config<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(config: CodeGenConfig) -> CodeGenerator<C, E> {
+    pub fn with_config<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    >(
+        config: CodeGenConfig,
+    ) -> CodeGenerator<C, E> {
         CodeGenerator::new(config)
     }
 
     /// Generate code for a machine
-    pub fn generate<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(
+    pub fn generate<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    >(
         machine: &Machine<C, E, C>,
         config: CodeGenConfig,
     ) -> Result<GeneratedFile, String> {
@@ -117,11 +178,15 @@ pub mod codegen {
     }
 
     /// Generate code in multiple languages
-    pub fn generate_multi<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(
+    pub fn generate_multi<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    >(
         machine: &Machine<C, E, C>,
         languages: Vec<ProgrammingLanguage>,
     ) -> Result<Vec<GeneratedFile>, String> {
-        let configs = languages.into_iter()
+        let configs = languages
+            .into_iter()
             .map(|lang| CodeGenConfig {
                 language: lang,
                 ..Default::default()
@@ -132,7 +197,10 @@ pub mod codegen {
     }
 
     /// Generate and save code
-    pub fn generate_and_save<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>(
+    pub fn generate_and_save<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    >(
         machine: &Machine<C, E, C>,
         config: CodeGenConfig,
         output_dir: &std::path::Path,
@@ -146,7 +214,10 @@ pub mod codegen {
     }
 
     /// Create custom templates
-    pub fn custom_templates(language: ProgrammingLanguage, machine_template: String) -> CodeTemplates {
+    pub fn custom_templates(
+        language: ProgrammingLanguage,
+        machine_template: String,
+    ) -> CodeTemplates {
         CodeTemplates {
             language,
             machine_template,
@@ -160,7 +231,10 @@ pub mod codegen {
 }
 
 /// Code generation pipeline for complex workflows
-pub struct CodeGenPipeline<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct CodeGenPipeline<
+    C: Send + Sync + Clone + PartialEq + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+> {
     /// Pipeline steps
     pub steps: Vec<Box<dyn CodeGenStep<C, E>>>,
     /// Pipeline configuration
@@ -190,7 +264,11 @@ impl Default for PipelineConfig {
     }
 }
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> CodeGenPipeline<C, E> {
+impl<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    > CodeGenPipeline<C, E>
+{
     /// Create a new pipeline
     pub fn new() -> Self {
         Self {
@@ -235,17 +313,23 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
             failed_steps: errors.len(),
             results,
             errors,
-            total_execution_time: results.iter()
-                .map(|r| r.generation_time)
-                .sum(),
+            total_execution_time: results.iter().map(|r| r.generation_time).sum(),
         })
     }
 }
 
 /// Code generation step trait
-pub trait CodeGenStep<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub trait CodeGenStep<
+    C: Send + Sync + Clone + PartialEq + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+>
+{
     /// Execute this step
-    fn execute(&self, machine: &Machine<C, E, C>, config: &PipelineConfig) -> Result<GeneratedFile, String>;
+    fn execute(
+        &self,
+        machine: &Machine<C, E, C>,
+        config: &PipelineConfig,
+    ) -> Result<GeneratedFile, String>;
 
     /// Get step name
     fn name(&self) -> &str;

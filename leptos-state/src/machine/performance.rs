@@ -14,10 +14,10 @@
 //! - `performance_builder`: Performance builder for fluent configuration
 
 // Re-export all performance functionality from the split modules
-pub use super::performance_config::*;
-pub use super::performance_metrics::*;
-pub use super::performance_profiler::*;
 pub use super::cache_system::*;
 pub use super::lazy_evaluation::*;
 pub use super::optimized_machine::*;
 pub use super::performance_builder::*;
+pub use super::performance_config::*;
+pub use super::performance_metrics::*;
+pub use super::performance_profiler::*;

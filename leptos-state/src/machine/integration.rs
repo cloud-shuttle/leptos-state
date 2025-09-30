@@ -12,9 +12,9 @@
 //! - `integration_ext`: Extension traits and fluent APIs
 
 // Re-export all integration functionality from the split modules
-pub use super::integration_config::*;
-pub use super::integration_events::*;
-pub use super::integration_core::*;
 pub use super::integration_adapters::*;
-pub use super::integration_metrics::*;
+pub use super::integration_config::*;
+pub use super::integration_core::*;
+pub use super::integration_events::*;
 pub use super::integration_ext::*;
+pub use super::integration_metrics::*;

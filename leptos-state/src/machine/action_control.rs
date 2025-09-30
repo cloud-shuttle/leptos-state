@@ -207,8 +207,12 @@ impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for Metric
         let end_memory = 0; // Would get actual memory usage
 
         // Record metrics
-        println!("[METRICS] {} - Duration: {:?}, Memory delta: {} bytes",
-            self.metrics_name, duration, end_memory as i64 - start_memory as i64);
+        println!(
+            "[METRICS] {} - Duration: {:?}, Memory delta: {} bytes",
+            self.metrics_name,
+            duration,
+            end_memory as i64 - start_memory as i64
+        );
 
         // In a real implementation, this would send metrics to a monitoring system
         for (key, value) in &self.tags {
@@ -345,7 +349,9 @@ impl<C, E> CircuitBreakerAction<C, E> {
     }
 }
 
-impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for CircuitBreakerAction<C, E> {
+impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E>
+    for CircuitBreakerAction<C, E>
+{
     fn name(&self) -> &str {
         "circuit_breaker"
     }
@@ -357,7 +363,10 @@ impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for Circui
     }
 
     fn description(&self) -> String {
-        format!("{} (circuit: {}, threshold: {})", self.description, self.name, self.failure_threshold)
+        format!(
+            "{} (circuit: {}, threshold: {})",
+            self.description, self.name, self.failure_threshold
+        )
     }
 
     fn clone_action(&self) -> Box<dyn Action<C, E>> {

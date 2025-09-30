@@ -9,7 +9,7 @@
 
 // Re-export all store functionality from the split modules
 pub use super::store_core::*;
+pub use super::store_memoized::*;
 pub use super::store_persistence::*;
 pub use super::store_selectors::*;
 pub use super::store_simple::*;
-pub use super::store_memoized::*;

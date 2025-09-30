@@ -8,13 +8,13 @@ use std::hash::Hash;
 pub trait TestDataGenerator<C, E> {
     /// Generate test context
     fn generate_context(&self) -> C;
-    
+
     /// Generate test event
     fn generate_event(&self) -> E;
-    
+
     /// Generate test context for a specific state
     fn generate_context_for_state(&self, state: &str) -> C;
-    
+
     /// Generate test event for a specific transition
     fn generate_event_for_transition(&self, from: &str, to: &str) -> E;
 }
@@ -28,19 +28,19 @@ impl<C, E> TestDataGenerator<C, E> for DefaultTestDataGenerator {
         // For now, return a placeholder
         unsafe { std::mem::zeroed() } // This is unsafe and should be replaced
     }
-    
+
     fn generate_event(&self) -> E {
         // This would generate appropriate test event
         // For now, return a placeholder
         unsafe { std::mem::zeroed() } // This is unsafe and should be replaced
     }
-    
+
     fn generate_context_for_state(&self, _state: &str) -> C {
         // This would generate context appropriate for the state
         // For now, return a placeholder
         unsafe { std::mem::zeroed() } // This is unsafe and should be replaced
     }
-    
+
     fn generate_event_for_transition(&self, _from: &str, _to: &str) -> E {
         // This would generate event appropriate for the transition
         // For now, return a placeholder
@@ -49,7 +49,7 @@ impl<C, E> TestDataGenerator<C, E> for DefaultTestDataGenerator {
 }
 
 /// Test data generator for specific machine types
-pub struct MachineTestDataGenerator<C: Send + Sync, E> {
+pub struct MachineTestDataGenerator<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
     /// Machine being tested
     pub machine: Machine<C, E, C>,
     /// Context templates
@@ -58,7 +58,11 @@ pub struct MachineTestDataGenerator<C: Send + Sync, E> {
     pub event_templates: HashMap<String, E>,
 }
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> MachineTestDataGenerator<C, E> {
+impl<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    > MachineTestDataGenerator<C, E>
+{
     /// Create a new machine test data generator
     pub fn new(machine: Machine<C, E, C>) -> Self {
         Self {
@@ -87,7 +91,7 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
             if let Some(state_node) = self.machine.states_map().get(&state_name) {
                 // Generate context for this state
                 let context = self.generate_context_for_state(&state_name);
-                
+
                 // Generate events for each transition
                 for transition in &state_node.transitions {
                     let event = transition.event.clone();
@@ -114,21 +118,21 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
     }
 }
 
-impl<C, E> TestDataGenerator<C, E> for MachineTestDataGenerator<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> TestDataGenerator<C, E> for MachineTestDataGenerator<C, E> {
     fn generate_context(&self) -> C {
         // Generate a random context
         unsafe { std::mem::zeroed() } // This is unsafe and should be replaced
     }
-    
+
     fn generate_event(&self) -> E {
         // Generate a random event
         unsafe { std::mem::zeroed() } // This is unsafe and should be replaced
     }
-    
+
     fn generate_context_for_state(&self, state: &str) -> C {
         self.generate_context_for_state(state)
     }
-    
+
     fn generate_event_for_transition(&self, from: &str, to: &str) -> E {
         self.generate_event_for_transition(from, to)
     }

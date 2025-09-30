@@ -99,7 +99,12 @@ impl<C, E> EnhancedActionExecutor<C, E> {
     }
 
     /// Execute a single action
-    pub fn execute_single(&self, action: &dyn Action<C, E>, context: &mut C, event: &E) -> ActionExecution {
+    pub fn execute_single(
+        &self,
+        action: &dyn Action<C, E>,
+        context: &mut C,
+        event: &E,
+    ) -> ActionExecution {
         let mut execution = ActionExecution::new(action.description());
 
         // Record memory before (simplified)
@@ -119,7 +124,11 @@ impl<C, E> EnhancedActionExecutor<C, E> {
     }
 
     /// Execute actions with advanced error handling
-    pub fn execute_with_error_handling(&mut self, context: &mut C, event: &E) -> ExecutionResult<C, E> {
+    pub fn execute_with_error_handling(
+        &mut self,
+        context: &mut C,
+        event: &E,
+    ) -> ExecutionResult<C, E> {
         let mut successful_actions = Vec::new();
         let mut failed_actions = Vec::new();
         let mut results = Vec::new();
@@ -294,7 +303,8 @@ where
                     error_strategy: executor.error_strategy.clone(),
                 };
 
-                let result = executor_clone.execute_with_error_handling(&mut contexts[i], &events[i]);
+                let result =
+                    executor_clone.execute_with_error_handling(&mut contexts[i], &events[i]);
                 results.push(result);
             }
         }

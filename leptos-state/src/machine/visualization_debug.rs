@@ -1,7 +1,7 @@
 //! Debugging tools for state machines
 
-use super::*;
 use super::visualization_data::MachineSnapshot;
+use super::*;
 
 /// Time travel debugger for state machines
 #[derive(Debug)]
@@ -55,7 +55,11 @@ impl<C: Send + Sync, E> TimeTravelDebugger<C, E> {
     /// Go to specific position
     pub fn go_to_position(&mut self, position: usize) -> Result<(), String> {
         if position >= self.snapshots.len() {
-            return Err(format!("Position {} is out of range (max: {})", position, self.snapshots.len() - 1));
+            return Err(format!(
+                "Position {} is out of range (max: {})",
+                position,
+                self.snapshots.len() - 1
+            ));
         }
         self.current_position = position;
         Ok(())
@@ -202,25 +206,35 @@ impl VisualizationStats {
         // Update state distribution
         self.state_distribution.clear();
         for event in &visualizer.state_history {
-            *self.state_distribution.entry(event.new_state.clone()).or_insert(0) += 1;
+            *self
+                .state_distribution
+                .entry(event.new_state.clone())
+                .or_insert(0) += 1;
         }
 
         // Update error distribution
         self.error_distribution.clear();
         for error in &visualizer.error_log {
-            *self.error_distribution.entry(error.error_type.clone()).or_insert(0) += 1;
+            *self
+                .error_distribution
+                .entry(error.error_type.clone())
+                .or_insert(0) += 1;
         }
 
         // Calculate average event time
         if !visualizer.performance_metrics.is_empty() {
-            let total_time: std::time::Duration = visualizer.performance_metrics.iter()
+            let total_time: std::time::Duration = visualizer
+                .performance_metrics
+                .iter()
                 .map(|e| e.duration)
                 .sum();
             self.avg_event_time = total_time / visualizer.performance_metrics.len() as u32;
         }
 
         // Update peak memory
-        self.peak_memory_usage = visualizer.performance_metrics.iter()
+        self.peak_memory_usage = visualizer
+            .performance_metrics
+            .iter()
             .map(|e| e.memory_after)
             .max()
             .unwrap_or(0);
@@ -230,14 +244,16 @@ impl VisualizationStats {
 
     /// Get most frequent state
     pub fn most_frequent_state(&self) -> Option<&str> {
-        self.state_distribution.iter()
+        self.state_distribution
+            .iter()
             .max_by_key(|(_, count)| *count)
             .map(|(state, _)| state.as_str())
     }
 
     /// Get most common error type
     pub fn most_common_error(&self) -> Option<&ErrorEventType> {
-        self.error_distribution.iter()
+        self.error_distribution
+            .iter()
             .max_by_key(|(_, count)| *count)
             .map(|(error_type, _)| error_type)
     }
@@ -333,7 +349,9 @@ impl<C: Send + Sync, E> Breakpoint<C, E> {
         match &self.breakpoint_type {
             BreakpointType::StateEntry(state) => event.to_state == *state,
             BreakpointType::StateExit(state) => event.from_state == *state,
-            BreakpointType::Transition { from, to } => event.from_state == *from && event.to_state == *to,
+            BreakpointType::Transition { from, to } => {
+                event.from_state == *from && event.to_state == *to
+            }
             BreakpointType::Event(event_type) => {
                 // Would need to check event type - simplified for now
                 false

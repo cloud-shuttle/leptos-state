@@ -1,12 +1,15 @@
 //! Documentation builder for fluent configuration
 
-use super::*;
-use std::hash::Hash;
 use super::doc_data::DocumentationData;
+use super::*;
 use crate::StateResult;
+use std::hash::Hash;
 
 /// Documentation builder for fluent configuration
-pub struct DocumentationBuilder<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct DocumentationBuilder<
+    C: Send + Sync + Clone + PartialEq + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+> {
     /// Machine being documented
     machine: Machine<C, E, C>,
     /// Configuration
@@ -15,7 +18,11 @@ pub struct DocumentationBuilder<C: Send + Sync + Clone + PartialEq + 'static, E:
     data: DocumentationData,
 }
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> DocumentationBuilder<C, E> {
+impl<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    > DocumentationBuilder<C, E>
+{
     /// Create a new documentation builder
     pub fn new(machine: Machine<C, E, C>) -> Self {
         let data = DocumentationData::new(machine.clone());
@@ -157,8 +164,9 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
     /// Build and save the documentation to a file
     pub fn build_and_save(self, path: Option<&std::path::Path>) -> StateResult<GeneratedDocument> {
         let document = self.build()?;
-        let file_path = path.map(|p| p.to_path_buf())
-            .unwrap_or_else(|| std::path::Path::new(&self.config.output_dir).join(document.full_filename()));
+        let file_path = path.map(|p| p.to_path_buf()).unwrap_or_else(|| {
+            std::path::Path::new(&self.config.output_dir).join(document.full_filename())
+        });
 
         // Create output directory if it doesn't exist
         if let Some(parent) = file_path.parent() {
@@ -191,19 +199,30 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
 }
 
 /// Extension trait for adding documentation to machines
-pub trait MachineDocumentationExt<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub trait MachineDocumentationExt<
+    C: Send + Sync + Clone + PartialEq + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+>
+{
     /// Create a documentation builder for this machine
     fn document(&self) -> DocumentationBuilder<C, E>;
 }
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> MachineDocumentationExt<C, E> for Machine<C, E, C> {
+impl<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    > MachineDocumentationExt<C, E> for Machine<C, E, C>
+{
     fn document(&self) -> DocumentationBuilder<C, E> {
         DocumentationBuilder::new(self.clone())
     }
 }
 
 /// Batch documentation generation
-pub struct DocumentationBatch<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct DocumentationBatch<
+    C: Send + Sync + Clone + PartialEq + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+> {
     /// Machines to document
     machines: Vec<(String, Machine<C, E, C>)>,
     /// Base configuration
@@ -212,7 +231,11 @@ pub struct DocumentationBatch<C: Send + Sync + Clone + PartialEq + 'static, E: C
     documents: Vec<GeneratedDocument>,
 }
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> DocumentationBatch<C, E> {
+impl<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    > DocumentationBatch<C, E>
+{
     /// Create a new documentation batch
     pub fn new(base_config: DocumentationConfig) -> Self {
         Self {

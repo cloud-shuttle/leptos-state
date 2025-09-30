@@ -144,7 +144,13 @@ pub enum StorageType {
 impl StorageType {
     /// Check if storage type is browser-based
     pub fn is_browser_storage(&self) -> bool {
-        matches!(self, StorageType::LocalStorage | StorageType::SessionStorage | StorageType::IndexedDB | StorageType::WebSQL)
+        matches!(
+            self,
+            StorageType::LocalStorage
+                | StorageType::SessionStorage
+                | StorageType::IndexedDB
+                | StorageType::WebSQL
+        )
     }
 
     /// Check if storage type is server-side
@@ -365,11 +371,17 @@ impl std::fmt::Display for PersistenceError {
         match self {
             PersistenceError::StorageError(msg) => write!(f, "Storage error: {}", msg),
             PersistenceError::SerializationError(msg) => write!(f, "Serialization error: {}", msg),
-            PersistenceError::DeserializationError(msg) => write!(f, "Deserialization error: {}", msg),
+            PersistenceError::DeserializationError(msg) => {
+                write!(f, "Deserialization error: {}", msg)
+            }
             PersistenceError::ValidationError(msg) => write!(f, "Validation error: {}", msg),
             PersistenceError::ConfigError(msg) => write!(f, "Configuration error: {}", msg),
             PersistenceError::VersionError { current, required } => {
-                write!(f, "Version error: current={}, required={}", current, required)
+                write!(
+                    f,
+                    "Version error: current={}, required={}",
+                    current, required
+                )
             }
             PersistenceError::BackupError(msg) => write!(f, "Backup error: {}", msg),
             PersistenceError::RestoreError(msg) => write!(f, "Restore error: {}", msg),

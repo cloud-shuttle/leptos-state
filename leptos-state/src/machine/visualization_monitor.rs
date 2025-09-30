@@ -21,7 +21,7 @@ pub struct StateMonitor<C: Send + Sync + std::fmt::Debug, E: std::fmt::Debug> {
     pub stats: MonitoringStats,
 }
 
-impl<C: Send + Sync, E> StateMonitor<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateMonitor<C, E> {
     /// Create a new state monitor
     pub fn new() -> Self {
         Self {
@@ -90,7 +90,11 @@ impl<C: Send + Sync, E> StateMonitor<C, E> {
         }
 
         self.stats.total_errors += 1;
-        *self.stats.error_counts.entry(error.error_type.clone()).or_insert(0) += 1;
+        *self
+            .stats
+            .error_counts
+            .entry(error.error_type.clone())
+            .or_insert(0) += 1;
 
         for listener in &self.error_listeners {
             listener(error);
@@ -215,7 +219,7 @@ pub enum StateStatus {
     NeverEntered,
 }
 
-impl<C: Send + Sync, E> StateInfo<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateInfo<C, E> {
     /// Create a new state info for a state that was just entered
     pub fn entered(name: String, context: Option<C>) -> Self {
         Self {
@@ -259,9 +263,7 @@ impl<C: Send + Sync, E> StateInfo<C, E> {
     pub fn time_in_state(&self) -> std::time::Duration {
         match self.status {
             StateStatus::Active => self.entered_at.elapsed(),
-            StateStatus::Exited => {
-                self.exited_at.unwrap().duration_since(self.entered_at)
-            }
+            StateStatus::Exited => self.exited_at.unwrap().duration_since(self.entered_at),
             StateStatus::NeverEntered => std::time::Duration::from_nanos(0),
         }
     }
@@ -298,7 +300,7 @@ pub struct HealthChecker<C: Send + Sync, E> {
     pub last_check: Option<std::time::Instant>,
 }
 
-impl<C: Send + Sync, E> HealthChecker<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> HealthChecker<C, E> {
     /// Create a new health checker
     pub fn new() -> Self {
         Self {
@@ -315,7 +317,11 @@ impl<C: Send + Sync, E> HealthChecker<C, E> {
     }
 
     /// Perform health checks
-    pub fn perform_checks(&mut self, machine: &Machine<C, E, C>, monitor: &StateMonitor<C, E>) -> Vec<HealthCheckResult> {
+    pub fn perform_checks(
+        &mut self,
+        machine: &Machine<C, E, C>,
+        monitor: &StateMonitor<C, E>,
+    ) -> Vec<HealthCheckResult> {
         let now = std::time::Instant::now();
 
         // Check if enough time has passed since last check
@@ -340,16 +346,26 @@ impl<C: Send + Sync, E> HealthChecker<C, E> {
 
     /// Check if the machine is healthy
     pub fn is_healthy(&self) -> bool {
-        self.last_results.iter().all(|r| r.status == HealthStatus::Healthy)
+        self.last_results
+            .iter()
+            .all(|r| r.status == HealthStatus::Healthy)
     }
 
     /// Get overall health status
     pub fn overall_status(&self) -> HealthStatus {
         if self.last_results.is_empty() {
             HealthStatus::Unknown
-        } else if self.last_results.iter().any(|r| r.status == HealthStatus::Critical) {
+        } else if self
+            .last_results
+            .iter()
+            .any(|r| r.status == HealthStatus::Critical)
+        {
             HealthStatus::Critical
-        } else if self.last_results.iter().any(|r| r.status == HealthStatus::Warning) {
+        } else if self
+            .last_results
+            .iter()
+            .any(|r| r.status == HealthStatus::Warning)
+        {
             HealthStatus::Warning
         } else {
             HealthStatus::Healthy
@@ -360,7 +376,11 @@ impl<C: Send + Sync, E> HealthChecker<C, E> {
 /// Health check trait
 pub trait HealthCheck<C: Send + Sync, E> {
     /// Perform a health check
-    fn perform_check(&self, machine: &Machine<C, E, C>, monitor: &StateMonitor<C, E>) -> HealthCheckResult;
+    fn perform_check(
+        &self,
+        machine: &Machine<C, E, C>,
+        monitor: &StateMonitor<C, E>,
+    ) -> HealthCheckResult;
 
     /// Get the name of this health check
     fn name(&self) -> &str;

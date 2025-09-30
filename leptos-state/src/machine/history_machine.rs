@@ -4,7 +4,10 @@ use super::*;
 use std::hash::Hash;
 
 /// Machine with history tracking capabilities
-pub struct HistoryMachine<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct HistoryMachine<
+    C: Send + Sync + Clone + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+> {
     /// The underlying base machine
     pub base_machine: Machine<C, E, C>,
     /// History tracker
@@ -15,7 +18,9 @@ pub struct HistoryMachine<C: Send + Sync + Clone + 'static, E: Clone + Send + Sy
     pub history_states: std::collections::HashMap<String, HistoryState>,
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> HistoryMachine<C, E> {
+impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+    HistoryMachine<C, E>
+{
     /// Create a new history machine
     pub fn new(base_machine: Machine<C, E, C>, config: HistoryConfig) -> Self {
         Self {
@@ -119,10 +124,16 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
         if let Some(last_state) = self.history_tracker.get_last_state(&history_state.id) {
             // For now, we just log the restoration
             // In a full implementation, this would transition to the historical state
-            eprintln!("Restoring history for state {}: {}", history_state.id, last_state.state);
+            eprintln!(
+                "Restoring history for state {}: {}",
+                history_state.id, last_state.state
+            );
         } else if let Some(default_target) = &history_state.default_target {
             // Transition to default target if no history exists
-            eprintln!("No history found for state {}, using default: {}", history_state.id, default_target);
+            eprintln!(
+                "No history found for state {}, using default: {}",
+                history_state.id, default_target
+            );
         }
     }
 
@@ -196,7 +207,11 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
 }
 
 /// Extension trait for machines to add history support
-pub trait MachineHistoryExt<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub trait MachineHistoryExt<
+    C: Send + Sync + Clone + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+>
+{
     /// Add history support to this machine
     fn with_history(self, config: HistoryConfig) -> HistoryMachine<C, E>;
 
@@ -204,7 +219,9 @@ pub trait MachineHistoryExt<C: Send + Sync + Clone + 'static, E: Clone + Send + 
     fn history_state(self, state: HistoryState) -> Self;
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> MachineHistoryExt<C, E> for Machine<C, E, C> {
+impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+    MachineHistoryExt<C, E> for Machine<C, E, C>
+{
     fn with_history(self, config: HistoryConfig) -> HistoryMachine<C, E> {
         HistoryMachine::new(self, config)
     }
@@ -217,7 +234,11 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
 }
 
 /// Builder extension for adding history states
-pub trait HistoryMachineBuilder<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub trait HistoryMachineBuilder<
+    C: Send + Sync + Clone + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+>
+{
     /// Add a history state to the machine being built
     fn history_state(&mut self, state: HistoryState) -> &mut Self;
 

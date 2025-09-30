@@ -1,19 +1,25 @@
 //! Extension traits for persistence
 
-use super::*;
 use super::persistence_core::PersistenceError;
+use super::*;
 
 /// Extension trait for adding persistence to machines
-pub trait MachinePersistenceExt<C: Send + Sync, E> {
+pub trait MachinePersistenceExt<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
     /// Create a persistent machine
-    fn with_persistence(self, config: PersistenceConfig) -> Result<PersistentMachine<C, E>, PersistenceError>;
+    fn with_persistence(
+        self,
+        config: PersistenceConfig,
+    ) -> Result<PersistentMachine<C, E>, PersistenceError>;
 
     /// Enable persistence with default configuration
     fn persistent(self) -> Result<PersistentMachine<C, E>, PersistenceError>;
 }
 
-impl<C: Send + Sync, E> MachinePersistenceExt<C, E> for Machine<C, E, C> {
-    fn with_persistence(self, config: PersistenceConfig) -> Result<PersistentMachine<C, E>, PersistenceError> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> MachinePersistenceExt<C, E> for Machine<C, E, C> {
+    fn with_persistence(
+        self,
+        config: PersistenceConfig,
+    ) -> Result<PersistentMachine<C, E>, PersistenceError> {
         let storage = persistence_storage::StorageFactory::create_storage(&config.storage_type)?;
         let persistence_manager = MachinePersistence::new(storage, config);
         Ok(PersistentMachine::new(self, persistence_manager))
@@ -26,7 +32,7 @@ impl<C: Send + Sync, E> MachinePersistenceExt<C, E> for Machine<C, E, C> {
 }
 
 /// A state machine with persistence capabilities
-pub struct PersistentMachine<C: Send + Sync, E> {
+pub struct PersistentMachine<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
     /// The underlying machine
     machine: Machine<C, E, C>,
     /// Persistence manager
@@ -35,7 +41,7 @@ pub struct PersistentMachine<C: Send + Sync, E> {
     auto_save_enabled: bool,
 }
 
-impl<C: Send + Sync, E> PersistentMachine<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> PersistentMachine<C, E> {
     /// Create a new persistent machine
     pub fn new(machine: Machine<C, E, C>, persistence: MachinePersistence<C, E>) -> Self {
         Self {
@@ -48,7 +54,8 @@ impl<C: Send + Sync, E> PersistentMachine<C, E> {
     /// Enable auto-save
     pub fn with_auto_save(mut self) -> Self {
         self.auto_save_enabled = true;
-        self.persistence.start_auto_save(std::sync::Arc::new(self.machine.clone()));
+        self.persistence
+            .start_auto_save(std::sync::Arc::new(self.machine.clone()));
         self
     }
 
@@ -58,7 +65,10 @@ impl<C: Send + Sync, E> PersistentMachine<C, E> {
     }
 
     /// Load a saved state
-    pub async fn load(machine_id: &str, persistence: MachinePersistence<C, E>) -> Result<Self, PersistenceError> {
+    pub async fn load(
+        machine_id: &str,
+        persistence: MachinePersistence<C, E>,
+    ) -> Result<Self, PersistenceError> {
         let machine = persistence.restore_machine(machine_id).await?;
         Ok(Self::new(machine, persistence))
     }
@@ -114,16 +124,16 @@ impl<C: Send + Sync, E> PersistentMachine<C, E> {
 
     /// Create a backup
     pub async fn create_backup(&self) -> Result<String, PersistenceError> {
-        self.persistence.create_backup(self.id()).await
+        MachinePersistence::create_backup(&self.persistence, self.id()).await
     }
 
     /// Get machine info
     pub async fn info(&self) -> Result<MachineInfo, PersistenceError> {
-        self.persistence.get_machine_info(self.id()).await
+        MachinePersistence::get_machine_info(&self.persistence, self.id()).await
     }
 }
 
-impl<C: Send + Sync, E> Clone for PersistentMachine<C, E> {
+impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Clone for PersistentMachine<C, E> {
     fn clone(&self) -> Self {
         Self {
             machine: self.machine.clone(),
@@ -197,13 +207,13 @@ pub mod persistence_builder {
     use super::*;
 
     /// Builder for persistent machines
-    pub struct PersistenceBuilder<C: Send + Sync, E> {
+    pub struct PersistenceBuilder<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
         machine: Option<Machine<C, E, C>>,
         config: PersistenceConfig,
         enable_auto_save: bool,
     }
 
-    impl<C: Send + Sync, E> PersistenceBuilder<C, E> {
+    impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> PersistenceBuilder<C, E> {
         /// Create a new persistence builder
         pub fn new() -> Self {
             Self {
@@ -240,7 +250,10 @@ pub mod persistence_builder {
         /// Use file system storage
         pub fn filesystem_storage(mut self, base_dir: std::path::PathBuf) -> Self {
             self.config.storage_type = StorageType::FileSystem;
-            self.config.custom_config.insert("base_dir".to_string(), base_dir.to_string_lossy().to_string());
+            self.config.custom_config.insert(
+                "base_dir".to_string(),
+                base_dir.to_string_lossy().to_string(),
+            );
             self
         }
 
@@ -265,11 +278,13 @@ pub mod persistence_builder {
 
         /// Build the persistent machine
         pub fn build(self) -> Result<PersistentMachine<C, E>, PersistenceError> {
-            let machine = self.machine.ok_or_else(|| PersistenceError::ConfigError("No machine provided".to_string()))?;
+            let machine = self
+                .machine
+                .ok_or_else(|| PersistenceError::ConfigError("No machine provided".to_string()))?;
 
             let storage = persistence_storage::StorageFactory::create_storage_with_config(
                 &self.config.storage_type,
-                &self.config.custom_config
+                &self.config.custom_config,
             )?;
 
             let persistence = MachinePersistence::new(storage, self.config);
@@ -284,23 +299,39 @@ pub mod persistence_builder {
     }
 
     /// Create a persistence builder
-    pub fn persistent_machine<C: Send + Sync, E>() -> PersistenceBuilder<C, E> {
+    pub fn persistent_machine<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static>() -> PersistenceBuilder<C, E> {
         PersistenceBuilder::new()
     }
 
     /// Create a machine with local storage persistence
-    pub fn with_local_storage<C: Send + Sync, E>(machine: Machine<C, E, C>) -> Result<PersistentMachine<C, E>, PersistenceError> {
-        persistent_machine().machine(machine).local_storage().build()
+    pub fn with_local_storage<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static>(
+        machine: Machine<C, E, C>,
+    ) -> Result<PersistentMachine<C, E>, PersistenceError> {
+        persistent_machine()
+            .machine(machine)
+            .local_storage()
+            .build()
     }
 
     /// Create a machine with memory persistence (for testing)
-    pub fn with_memory_storage<C: Send + Sync, E>(machine: Machine<C, E, C>) -> Result<PersistentMachine<C, E>, PersistenceError> {
-        persistent_machine().machine(machine).memory_storage().build()
+    pub fn with_memory_storage<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static>(
+        machine: Machine<C, E, C>,
+    ) -> Result<PersistentMachine<C, E>, PersistenceError> {
+        persistent_machine()
+            .machine(machine)
+            .memory_storage()
+            .build()
     }
 
     /// Create a machine with file system persistence
-    pub fn with_filesystem_storage<C: Send + Sync, E>(machine: Machine<C, E, C>, base_dir: std::path::PathBuf) -> Result<PersistentMachine<C, E>, PersistenceError> {
-        persistent_machine().machine(machine).filesystem_storage(base_dir).build()
+    pub fn with_filesystem_storage<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static>(
+        machine: Machine<C, E, C>,
+        base_dir: std::path::PathBuf,
+    ) -> Result<PersistentMachine<C, E>, PersistenceError> {
+        persistent_machine()
+            .machine(machine)
+            .filesystem_storage(base_dir)
+            .build()
     }
 }
 
@@ -309,7 +340,11 @@ pub mod migrations {
     use super::*;
 
     /// Migration function type
-    pub type MigrationFn<C> = Box<dyn Fn(SerializedMachine<C, (), C>) -> Result<SerializedMachine<C, (), C>, PersistenceError> + Send + Sync>;
+    pub type MigrationFn<C> = Box<
+        dyn Fn(SerializedMachine<C, (), C>) -> Result<SerializedMachine<C, (), C>, PersistenceError>
+            + Send
+            + Sync,
+    >;
 
     /// Migration manager
     pub struct MigrationManager<C> {
@@ -331,13 +366,21 @@ pub mod migrations {
         /// Add a migration
         pub fn add_migration<F>(&mut self, from_version: u32, migration: F)
         where
-            F: Fn(SerializedMachine<C, (), C>) -> Result<SerializedMachine<C, (), C>, PersistenceError> + Send + Sync + 'static,
+            F: Fn(
+                    SerializedMachine<C, (), C>,
+                ) -> Result<SerializedMachine<C, (), C>, PersistenceError>
+                + Send
+                + Sync
+                + 'static,
         {
             self.migrations.insert(from_version, Box::new(migration));
         }
 
         /// Apply migrations to serialized data
-        pub fn apply_migrations(&self, mut data: SerializedMachine<C, (), C>) -> Result<SerializedMachine<C, (), C>, PersistenceError> {
+        pub fn apply_migrations(
+            &self,
+            mut data: SerializedMachine<C, (), C>,
+        ) -> Result<SerializedMachine<C, (), C>, PersistenceError> {
             while data.version < self.current_version {
                 if let Some(migration) = self.migrations.get(&data.version) {
                     data = migration(data)?;
@@ -489,7 +532,12 @@ pub mod monitoring {
         }
 
         /// Record metrics and check for alerts
-        pub fn record_and_check(&self, operation: &str, success: bool, duration: std::time::Duration) {
+        pub fn record_and_check(
+            &self,
+            operation: &str,
+            success: bool,
+            duration: std::time::Duration,
+        ) {
             let mut metrics = self.metrics.write().unwrap();
 
             match operation {
@@ -507,7 +555,11 @@ pub mod monitoring {
                 };
 
                 if error_rate > self.error_threshold {
-                    callback(&format!("High error rate for {}: {:.2}%", operation, error_rate * 100.0));
+                    callback(&format!(
+                        "High error rate for {}: {:.2}%",
+                        operation,
+                        error_rate * 100.0
+                    ));
                 }
             }
         }

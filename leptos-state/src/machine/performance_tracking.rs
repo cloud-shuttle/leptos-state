@@ -74,7 +74,8 @@ impl PerformanceTracker {
 
     /// Get maximum transition time
     pub fn max_transition_time(&self) -> Duration {
-        self.transition_times.iter()
+        self.transition_times
+            .iter()
             .max()
             .copied()
             .unwrap_or(Duration::from_nanos(0))
@@ -82,7 +83,8 @@ impl PerformanceTracker {
 
     /// Get minimum transition time
     pub fn min_transition_time(&self) -> Duration {
-        self.transition_times.iter()
+        self.transition_times
+            .iter()
             .min()
             .copied()
             .unwrap_or(Duration::from_nanos(0))
@@ -99,18 +101,12 @@ impl PerformanceTracker {
 
     /// Get maximum memory usage
     pub fn max_memory_usage(&self) -> usize {
-        self.memory_samples.iter()
-            .max()
-            .copied()
-            .unwrap_or(0)
+        self.memory_samples.iter().max().copied().unwrap_or(0)
     }
 
     /// Get minimum memory usage
     pub fn min_memory_usage(&self) -> usize {
-        self.memory_samples.iter()
-            .min()
-            .copied()
-            .unwrap_or(0)
+        self.memory_samples.iter().min().copied().unwrap_or(0)
     }
 
     /// Get average allocation count
@@ -124,18 +120,12 @@ impl PerformanceTracker {
 
     /// Get maximum allocation count
     pub fn max_allocation_count(&self) -> usize {
-        self.allocation_counts.iter()
-            .max()
-            .copied()
-            .unwrap_or(0)
+        self.allocation_counts.iter().max().copied().unwrap_or(0)
     }
 
     /// Get minimum allocation count
     pub fn min_allocation_count(&self) -> usize {
-        self.allocation_counts.iter()
-            .min()
-            .copied()
-            .unwrap_or(0)
+        self.allocation_counts.iter().min().copied().unwrap_or(0)
     }
 
     /// Get performance metrics
@@ -195,7 +185,11 @@ pub struct PerformanceReport {
 
 impl PerformanceReport {
     /// Check if performance meets requirements
-    pub fn meets_requirements(&self, max_transition_time: Duration, max_memory_usage: usize) -> bool {
+    pub fn meets_requirements(
+        &self,
+        max_transition_time: Duration,
+        max_memory_usage: usize,
+    ) -> bool {
         self.max_transition_time <= max_transition_time && self.max_memory_usage <= max_memory_usage
     }
 

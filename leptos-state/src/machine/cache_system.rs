@@ -201,7 +201,8 @@ impl<C: Send + Sync + Clone + 'static, E> TransitionCache<C, E> {
             // Simple LRU eviction - remove oldest entry
             if let Some(key_to_remove) = self.cache.keys().next().cloned() {
                 if let Some(removed) = self.cache.remove(&key_to_remove) {
-                    self.memory_tracker.record_deallocation(removed.size_bytes());
+                    self.memory_tracker
+                        .record_deallocation(removed.size_bytes());
                     self.stats.record_eviction();
                 }
             }
@@ -241,9 +242,8 @@ impl<C: Send + Sync + Clone + 'static, E> TransitionCache<C, E> {
         let now = Instant::now();
         let ttl = self.ttl;
 
-        self.cache.retain(|_, cached| {
-            (now - cached.created_at) < ttl
-        });
+        self.cache
+            .retain(|_, cached| (now - cached.created_at) < ttl);
 
         self.stats.entries = self.cache.len();
     }

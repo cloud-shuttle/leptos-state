@@ -1,0 +1,215 @@
+ 484 error: `C` doesn't implement `std::fmt::Debug`
+ 478 error: `E` doesn't implement `std::fmt::Debug`
+ 170 error: `E` cannot be sent between threads safely
+ 134 error: the trait bound `C: Clone` is not satisfied
+ 133 error: the trait bound `E: Clone` is not satisfied
+  52 error: mismatched types
+  43 error: `C` cannot be shared between threads safely
+  43 error: `C` cannot be sent between threads safely
+  39 error: type annotations needed
+  36 error: `E` cannot be shared between threads safely
+  30 error: the trait bound `C: std::cmp::Eq` is not satisfied
+  22 error: type parameter `E` is never used
+  16 error: the trait bound `F: Clone` is not satisfied
+  15 error: type parameter `C` is never used
+  15 error: `F` cannot be shared between threads safely
+  15 error: `F` cannot be sent between threads safely
+   9 error: the trait bound `C: std::default::Default` is not satisfied
+   8 error: missing fields `cache_hit_rate`, `concurrent_operations`, `cpu_time` and 5 other fields in initializer of `performance_metrics::PerformanceMetrics`
+   8 error: expected `F` to return `&_`, but it returns `T`
+   7 error: the trait bound `AtomicU64: Clone` is not satisfied
+   7 error: the parameter type `E` may not live long enough
+   7 error: the parameter type `C` may not live long enough
+   6 error: the trait `store_core::Store` is not dyn compatible
+   6 error: the method `get_states` exists for reference `&core_types::Machine<C, E, C>`, but its trait bounds were not satisfied
+   6 error: no field `optimization_strategy` on type `types_config::PerformanceConfig`
+   6 error: no field `enabled` on type `types_config::IntegrationConfig`
+   6 error: `T` cannot be sent between threads safely
+   6 error: `E2` doesn't implement `std::fmt::Debug`
+   6 error: `C2` doesn't implement `std::fmt::Debug`
+   5 error: `T` cannot be shared between threads safely
+   4 error: use of unstable library feature `duration_constructors_lite`
+   4 error: this function takes 1 argument but 3 arguments were supplied
+   4 error: the trait bound `T: Clone` is not satisfied
+   4 error: the trait bound `persistence_metadata::MachineMetadata: serde::Deserialize<'de>` is not satisfied
+   4 error: the trait bound `guard_temporal::TimeGuard<_, _>: core_guards::Guard<C, E>` is not satisfied
+   4 error: the trait bound `guard_temporal::CounterGuard<_, _>: core_guards::Guard<C, E>` is not satisfied
+   4 error: the trait bound `guard_core::FunctionGuard<C, E, F>: core_guards::Guard<C, E>` is not satisfied
+   4 error: the trait bound `guard_context::RangeGuard<C, _, _, F>: core_guards::Guard<C, E>` is not satisfied
+   4 error: the trait bound `guard_context::FieldEqualityGuard<C, _, T, F>: core_guards::Guard<C, E>` is not satisfied
+   4 error: the method `clone` exists for struct `Box<(dyn Fn() -> u64 + Send + std::marker::Sync + 'static)>`, but its trait bounds were not satisfied
+   4 error: struct `types_config::PerformanceConfig` has no field named `worker_threads`
+   4 error: struct `types_config::PerformanceConfig` has no field named `profile_sample_rate`
+   4 error: struct `types_config::PerformanceConfig` has no field named `optimization_strategy`
+   4 error: struct `types_config::PerformanceConfig` has no field named `max_memory_usage`
+   4 error: struct `types_config::PerformanceConfig` has no field named `max_cache_size`
+   4 error: struct `types_config::PerformanceConfig` has no field named `enable_parallel_processing`
+   4 error: struct `types_config::PerformanceConfig` has no field named `enable_memory_tracking`
+   4 error: struct `types_config::PerformanceConfig` has no field named `enable_lazy_evaluation`
+   4 error: struct `types_config::PerformanceConfig` has no field named `enable_caching`
+   4 error: struct `types_config::PerformanceConfig` has no field named `cache_ttl`
+   4 error: no field `state` on type `&mut types_history::HistoryEntry<C>`
+   4 error: no field `current_state` on type `core_types::Machine<C, E, C>`
+   4 error: can't compare `C` with `C`
+   4 error: `(dyn core_actions::Action<C, E> + 'static)` doesn't implement `std::fmt::Debug`
+   3 error: the trait bound `visualization_events::TransitionEvent<C2, E2>: serde::Deserialize<'de>` is not satisfied
+   3 error: the trait bound `utils_config::LogLevel: serde::Deserialize<'de>` is not satisfied
+   3 error: the trait bound `store_simple::AsyncStore<T>: Clone` is not satisfied
+   3 error: the trait bound `S: Clone` is not satisfied
+   3 error: the trait bound `ReactiveStore<T>: Clone` is not satisfied
+   3 error: the trait bound `persistence_serialization::SerializedTransition<E>: serde::Deserialize<'de>` is not satisfied
+   3 error: the trait bound `persistence_serialization::SerializedState<C>: serde::Deserialize<'de>` is not satisfied
+   3 error: the trait bound `MiddlewareStore<T, M>: Clone` is not satisfied
+   3 error: the trait bound `E: std::hash::Hash` is not satisfied
+   3 error: the trait bound `E: std::cmp::Eq` is not satisfied
+   3 error: the trait bound `dyn core_actions::Action<C, E>: Clone` is not satisfied
+   3 error: the method `states_map` exists for reference `&core_types::Machine<C, E, C>`, but its trait bounds were not satisfied
+   3 error: the method `initial_state` exists for reference `&core_types::Machine<C, E, C>`, but its trait bounds were not satisfied
+   3 error: no method named `clone` found for struct `core_types::Machine` in the current scope
+   3 error: no field `enable_parallel_processing` on type `types_config::PerformanceConfig`
+   3 error: no field `enable_memory_tracking` on type `types_config::PerformanceConfig`
+   3 error: no field `enable_lazy_evaluation` on type `types_config::PerformanceConfig`
+   3 error: no field `enable_caching` on type `types_config::PerformanceConfig`
+   3 error: lifetime parameter `'a` is never used
+   3 error: failed to resolve: use of unresolved module or unlinked crate `num_cpus`
+   3 error: `T` doesn't implement `std::fmt::Debug`
+   3 error: `S` cannot be shared between threads safely
+   3 error: `S` cannot be sent between threads safely
+   3 error: `machine_state_impl::MachineStateImpl<C>` doesn't implement `std::fmt::Display`
+   2 error: this method takes 2 arguments but 1 argument was supplied
+   2 error: the trait bound `types_history::HistoryEntry<C>: serde::Serialize` is not satisfied
+   2 error: the trait bound `T: std::default::Default` is not satisfied
+   2 error: the trait bound `T: serde::de::DeserializeOwned` is not satisfied
+   2 error: the trait bound `persistence_metadata::MachineMetadata: serde::Serialize` is not satisfied
+   2 error: the trait bound `integration_events::IntegrationEvent: serde::Serialize` is not satisfied
+   2 error: the trait bound `E: serde::Deserialize<'de>` is not satisfied
+   2 error: the trait bound `dyn Fn(&IntegrationEvent) -> bool + Send + Sync: Clone` is not satisfied
+   2 error: the trait bound `C: serde::Deserialize<'de>` is not satisfied
+   2 error: the size for values of type `str` cannot be known at compilation time
+   2 error: the method `transition` exists for struct `core_types::Machine<C, E, C>`, but its trait bounds were not satisfied
+   2 error: the method `states_map` exists for reference `&'a core_types::Machine<C, E, C>`, but its trait bounds were not satisfied
+   2 error: the method `clone` exists for struct `Box<(dyn for<'a> Fn(&'a C) -> std::string::String + Send + std::marker::Sync + 'static)>`, but its trait bounds were not satisfied
+   2 error: no variant or associated item named `new` found for enum `utils_error::StateError` in the current scope
+   2 error: no method named `get_context` found for struct `core_types::Machine` in the current scope
+   2 error: no method named `current_state` found for struct `core_types::Machine` in the current scope
+   2 error: no method named `can_transition` found for struct `core_types::Machine` in the current scope
+   2 error: no function or associated item named `use_store` found for type parameter `S` in the current scope
+   2 error: no field `state` on type `types_history::HistoryEntry<C>`
+   2 error: no field `state` on type `&types_history::HistoryEntry<C>`
+   2 error: no field `max_concurrent` on type `types_config::IntegrationConfig`
+   2 error: no field `max_cache_size` on type `types_config::PerformanceConfig`
+   2 error: no field `collect_metrics` on type `types_config::IntegrationConfig`
+   2 error: no field `cache_ttl` on type `types_config::PerformanceConfig`
+   2 error: no field `backup_config` on type `persistence_core::PersistenceConfig`
+   2 error: can't compare `O` with `O`
+   2 error: `if` and `else` have incompatible types
+   2 error: `dyn Fn(&TransitionEvent<C, E>) -> bool + Send + Sync` doesn't implement `std::fmt::Debug`
+   2 error: `dyn Fn(&IntegrationEvent) -> bool + Send + Sync` doesn't implement `std::fmt::Debug`
+   2 error: `?` operator has incompatible types
+   1 error: type parameter `T` is never used
+   1 error: type parameter `S` is never used
+   1 error: type mismatch resolving `<ChainedSelector<T, O> as StoreSlice<T>>::Output == O`
+   1 error: this method takes 2 arguments but 3 arguments were supplied
+   1 error: the trait bound `visualization_events::TransitionEvent<C, E>: serde::Serialize` is not satisfied
+   1 error: the trait bound `visualization_events::PerformanceEventType: std::hash::Hash` is not satisfied
+   1 error: the trait bound `visualization_events::PerformanceEventType: std::cmp::Eq` is not satisfied
+   1 error: the trait bound `visualization_config::VisualizationConfig: serde::Serialize` is not satisfied
+   1 error: the trait bound `utils_config::LogLevel: serde::Serialize` is not satisfied
+   1 error: the trait bound `types_history::HistoryEntry<C>: serde::Deserialize<'de>` is not satisfied
+   1 error: the trait bound `std::sync::Mutex<std::option::Option<std::time::Instant>>: Clone` is not satisfied
+   1 error: the trait bound `std::sync::Mutex<HashMap<std::string::String, AdapterMetrics>>: Clone` is not satisfied
+   1 error: the trait bound `persistence_serialization::SerializedTransition<E>: serde::Serialize` is not satisfied
+   1 error: the trait bound `persistence_serialization::SerializedState<C>: serde::Serialize` is not satisfied
+   1 error: the trait bound `E: serde::Serialize` is not satisfied
+   1 error: the trait bound `dyn Fn(serde_json::Value) -> serde_json::Value + Send + std::marker::Sync: Clone` is not satisfied
+   1 error: the trait bound `dyn Fn(&TransitionEvent<C, E>) -> bool + Send + Sync: Clone` is not satisfied
+   1 error: the trait bound `dyn Fn(&IntegrationError) -> ErrorAction + Send + Sync: Clone` is not satisfied
+   1 error: the trait bound `dyn Fn(&C, &E, &MachineStateImpl<C>) -> bool: Clone` is not satisfied
+   1 error: the trait bound `dyn core_guards::Guard<C, E>: Clone` is not satisfied
+   1 error: the trait bound `doc_data::TransitionInfo: serde::Serialize` is not satisfied
+   1 error: the trait bound `doc_data::StateInfo: serde::Serialize` is not satisfied
+   1 error: the trait bound `doc_data::GuardInfo: serde::Serialize` is not satisfied
+   1 error: the trait bound `doc_data::ActionInfo: serde::Serialize` is not satisfied
+   1 error: the trait bound `cache_system::CacheKey<C, E>: Clone` is not satisfied
+   1 error: the trait bound `C: std::hash::Hash` is not satisfied
+   1 error: the trait bound `C: serde::Serialize` is not satisfied
+   1 error: the trait bound `BreakpointType<C, E>: Clone` is not satisfied
+   1 error: the trait bound `Box<dyn TestDataGenerator<C, E>>: TestDataGenerator<C, E>` is not satisfied
+   1 error: the trait bound `<A as store_core::Store>::State: store_core::Store` is not satisfied
+   1 error: the trait bound `(dyn Any + 'static): Clone` is not satisfied
+   1 error: the method `set` exists for struct `store_simple::SimpleStore<T>`, but its trait bounds were not satisfied
+   1 error: the method `remove` exists for struct `HashMap<cache_system::CacheKey<C, E>, cache_system::CachedTransition<C>>`, but its trait bounds were not satisfied
+   1 error: the method `insert` exists for struct `HashSet<codegen_config::ProgrammingLanguage>`, but its trait bounds were not satisfied
+   1 error: the method `insert` exists for struct `HashMap<cache_system::CacheKey<C, E>, cache_system::CachedTransition<C>>`, but its trait bounds were not satisfied
+   1 error: the method `initial_with_context` exists for struct `core_types::Machine<C, E, C>`, but its trait bounds were not satisfied
+   1 error: the method `initial_state` exists for reference `&'a core_types::Machine<C, E, C>`, but its trait bounds were not satisfied
+   1 error: the method `get` exists for struct `store_simple::SimpleStore<T>`, but its trait bounds were not satisfied
+   1 error: the method `get` exists for struct `HashMap<cache_system::CacheKey<C, E>, cache_system::CachedTransition<C>>`, but its trait bounds were not satisfied
+   1 error: the method `get_states` exists for struct `core_types::Machine<C, E, C>`, but its trait bounds were not satisfied
+   1 error: the method `get_states` exists for reference `&'a core_types::Machine<C, E, C>`, but its trait bounds were not satisfied
+   1 error: the method `clone` exists for struct `visualization_events::TransitionEvent<C, E>`, but its trait bounds were not satisfied
+   1 error: the method `clone` exists for struct `Vec<Box<dyn Fn(&mut GeneratedFile) + Send + Sync>>`, but its trait bounds were not satisfied
+   1 error: the method `clone` exists for struct `Vec<Box<dyn Fn(&mut CodeGenContext) + Send + Sync>>`, but its trait bounds were not satisfied
+   1 error: the method `clone` exists for struct `Vec<Box<(dyn core_actions::Action<C, E> + 'static)>>`, but its trait bounds were not satisfied
+   1 error: the method `clone` exists for struct `LazyEvaluator<LazyResult<T>, Box<dyn Fn() -> ... + Send + Sync>>`, but its trait bounds were not satisfied
+   1 error: the method `clone` exists for struct `lazy_evaluation::LazyEvaluator<T, Box<(dyn Fn() -> T + Send + std::marker::Sync + 'static)>>`, but its trait bounds were not satisfied
+   1 error: the method `clone` exists for struct `HashMap<String, Box<dyn IntegrationAdapterTrait + Send + Sync>>`, but its trait bounds were not satisfied
+   1 error: the method `clone` exists for struct `Box<dyn Fn(&C, &E) -> String + Send + Sync>`, but its trait bounds were not satisfied
+   1 error: the method `clone` exists for enum `std::option::Option<codegen_config::CodeTemplates>`, but its trait bounds were not satisfied
+   1 error: the `?` operator can only be applied to values that implement `Try`
+   1 error: struct `action_core::PureAction<F>` has no field named `_phantom`
+   1 error: no variant or associated item named `DocumentationError` found for enum `utils_error::StateError` in the current scope
+   1 error: no method named `with_description` found for struct `guard_logical::OrGuard<C, E>` in the current scope
+   1 error: no method named `with_description` found for struct `guard_logical::AndGuard<C, E>` in the current scope
+   1 error: no method named `take_snapshot` found for struct `core_types::Machine` in the current scope
+   1 error: no method named `is_ok` found for struct `machine_state_impl::MachineStateImpl` in the current scope
+   1 error: no method named `is_expired` found for reference `&types_history::HistoryEntry<C>` in the current scope
+   1 error: no method named `internal` found for struct `integration_events::IntegrationEvent` in the current scope
+   1 error: no method named `id` found for struct `core_types::Machine` in the current scope
+   1 error: no method named `id` found for reference `&core_types::Machine<C, E, C>` in the current scope
+   1 error: no method named `description` found for reference `&Box<dyn core_guards::Guard<C, E>>` in the current scope
+   1 error: no method named `current_state_name` found for struct `core_types::Machine` in the current scope
+   1 error: no method named `clone` found for type parameter `F` in the current scope
+   1 error: no method named `clone` found for struct `AtomicBool` in the current scope
+   1 error: no method named `build` found for struct `machine::builder::MachineBuilderImpl` in the current scope
+   1 error: no function or associated item named `new` found for struct `types_history::HistoryEntry` in the current scope
+   1 error: no function or associated item named `create` found for type parameter `S` in the current scope
+   1 error: no field `worker_threads` on type `types_config::PerformanceConfig`
+   1 error: no field `separate_files` on type `codegen_config::CodeGenConfig`
+   1 error: no field `rules` on type `types_config::EventRoutingConfig`
+   1 error: no field `profile_sample_rate` on type `types_config::PerformanceConfig`
+   1 error: no field `max_memory_usage` on type `types_config::PerformanceConfig`
+   1 error: no field `include_imports` on type `codegen_config::CodeGenConfig`
+   1 error: no field `enabled` on type `types_config::EventRoutingConfig`
+   1 error: no field `default_destination` on type `types_config::EventRoutingConfig`
+   1 error: no field `custom_header` on type `codegen_config::CodeGenConfig`
+   1 error: no field `custom_footer` on type `codegen_config::CodeGenConfig`
+   1 error: no field `current_snapshot` on type `core_types::Machine<C, E, C>`
+   1 error: no field `coverage_threshold` on type `types_config::PerformanceConfig`
+   1 error: no field `context` on type `core_types::Machine<C, E, C>`
+   1 error: failed to resolve: use of unresolved module or unlinked crate `rand`
+   1 error: duplicate definitions with name `internal`
+   1 error: conflicting implementations of trait `Clone` for type `core_types::Transition<_, _>`
+   1 error: conflicting implementations of trait `Clone` for type `core_types::StateNode<_, _, _>`
+   1 error: conflicting implementations of trait `Clone` for type `core_types::Machine<_, _, _>`
+   1 error: can't compare `<I as IntoIterator>::Item` with `<I as IntoIterator>::Item`
+   1 error: can't compare `(dyn Any + 'static)` with `(dyn Any + 'static)`
+   1 error: borrow of moved value: `self`
+   1 error: binary operation `==` cannot be applied to type `std::option::Option<EventTransformation>`
+   1 error: binary operation `==` cannot be applied to type `Option<Box<dyn Fn(&IntegrationEvent) -> bool + Send + Sync>>`
+   1 error: binary operation `==` cannot be applied to type `Box<dyn Fn(&C, &E, &MachineStateImpl<C>) -> bool>`
+   1 error: binary operation `==` cannot be applied to type `&Box<dyn Fn(&IntegrationError) -> ErrorAction + Send + Sync>`
+   1 error: `Rc<(dyn store_core::Store<State = _> + 'static)>` cannot be shared between threads safely
+   1 error: `Rc<(dyn store_core::Store<State = _> + 'static)>` cannot be sent between threads safely
+   1 error: `F2` cannot be shared between threads safely
+   1 error: `F2` cannot be sent between threads safely
+   1 error: `F1` cannot be shared between threads safely
+   1 error: `F1` cannot be sent between threads safely
+   1 error: `dyn Fn(&StateChangeEvent<C, E>) + Send + Sync` doesn't implement `std::fmt::Debug`
+   1 error: `dyn Fn(&PerformanceEvent) + Send + Sync` doesn't implement `std::fmt::Debug`
+   1 error: `dyn Fn(&IntegrationError) -> ErrorAction + Send + Sync` doesn't implement `std::fmt::Debug`
+   1 error: `dyn Fn(&C, &E, &MachineStateImpl<C>) -> bool` doesn't implement `std::fmt::Debug`
+   1 error: `(dyn store_core::Store<State = T> + 'static)` doesn't implement `std::fmt::Debug`
+   1 error: `(dyn for<'a> Fn(&'a visualization_events::ErrorEvent) + Send + std::marker::Sync + 'static)` doesn't implement `std::fmt::Debug`
+   1 error: `(dyn Fn(serde_json::Value) -> serde_json::Value + Send + std::marker::Sync + 'static)` doesn't implement `std::fmt::Debug`
+   1 error: `(dyn core_guards::Guard<C, E> + 'static)` doesn't implement `std::fmt::Debug`

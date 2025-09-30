@@ -99,14 +99,17 @@ impl<T: Store, O: Clone + PartialEq + 'static> DependencyTrackedSelector<T, O> {
 }
 
 /// Combined selector that merges multiple selectors
-pub struct CombinedSelector<T: Store, O = Box<dyn std::any::Any>> {
+pub struct CombinedSelector<T: Store, O: PartialEq + 'static = ()>
+where
+    T: Store,
+{
     /// The selectors to combine
     pub selectors: Vec<Box<dyn StoreSlice<T, Output = O>>>,
     /// The combination function
     pub combiner: Box<dyn Fn(Vec<Box<dyn std::any::Any>>) -> O + Send + Sync>,
 }
 
-impl<T: Store, O> CombinedSelector<T, O> {
+impl<T: Store, O: PartialEq + 'static> CombinedSelector<T, O> {
     /// Create a new combined selector
     pub fn new<F>(selectors: Vec<Box<dyn StoreSlice<T, Output = O>>>, combiner: F) -> Self
     where
@@ -120,7 +123,9 @@ impl<T: Store, O> CombinedSelector<T, O> {
 
     /// Select combined values
     pub fn select(&self, state: &T::State) -> O {
-        let values: Vec<Box<dyn std::any::Any>> = self.selectors.iter()
+        let values: Vec<Box<dyn std::any::Any>> = self
+            .selectors
+            .iter()
             .map(|selector| {
                 // In a real implementation, this would need to handle different types
                 // For now, this is a simplified version
@@ -189,65 +194,68 @@ pub mod composition {
             type Output = Vec<O>;
 
             fn select(&self, state: &T::State) -> Self::Output {
-                self.selectors.iter()
+                self.selectors
+                    .iter()
                     .map(|selector| selector.select(state))
                     .collect()
             }
         }
 
         ChainedSelector {
-            selectors: selectors.into_iter()
+            selectors: selectors
+                .into_iter()
                 .map(|s| Box::new(s) as Box<dyn StoreSlice<T, Output = O>>)
                 .collect(),
         }
     }
 
     /// Create a conditional selector
-    pub fn conditional<T, S1, S2, F>(
-        condition: F,
-        then_selector: S1,
-        else_selector: S2,
-    ) -> impl StoreSlice<T>
-    where
-        T: Store,
-        S1: StoreSlice<T> + 'static,
-        S2: StoreSlice<T> + 'static,
-        F: Fn(&T::State) -> bool + Clone + 'static,
-        S1::Output: Clone + PartialEq + 'static,
-        S2::Output: Clone + PartialEq + 'static,
-    {
-        struct ConditionalSelector<S1, S2, F> {
-            condition: F,
-            then_selector: S1,
-            else_selector: S2,
-        }
-
-        impl<T, S1, S2, F> StoreSlice<T> for ConditionalSelector<S1, S2, F>
-        where
-            T: Store,
-            S1: StoreSlice<T> + 'static,
-            S2: StoreSlice<T> + 'static,
-            F: Fn(&T::State) -> bool + Clone + 'static,
-            S1::Output: Clone + PartialEq + 'static,
-            S2::Output: Clone + PartialEq + 'static,
-        {
-            type Output = Box<dyn std::any::Any>;
-
-            fn select(&self, state: &T::State) -> Self::Output {
-                if (self.condition)(state) {
-                    Box::new(self.then_selector.select(state))
-                } else {
-                    Box::new(self.else_selector.select(state))
-                }
-            }
-        }
-
-        ConditionalSelector {
-            condition,
-            then_selector,
-            else_selector,
-        }
-    }
+    // TODO: Re-enable conditional selector after fixing Clone bounds for trait objects
+    // pub fn conditional<T, S1, S2, F>(
+    //     condition: F,
+    //     then_selector: S1,
+    //     else_selector: S2,
+    // ) -> impl StoreSlice<T>
+    // where
+    //     T: Store,
+    //     S1: StoreSlice<T> + 'static,
+    //     S2: StoreSlice<T> + 'static,
+    //     F: Fn(&T::State) -> bool + Clone + 'static,
+    //     S1::Output: Clone + PartialEq + 'static,
+    //     S2::Output: Clone + PartialEq + 'static,
+    // {
+    //     struct ConditionalSelector<S1, S2, F> {
+    //         condition: F,
+    //         then_selector: S1,
+    //         else_selector: S2,
+    //     }
+    //
+    //     impl<T, S1, S2, F> StoreSlice<T> for ConditionalSelector<S1, S2, F>
+    //     where
+    //         T: Store,
+    //         S1: StoreSlice<T> + 'static,
+    //         S2: StoreSlice<T> + 'static,
+    //         F: Fn(&T::State) -> bool + Clone + 'static,
+    //         S1::Output: Clone + PartialEq + 'static,
+    //         S2::Output: Clone + PartialEq + 'static,
+    //     {
+    //         type Output = Box<dyn std::any::Any>;
+    //
+    //         fn select(&self, state: &T::State) -> Self::Output {
+    //             if (self.condition)(state) {
+    //                 Box::new(self.then_selector.select(state))
+    //             } else {
+    //                 Box::new(self.else_selector.select(state))
+    //             }
+    //         }
+    //     }
+    //
+    //     ConditionalSelector {
+    //         condition,
+    //         then_selector,
+    //         else_selector,
+    //     }
+    // }
 }
 
 /// Performance-optimized selector with statistics
@@ -394,7 +402,10 @@ pub mod factory {
     }
 
     /// Create a sum selector for numeric fields
-    pub fn sum<T, F, I, N>(items_selector: F, value_selector: impl Fn(&I::Item) -> N + Clone) -> impl StoreSlice<T, Output = N>
+    pub fn sum<T, F, I, N>(
+        items_selector: F,
+        value_selector: impl Fn(&I::Item) -> N + Clone,
+    ) -> impl StoreSlice<T, Output = N>
     where
         T: Store,
         F: Fn(&T::State) -> I + Clone + 'static,
@@ -418,7 +429,8 @@ pub mod factory {
 
             fn select(&self, state: &T::State) -> Self::Output {
                 let items = (self.items_selector)(state);
-                items.into_iter()
+                items
+                    .into_iter()
                     .map(|item| (self.value_selector)(&item))
                     .sum()
             }
@@ -431,7 +443,10 @@ pub mod factory {
     }
 
     /// Create a max selector
-    pub fn max<T, F, I, N>(items_selector: F, value_selector: impl Fn(&I::Item) -> N + Clone) -> impl StoreSlice<T, Output = Option<N>>
+    pub fn max<T, F, I, N>(
+        items_selector: F,
+        value_selector: impl Fn(&I::Item) -> N + Clone,
+    ) -> impl StoreSlice<T, Output = Option<N>>
     where
         T: Store,
         F: Fn(&T::State) -> I + Clone + 'static,
@@ -455,7 +470,8 @@ pub mod factory {
 
             fn select(&self, state: &T::State) -> Self::Output {
                 let items = (self.items_selector)(state);
-                items.into_iter()
+                items
+                    .into_iter()
                     .map(|item| (self.value_selector)(&item))
                     .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             }

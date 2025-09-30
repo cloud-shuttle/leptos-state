@@ -106,7 +106,8 @@ impl Config {
 
     /// Get a custom configuration value
     pub fn get_custom<T: serde::de::DeserializeOwned>(&self, key: &str) -> Option<T> {
-        self.custom.get(key)
+        self.custom
+            .get(key)
             .and_then(|value| serde_json::from_value(value.clone()).ok())
     }
 
@@ -117,14 +118,28 @@ impl Config {
 
     /// Merge with another configuration (other takes precedence)
     pub fn merge(mut self, other: &Config) -> Self {
-        if other.debug { self.debug = true; }
-        if other.strict { self.strict = true; }
-        if other.max_concurrent > 0 { self.max_concurrent = other.max_concurrent; }
-        if other.default_timeout > std::time::Duration::from_secs(0) { self.default_timeout = other.default_timeout; }
-        if other.performance_monitoring { self.performance_monitoring = true; }
-        if !other.error_reporting { self.error_reporting = false; }
+        if other.debug {
+            self.debug = true;
+        }
+        if other.strict {
+            self.strict = true;
+        }
+        if other.max_concurrent > 0 {
+            self.max_concurrent = other.max_concurrent;
+        }
+        if other.default_timeout > std::time::Duration::from_secs(0) {
+            self.default_timeout = other.default_timeout;
+        }
+        if other.performance_monitoring {
+            self.performance_monitoring = true;
+        }
+        if !other.error_reporting {
+            self.error_reporting = false;
+        }
 
-        if other.log_level != LogLevel::Info { self.log_level = other.log_level; }
+        if other.log_level != LogLevel::Info {
+            self.log_level = other.log_level;
+        }
 
         // Merge custom values
         for (key, value) in &other.custom {
@@ -190,7 +205,7 @@ impl Config {
 }
 
 /// Log levels for debugging
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
 pub enum LogLevel {
     /// No logging
     Off = 0,
@@ -323,7 +338,7 @@ impl ConfigSource {
             ConfigSource::File(path) => {
                 let content = tokio::fs::read_to_string(path).await?;
                 Config::from_json(&content)
-            },
+            }
             ConfigSource::Environment => {
                 // Load from environment variables
                 let mut config = Config::default();
@@ -347,11 +362,11 @@ impl ConfigSource {
                 }
 
                 Ok(config)
-            },
+            }
             ConfigSource::Remote(url) => {
                 // In a real implementation, this would fetch from a remote service
                 Err(format!("Remote configuration not implemented for URL: {}", url).into())
-            },
+            }
             ConfigSource::Inline(json) => Config::from_json(json),
         }
     }

@@ -128,7 +128,12 @@ pub fn VideoPlayer() -> impl IntoView {
                 if let Some(video) = video_ref.get() {
                     let current_time = video.current_time();
                     let new_time = (current_time - 10.0).max(0.0);
-                    leptos::logging::log!("Skip backward: {} -> {} (diff: {})", current_time, new_time, new_time - current_time);
+                    leptos::logging::log!(
+                        "Skip backward: {} -> {} (diff: {})",
+                        current_time,
+                        new_time,
+                        new_time - current_time
+                    );
                     video.set_current_time(new_time);
                     store.animate(AnimationType::Backward);
                 }
@@ -139,7 +144,12 @@ pub fn VideoPlayer() -> impl IntoView {
                     let current_time = video.current_time();
                     let duration = video.duration();
                     let new_time = (current_time + 10.0).min(duration);
-                    leptos::logging::log!("Skip forward: {} -> {} (diff: {})", current_time, new_time, new_time - current_time);
+                    leptos::logging::log!(
+                        "Skip forward: {} -> {} (diff: {})",
+                        current_time,
+                        new_time,
+                        new_time - current_time
+                    );
                     video.set_current_time(new_time);
                     store.animate(AnimationType::Forward);
                 }

@@ -11,7 +11,7 @@
 //! - `history_builder`: Builder extensions and fluent APIs
 
 // Re-export all history functionality from the split modules
+pub use super::history_builder::*;
 pub use super::history_core::*;
 pub use super::history_machine::*;
 pub use super::history_tracker::*;
-pub use super::history_builder::*;

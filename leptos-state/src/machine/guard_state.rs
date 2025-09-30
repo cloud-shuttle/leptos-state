@@ -149,19 +149,27 @@ impl<C, E> GuardEvaluator<C, E> for StateTransitionGuard<C, E> {
         let current_state = (self.current_state_getter)(context);
         let target_state = (self.target_state_getter)(context, event);
 
-        let from_ok = self.from_state.as_ref()
+        let from_ok = self
+            .from_state
+            .as_ref()
             .map_or(true, |expected| current_state == *expected);
 
-        let to_ok = self.to_state.as_ref()
+        let to_ok = self
+            .to_state
+            .as_ref()
             .map_or(true, |expected| target_state == *expected);
 
         from_ok && to_ok
     }
 
     fn description(&self) -> String {
-        let from_str = self.from_state.as_ref()
+        let from_str = self
+            .from_state
+            .as_ref()
             .map_or("*".to_string(), |s| s.clone());
-        let to_str = self.to_state.as_ref()
+        let to_str = self
+            .to_state
+            .as_ref()
             .map_or("*".to_string(), |s| s.clone());
 
         format!("{} ({} -> {})", self.description, from_str, to_str)

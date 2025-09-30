@@ -73,7 +73,11 @@ impl fmt::Display for StateError {
             StateError::AuthorizationError(msg) => write!(f, "Authorization error: {}", msg),
             StateError::RateLimitError(msg) => write!(f, "Rate limit exceeded: {}", msg),
             StateError::InternalError(msg) => write!(f, "Internal error: {}", msg),
-            StateError::Custom { error_type, message, .. } => write!(f, "{}: {}", error_type, message),
+            StateError::Custom {
+                error_type,
+                message,
+                ..
+            } => write!(f, "{}: {}", error_type, message),
         }
     }
 }
@@ -92,7 +96,10 @@ impl StateError {
 
     /// Add context to a custom error
     pub fn with_context(mut self, key: String, value: String) -> Self {
-        if let Self::Custom { ref mut context, .. } = self {
+        if let Self::Custom {
+            ref mut context, ..
+        } = self
+        {
             context.insert(key, value);
         }
         self
@@ -216,7 +223,10 @@ pub enum ErrorRecoveryStrategy {
 impl ErrorRecoveryStrategy {
     /// Create a retry strategy
     pub fn retry(max_attempts: usize, delay: std::time::Duration) -> Self {
-        Self::Retry { max_attempts, delay }
+        Self::Retry {
+            max_attempts,
+            delay,
+        }
     }
 
     /// Create a fallback strategy
@@ -231,7 +241,10 @@ impl ErrorRecoveryStrategy {
         Fut: std::future::Future<Output = Result<T, StateError>>,
     {
         match self {
-            ErrorRecoveryStrategy::Retry { max_attempts, delay } => {
+            ErrorRecoveryStrategy::Retry {
+                max_attempts,
+                delay,
+            } => {
                 let mut attempts = 0;
                 loop {
                     match operation().await {
@@ -246,28 +259,22 @@ impl ErrorRecoveryStrategy {
                     }
                 }
             }
-            ErrorRecoveryStrategy::Fallback { fallback } => {
-                match operation().await {
-                    Ok(result) => Ok(result),
-                    Err(_) => Err(StateError::custom("Fallback".to_string(), fallback.clone())),
-                }
-            }
-            ErrorRecoveryStrategy::Ignore => {
-                match operation().await {
-                    Ok(result) => Ok(result),
-                    Err(_) => Ok(Default::default()),
-                }
-            }
+            ErrorRecoveryStrategy::Fallback { fallback } => match operation().await {
+                Ok(result) => Ok(result),
+                Err(_) => Err(StateError::custom("Fallback".to_string(), fallback.clone())),
+            },
+            ErrorRecoveryStrategy::Ignore => match operation().await {
+                Ok(result) => Ok(result),
+                Err(_) => Ok(Default::default()),
+            },
             ErrorRecoveryStrategy::Fail => operation().await,
-            ErrorRecoveryStrategy::LogAndContinue => {
-                match operation().await {
-                    Ok(result) => Ok(result),
-                    Err(error) => {
-                        eprintln!("Error (continuing): {}", error);
-                        Ok(Default::default())
-                    }
+            ErrorRecoveryStrategy::LogAndContinue => match operation().await {
+                Ok(result) => Ok(result),
+                Err(error) => {
+                    eprintln!("Error (continuing): {}", error);
+                    Ok(Default::default())
                 }
-            }
+            },
         }
     }
 }

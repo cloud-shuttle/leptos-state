@@ -121,19 +121,27 @@ where
     fn check(&self, context: &C, _event: &E) -> bool {
         let field_value = (self.field_extractor)(context);
 
-        let min_ok = self.min_value.as_ref()
+        let min_ok = self
+            .min_value
+            .as_ref()
             .map_or(true, |min| field_value >= min);
 
-        let max_ok = self.max_value.as_ref()
+        let max_ok = self
+            .max_value
+            .as_ref()
             .map_or(true, |max| field_value <= max);
 
         min_ok && max_ok
     }
 
     fn description(&self) -> String {
-        let min_str = self.min_value.as_ref()
+        let min_str = self
+            .min_value
+            .as_ref()
             .map_or("unbounded".to_string(), |v| format!("{:?}", v));
-        let max_str = self.max_value.as_ref()
+        let max_str = self
+            .max_value
+            .as_ref()
             .map_or("unbounded".to_string(), |v| format!("{:?}", v));
 
         format!("{} ({} to {})", self.description, min_str, max_str)

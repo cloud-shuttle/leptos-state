@@ -1,11 +1,14 @@
 //! Core integration functionality
 
+use super::integration_metrics::IntegrationMetrics;
 use super::*;
 use std::hash::Hash;
-use super::integration_metrics::IntegrationMetrics;
 
 /// Integration manager for state machines
-pub struct IntegrationManager<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct IntegrationManager<
+    C: Send + Sync + Clone + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+> {
     /// Configuration
     pub config: IntegrationConfig,
     /// Registered adapters
@@ -22,7 +25,9 @@ pub struct IntegrationManager<C: Send + Sync + Clone + 'static, E: Clone + Send 
     pub task_handles: std::sync::Mutex<Vec<tokio::task::JoinHandle<()>>>,
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> IntegrationManager<C, E> {
+impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+    IntegrationManager<C, E>
+{
     /// Create a new integration manager
     pub fn new(config: IntegrationConfig) -> Self {
         Self {
@@ -37,7 +42,11 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
     }
 
     /// Register an adapter
-    pub fn register_adapter(&mut self, name: String, adapter: Box<dyn IntegrationAdapterTrait + Send + Sync>) {
+    pub fn register_adapter(
+        &mut self,
+        name: String,
+        adapter: Box<dyn IntegrationAdapterTrait + Send + Sync>,
+    ) {
         self.adapters.insert(name, adapter);
     }
 
@@ -47,7 +56,10 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
     }
 
     /// Get an adapter by name
-    pub fn get_adapter(&self, name: &str) -> Option<&Box<dyn IntegrationAdapterTrait + Send + Sync>> {
+    pub fn get_adapter(
+        &self,
+        name: &str,
+    ) -> Option<&Box<dyn IntegrationAdapterTrait + Send + Sync>> {
         self.adapters.get(name)
     }
 
@@ -130,7 +142,9 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
         }
 
         // Apply filters to batch
-        let filtered_events: Vec<_> = batch.events.into_iter()
+        let filtered_events: Vec<_> = batch
+            .events
+            .into_iter()
             .filter(|event| self.should_process_event(event))
             .collect();
 
@@ -228,7 +242,11 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
                 }
 
                 // Clean up completed tasks
-                manager.task_handles.lock().unwrap().retain(|handle| !handle.is_finished());
+                manager
+                    .task_handles
+                    .lock()
+                    .unwrap()
+                    .retain(|handle| !handle.is_finished());
             }
         });
 
@@ -389,14 +407,19 @@ impl HealthStatus {
 }
 
 /// Integration pipeline for complex workflows
-pub struct IntegrationPipeline<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct IntegrationPipeline<
+    C: Send + Sync + Clone + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+> {
     /// Pipeline steps
     pub steps: Vec<Box<dyn IntegrationStep<C, E>>>,
     /// Pipeline configuration
     pub config: PipelineConfig,
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> IntegrationPipeline<C, E> {
+impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+    IntegrationPipeline<C, E>
+{
     /// Create a new integration pipeline
     pub fn new() -> Self {
         Self {
@@ -411,7 +434,10 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
     }
 
     /// Process an event through the pipeline
-    pub async fn process_event(&self, event: IntegrationEvent) -> Result<IntegrationEvent, IntegrationError> {
+    pub async fn process_event(
+        &self,
+        event: IntegrationEvent,
+    ) -> Result<IntegrationEvent, IntegrationError> {
         let mut current_event = event;
 
         for step in &self.steps {
@@ -422,7 +448,10 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
     }
 
     /// Process multiple events through the pipeline
-    pub async fn process_events(&self, events: Vec<IntegrationEvent>) -> Vec<Result<IntegrationEvent, IntegrationError>> {
+    pub async fn process_events(
+        &self,
+        events: Vec<IntegrationEvent>,
+    ) -> Vec<Result<IntegrationEvent, IntegrationError>> {
         let mut results = Vec::new();
 
         for event in events {
@@ -436,7 +465,11 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
 
 /// Integration step trait
 #[async_trait::async_trait]
-pub trait IntegrationStep<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub trait IntegrationStep<
+    C: Send + Sync + Clone + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+>
+{
     /// Process an event
     async fn process(&self, event: IntegrationEvent) -> Result<IntegrationEvent, IntegrationError>;
 

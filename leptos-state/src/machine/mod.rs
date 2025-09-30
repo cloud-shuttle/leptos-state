@@ -2,91 +2,91 @@
 //!
 //! Provides finite state machines with hierarchical states, guards, and actions.
 
-pub mod actions;
-pub mod action_core;
+pub mod action_builder;
 pub mod action_composite;
 pub mod action_control;
-pub mod action_builder;
+pub mod action_core;
 pub mod action_executor;
+pub mod actions;
 pub mod builder;
+pub mod cache_system;
 pub mod child_state_builder;
 pub mod child_transition_builder;
 pub mod codegen;
+pub mod codegen_builder;
 pub mod codegen_config;
 pub mod codegen_core;
-pub mod codegen_types;
 pub mod codegen_ext;
-pub mod codegen_builder;
+pub mod codegen_types;
 pub mod core;
 pub mod core_types;
-pub mod documentation;
-pub mod doc_config;
-pub mod doc_styling;
-pub mod doc_generator;
-pub mod doc_data;
 pub mod doc_builder;
+pub mod doc_config;
+pub mod doc_data;
+pub mod doc_generator;
+pub mod doc_styling;
+pub mod documentation;
 pub mod events;
-pub mod guards;
+pub mod guard_builder;
+pub mod guard_composite;
+pub mod guard_context;
 pub mod guard_core;
 pub mod guard_logical;
-pub mod guard_context;
 pub mod guard_state;
 pub mod guard_temporal;
-pub mod guard_composite;
-pub mod guard_builder;
+pub mod guards;
 pub mod history;
+pub mod history_builder;
 pub mod history_core;
 pub mod history_machine;
 pub mod history_tracker;
-pub mod history_builder;
 pub mod integration;
-pub mod integration_config;
-pub mod integration_events;
-pub mod integration_core;
 pub mod integration_adapters;
-pub mod integration_metrics;
+pub mod integration_config;
+pub mod integration_core;
+pub mod integration_events;
 pub mod integration_ext;
+pub mod integration_metrics;
+pub mod lazy_evaluation;
 pub mod machine;
 pub mod machine_builder;
 pub mod machine_state_impl;
+pub mod optimized_machine;
 pub mod performance;
+pub mod performance_builder;
 pub mod performance_config;
 pub mod performance_metrics;
 pub mod performance_profiler;
-pub mod cache_system;
-pub mod lazy_evaluation;
-pub mod optimized_machine;
-pub mod performance_builder;
 // #[cfg(feature = "serialization")]
 // pub mod persistence;
+pub mod core_actions;
+pub mod core_errors;
+pub mod core_guards;
+pub mod core_machine;
+pub mod core_macros;
+pub mod core_state;
+pub mod core_traits;
+pub mod coverage_tracking;
+pub mod integration_testing;
+pub mod performance_tracking;
 pub mod persistence_core;
-pub mod persistence_serialization;
-pub mod persistence_metadata;
-pub mod persistence_storage;
-pub mod persistence_manager;
 pub mod persistence_ext;
+pub mod persistence_manager;
+pub mod persistence_metadata;
+pub mod persistence_serialization;
+pub mod persistence_storage;
+pub mod property_testing;
 pub mod state_builder;
 pub mod states;
-pub mod testing;
-pub mod test_types;
-pub mod test_runner;
-pub mod test_cases;
-pub mod property_testing;
-pub mod integration_testing;
-pub mod test_data_generation;
-pub mod coverage_tracking;
-pub mod performance_tracking;
 pub mod test_builder;
+pub mod test_cases;
+pub mod test_data_generation;
 pub mod test_macros;
+pub mod test_runner;
+pub mod test_types;
+pub mod testing;
 pub mod traits;
 pub mod transition_builder;
-pub mod core_traits;
-pub mod core_machine;
-pub mod core_state;
-pub mod core_actions;
-pub mod core_guards;
-pub mod core_errors;
-pub mod core_macros;
 pub mod types;
 pub mod types_basic;
 pub mod types_config;
@@ -95,104 +95,208 @@ pub mod types_history;
 // #[cfg(feature = "serialization")]
 // pub mod visualization;
 pub mod visualization_config;
-pub mod visualization_events;
 pub mod visualization_core;
 pub mod visualization_data;
 pub mod visualization_debug;
-pub mod visualization_monitor;
+pub mod visualization_events;
 pub mod visualization_ext;
+pub mod visualization_monitor;
 
 // Re-export core types from new modular structure
-pub use traits::{StateMachine, MachineState};
-pub use machine_builder::MachineBuilder;
-pub use state_builder::StateBuilder;
+pub use builder::{create_machine_builder, MachineBuilderImpl};
 pub use child_state_builder::ChildStateBuilder;
 pub use child_transition_builder::ChildTransitionBuilder;
-pub use transition_builder::TransitionBuilder;
-pub use core_types::{StateNode, Transition, Machine};
-pub use machine_state_impl::MachineStateImpl;
-pub use core_errors::{MachineError, MachineResult};
 pub use core_actions::Action;
+pub use core_errors::{MachineError, MachineResult};
 pub use core_guards::Guard;
+pub use core_types::{Machine, StateNode, Transition};
+pub use machine_builder::MachineBuilder;
+pub use machine_state_impl::MachineStateImpl;
+pub use state_builder::StateBuilder;
+pub use traits::{MachineState, StateMachine};
+pub use transition_builder::TransitionBuilder;
+pub use types::{
+    CompleteMachineConfig, ContextValue, EventRoutingConfig, HistoryEntry, IntegrationConfig,
+    PerformanceConfig, StateValidationConfig,
+};
 pub use types_config::MachineConfig;
 pub use types_history::MachineHistory;
-pub use builder::{MachineBuilderImpl, create_machine_builder};
-pub use types::{ContextValue, HistoryEntry, EventRoutingConfig, StateValidationConfig, PerformanceConfig, IntegrationConfig, CompleteMachineConfig};
 
 // Legacy compatibility - re-export from old modules for now
 // pub use machine::*;
 // Core machine types
+pub use action_builder::{
+    actions as action_utils, ActionBuilder as ActionBuilderCore,
+    ActionExecution as ActionExecutionCore, ConditionalActionBuilder,
+};
+pub use action_composite::{
+    CompositeAction, CompositeLogic, ConditionalAction, ParallelAction, SequentialAction,
+};
+pub use action_control::{
+    CircuitBreakerAction, MetricsAction, RetryAction, RetryBackoff, TimeoutAction, TimerAction,
+};
+pub use action_core::{AssignAction, FunctionAction, LogAction, LogLevel, PureAction};
+pub use action_executor::{
+    ActionExecutionStats, ActionScheduler, BatchActionExecutor, EnhancedActionExecutor,
+    ErrorHandlingStrategy, ExecutionResult, PrioritizedAction,
+};
 pub use actions::{ActionBuilder, ActionExecution, ActionExecutor};
-pub use action_core::{FunctionAction, AssignAction, LogAction, LogLevel, PureAction};
-pub use action_composite::{ConditionalAction, SequentialAction, ParallelAction, CompositeAction, CompositeLogic};
-pub use action_control::{RetryAction, RetryBackoff, TimerAction, MetricsAction, TimeoutAction, CircuitBreakerAction};
-pub use action_builder::{ActionBuilder as ActionBuilderCore, ConditionalActionBuilder, ActionExecution as ActionExecutionCore, actions as action_utils};
-pub use action_executor::{EnhancedActionExecutor, ErrorHandlingStrategy, ActionExecutionStats, ExecutionResult, BatchActionExecutor, ActionScheduler, PrioritizedAction};
+pub use cache_system::{CacheKey, CacheStats, CachedTransition, MemoryTracker, TransitionCache};
 pub use codegen::{CodeGenConfig, CodeGenerator, GeneratedFile, MachineCodeGenExt};
-pub use codegen_config::{ProgrammingLanguage, IndentationStyle, CodeTemplates, CodeGenOptions};
+pub use codegen_builder::{presets as codegen_presets, CodeGenBuilder as BuilderCodeGenBuilder};
+pub use codegen_config::{CodeGenOptions, CodeTemplates, IndentationStyle, ProgrammingLanguage};
 pub use codegen_core::{CodeGenerator as CoreCodeGenerator, GenerationStats};
-pub use codegen_types::{GeneratedFile as TypesGeneratedFile, TransitionInfo as TypesTransitionInfo, StateGenInfo, EventGenInfo, GuardGenInfo, ActionGenInfo, GuardType, ActionType, CodeGenContext, MachineGenInfo, MachineType};
-pub use codegen_ext::{MachineCodeGenExt as ExtMachineCodeGenExt, MachineBuilderCodeGenExt, CodeGenPipeline, PipelineConfig, CodeGenStep, PipelineResult};
-pub use codegen_builder::{CodeGenBuilder as BuilderCodeGenBuilder, presets as codegen_presets};
+pub use codegen_ext::{
+    CodeGenPipeline, CodeGenStep, MachineBuilderCodeGenExt,
+    MachineCodeGenExt as ExtMachineCodeGenExt, PipelineConfig, PipelineResult,
+};
+pub use codegen_types::{
+    ActionGenInfo, ActionType, CodeGenContext, EventGenInfo, GeneratedFile as TypesGeneratedFile,
+    GuardGenInfo, GuardType, MachineGenInfo, MachineType, StateGenInfo,
+    TransitionInfo as TypesTransitionInfo,
+};
+pub use doc_builder::{
+    DocumentationBatch, DocumentationBuilder as DocBuilder, DocumentationPresets,
+    MachineDocumentationExt as DocExt,
+};
+pub use doc_config::{
+    ColorScheme, DocumentationConfig as DocConfig, DocumentationFormat, DocumentationOptions,
+    DocumentationStyling, DocumentationTemplate,
+};
+pub use doc_data::{
+    ActionInfo, DocumentationData as DocData, GeneratedDocument as DocOutput, GuardInfo, StateInfo,
+    TransitionInfo,
+};
+pub use doc_generator::DocumentationGenerator as DocGenerator;
+pub use doc_styling::{BuiltInTemplates, HtmlStyling, MarkdownStyling, TemplateData};
 pub use documentation::{DocumentationConfig, DocumentationGenerator, GeneratedDocument};
-pub use doc_config::{DocumentationConfig as DocConfig, DocumentationFormat, DocumentationTemplate, DocumentationStyling, ColorScheme, DocumentationOptions};
-pub use doc_styling::{TemplateData, BuiltInTemplates, HtmlStyling, MarkdownStyling};
-pub use doc_generator::{DocumentationGenerator as DocGenerator};
-pub use doc_data::{GeneratedDocument as DocOutput, TransitionInfo, StateInfo, ActionInfo, GuardInfo, DocumentationData as DocData};
-pub use doc_builder::{DocumentationBuilder as DocBuilder, MachineDocumentationExt as DocExt, DocumentationBatch, DocumentationPresets};
 pub use events::Event;
+pub use guard_builder::{
+    guards as guard_utils, GuardBuilder as GuardBuilderCore,
+    GuardEvaluation as GuardEvaluationCore, RangeGuardBuilder,
+};
+pub use guard_composite::{
+    CompositeGuard, CompositeLogic as GuardCompositeLogic, ConditionalCompositeGuard,
+    SequentialGuard, WeightedCompositeGuard,
+};
+pub use guard_context::{
+    ComparisonGuard, ComparisonOp, FieldEqualityGuard, NullCheckGuard, RangeGuard,
+};
+pub use guard_core::{
+    AlwaysGuard, FunctionGuard, GuardBatchEvaluator as GuardBatchEvaluatorCore,
+    GuardEvaluator as GuardEvaluatorCore, NeverGuard,
+};
+pub use guard_logical::{AndGuard, MajorityGuard, NotGuard, OrGuard, XorGuard};
+pub use guard_state::{
+    ContextStateGuard, EventDataGuard, EventTypeGuard, StateGuard, StateTransitionGuard,
+};
+pub use guard_temporal::{CooldownGuard, CounterGuard, RateLimitGuard, TimeGuard};
 pub use guards::{GuardBuilder, GuardEvaluation, GuardEvaluator};
-pub use guard_core::{GuardEvaluator as GuardEvaluatorCore, FunctionGuard, AlwaysGuard, NeverGuard, GuardBatchEvaluator as GuardBatchEvaluatorCore};
-pub use guard_logical::{AndGuard, OrGuard, NotGuard, XorGuard, MajorityGuard};
-pub use guard_context::{FieldEqualityGuard, RangeGuard, ComparisonGuard, ComparisonOp, NullCheckGuard};
-pub use guard_state::{EventTypeGuard, StateGuard, StateTransitionGuard, EventDataGuard, ContextStateGuard};
-pub use guard_temporal::{TimeGuard, CounterGuard, RateLimitGuard, CooldownGuard};
-pub use guard_composite::{CompositeGuard, CompositeLogic as GuardCompositeLogic, WeightedCompositeGuard, SequentialGuard, ConditionalCompositeGuard};
-pub use guard_builder::{GuardBuilder as GuardBuilderCore, RangeGuardBuilder, GuardEvaluation as GuardEvaluationCore, guards as guard_utils};
 pub use history::{HistoryMachine, HistoryTracker, HistoryType};
-pub use history_core::{HistoryState, HistoryConfig, HistoryEvent, HistoryEntry as HistoryEntryCore, HistoryStats};
-pub use history_machine::{MachineHistoryExt, HistoryMachineBuilder};
+pub use history_builder::{factory, handlers, history_builder as history_builder_utils, utils};
+pub use history_core::{
+    HistoryConfig, HistoryEntry as HistoryEntryCore, HistoryEvent, HistoryState, HistoryStats,
+};
+pub use history_machine::{HistoryMachineBuilder, MachineHistoryExt};
 pub use history_tracker::{HistoryIterator, HistorySnapshot};
-pub use history_builder::{history_builder as history_builder_utils, factory, utils, handlers};
 pub use integration::{IntegrationAdapter, IntegrationManager};
-pub use integration_config::{IntegrationConfig as IntegrationConfigCore, EventRoutingConfig as IntegrationEventRoutingConfig, RoutingRule, EventPattern, EventTransformation, RetryConfig, ConnectionConfig, Credentials, PoolConfig};
-pub use integration_events::{IntegrationEvent, EventPriority, ErrorHandlingStrategy as IntegrationErrorHandlingStrategy, ErrorAction, IntegrationError, IntegrationErrorType, EventBatch, EventFilter};
-pub use integration_core::{AdapterType, IntegrationAdapterTrait, HealthStatus};
-pub use integration_adapters::{HttpApiAdapter, DatabaseAdapter, MessageQueueAdapter, FileSystemAdapter, FileFormat, WebSocketAdapter};
-pub use integration_metrics::{AdapterMetrics, MetricsSummary, PerformanceMonitor, Percentiles, ThroughputMetrics, ResourceUsage, PerformanceReport};
+pub use integration_adapters::{
+    DatabaseAdapter, FileFormat, FileSystemAdapter, HttpApiAdapter, MessageQueueAdapter,
+    WebSocketAdapter,
+};
+pub use integration_config::{
+    ConnectionConfig, Credentials, EventPattern,
+    EventRoutingConfig as IntegrationEventRoutingConfig, EventTransformation,
+    IntegrationConfig as IntegrationConfigCore, PoolConfig, RetryConfig, RoutingRule,
+};
+pub use integration_core::{AdapterType, HealthStatus, IntegrationAdapterTrait};
+pub use integration_events::{
+    ErrorAction, ErrorHandlingStrategy as IntegrationErrorHandlingStrategy, EventBatch,
+    EventFilter, EventPriority, IntegrationError, IntegrationErrorType, IntegrationEvent,
+};
 pub use integration_ext::{integrations, presets};
+pub use integration_metrics::{
+    AdapterMetrics, MetricsSummary, Percentiles, PerformanceMonitor, PerformanceReport,
+    ResourceUsage, ThroughputMetrics,
+};
+pub use lazy_evaluation::{Lazy, LazyEvaluator, LazyResult, LazyWithMetadata, PerformanceLazy};
+pub use optimized_machine::{
+    MachinePerformanceExt, OptimizationLevel, OptimizedMachine as PerfOptimizedMachine,
+};
 pub use performance::{OptimizedMachine, PerformanceProfiler};
-pub use performance_config::{PerformanceConfig as PerformanceConfigCore, OptimizationStrategy, OptimizationParameters};
-pub use performance_metrics::{PerformanceMetrics, PerformanceBottleneck, BottleneckType, OptimizationSuggestion, PerformanceAnalysis};
-pub use performance_profiler::{PerformanceProfiler as PerfProfiler, PerformanceReport as PerformanceReportCore};
-pub use cache_system::{CacheStats, MemoryTracker, TransitionCache, CacheKey, CachedTransition};
-pub use lazy_evaluation::{LazyEvaluator, Lazy, LazyResult, LazyWithMetadata, PerformanceLazy};
-pub use optimized_machine::{OptimizedMachine as PerfOptimizedMachine, OptimizationLevel, MachinePerformanceExt};
 pub use performance_builder::{PerformanceBuilder, PerformanceOptimizationExt, PerformancePresets};
+pub use performance_config::{
+    OptimizationParameters, OptimizationStrategy, PerformanceConfig as PerformanceConfigCore,
+};
+pub use performance_metrics::{
+    BottleneckType, OptimizationSuggestion, PerformanceAnalysis, PerformanceBottleneck,
+    PerformanceMetrics,
+};
+pub use performance_profiler::{
+    PerformanceProfiler as PerfProfiler, PerformanceReport as PerformanceReportCore,
+};
 // #[cfg(feature = "serialization")]
 // pub use persistence::{MachinePersistence, PersistenceConfig, PersistentMachine};
-pub use persistence_core::{MachineSerialize, MachineDeserialize, PersistenceConfig, BackupConfig, StorageType, PersistenceStrategy, PersistenceError as CorePersistenceError};
-pub use persistence_serialization::{SerializedMachine, SerializedState, SerializedTransition, StateType, ComplexityMetrics};
-pub use persistence_metadata::{MachineMetadata, SchemaInfo, ValidationRule, ValidationType, MachineStats, MetadataBuilder};
-pub use persistence_storage::{MachineStorage, StorageInfo, LocalStorage, MemoryStorage, FileSystemStorage, StorageFactory};
-pub use persistence_manager::{MachinePersistence, BackupEntry, MachineInfo, PersistenceStats, BackupManager};
-pub use persistence_ext::{MachinePersistenceExt, PersistentMachine, PersistenceInfo, persistence_builder, migrations, monitoring};
-pub use testing::{MachineTestRunner, TestCase, TestConfig, TestResult};
-pub use test_types::{TestConfig as TestConfigTypes, DataStrategy, TestResult as TestResultTypes, TestCoverage, PerformanceMetrics as TestPerformanceMetrics, TestStep};
-pub use test_runner::{MachineTestRunner as TestRunner};
-pub use test_cases::{TestCase as TestCaseTypes, TestCaseStep, TestCaseExecutor};
-pub use property_testing::{Property, PropertyResult, PropertyTestResult, PropertyTestRunner};
+pub use coverage_tracking::{CoverageReport, CoverageStats, CoverageTracker};
 pub use integration_testing::{IntegrationScenario, IntegrationTestResult, IntegrationTestRunner};
-pub use test_data_generation::{TestDataGenerator, DefaultTestDataGenerator, MachineTestDataGenerator, DataGenerationStrategy, DataGenerationConfig, TestDataGenerationManager};
-pub use coverage_tracking::{CoverageTracker, CoverageStats, CoverageReport};
-pub use performance_tracking::{PerformanceTracker, PerformanceReport as TrackingPerformanceReport};
-pub use visualization_config::{VisualizationConfig, VisualizationTheme, RenderingOptions, LayoutDirection, ExportFormat};
-pub use visualization_events::{TransitionEvent, GuardResult, ActionResult, StateChangeEvent, PerformanceEvent, ErrorEvent, StateChangeType, PerformanceEventType, ErrorEventType};
-pub use visualization_core::{MachineVisualizer, PerformanceReport as CorePerformanceReport, ErrorSummary};
-pub use visualization_data::{StateDiagram, StateInfo as DataStateInfo, TransitionInfo as VisualizationTransitionInfo};
-pub use visualization_debug::{TimeTravelDebugger, TimeTravelPosition, VisualizationStats, Breakpoint, BreakpointType};
-pub use visualization_monitor::{StateMonitor, MonitoringStats, StateInfo as MonitorStateInfo, StateStatus, HealthChecker, HealthCheckResult, HealthStatus as VisualizationHealthStatus};
-pub use visualization_ext::{MachineVisualizationExt, VisualizedMachine, AutoVisualizer, AutoExportSettings};
-pub use test_builder::{TestBuilder, TestSuiteResult, MachineTestingExt};
+pub use performance_tracking::{
+    PerformanceReport as TrackingPerformanceReport, PerformanceTracker,
+};
+pub use persistence_core::{
+    BackupConfig, MachineDeserialize, MachineSerialize, PersistenceConfig,
+    PersistenceError as CorePersistenceError, PersistenceStrategy, StorageType,
+};
+pub use persistence_ext::{
+    migrations, monitoring, persistence_builder, MachinePersistenceExt, PersistenceInfo,
+    PersistentMachine,
+};
+pub use persistence_manager::{
+    BackupEntry, BackupManager, MachineInfo, MachinePersistence, PersistenceStats,
+};
+pub use persistence_metadata::{
+    MachineMetadata, MachineStats, MetadataBuilder, SchemaInfo, ValidationRule, ValidationType,
+};
+pub use persistence_serialization::{
+    ComplexityMetrics, SerializedMachine, SerializedState, SerializedTransition, StateType,
+};
+pub use persistence_storage::{
+    FileSystemStorage, LocalStorage, MachineStorage, MemoryStorage, StorageFactory, StorageInfo,
+};
+pub use property_testing::{Property, PropertyResult, PropertyTestResult, PropertyTestRunner};
+pub use test_builder::{MachineTestingExt, TestBuilder, TestSuiteResult};
+pub use test_cases::{TestCase as TestCaseTypes, TestCaseExecutor, TestCaseStep};
+pub use test_data_generation::{
+    DataGenerationConfig, DataGenerationStrategy, DefaultTestDataGenerator,
+    MachineTestDataGenerator, TestDataGenerationManager, TestDataGenerator,
+};
+pub use test_runner::MachineTestRunner as TestRunner;
+pub use test_types::{
+    DataStrategy, PerformanceMetrics as TestPerformanceMetrics, TestConfig as TestConfigTypes,
+    TestCoverage, TestResult as TestResultTypes, TestStep,
+};
+pub use testing::{MachineTestRunner, TestCase, TestConfig, TestResult};
+pub use visualization_config::{
+    ExportFormat, LayoutDirection, RenderingOptions, VisualizationConfig, VisualizationTheme,
+};
+pub use visualization_core::{
+    ErrorSummary, MachineVisualizer, PerformanceReport as CorePerformanceReport,
+};
+pub use visualization_data::{
+    StateDiagram, StateInfo as DataStateInfo, TransitionInfo as VisualizationTransitionInfo,
+};
+pub use visualization_debug::{
+    Breakpoint, BreakpointType, TimeTravelDebugger, TimeTravelPosition, VisualizationStats,
+};
+pub use visualization_events::{
+    ActionResult, ErrorEvent, ErrorEventType, GuardResult, PerformanceEvent, PerformanceEventType,
+    StateChangeEvent, StateChangeType, TransitionEvent,
+};
+pub use visualization_ext::{
+    AutoExportSettings, AutoVisualizer, MachineVisualizationExt, VisualizedMachine,
+};
+pub use visualization_monitor::{
+    HealthCheckResult, HealthChecker, HealthStatus as VisualizationHealthStatus, MonitoringStats,
+    StateInfo as MonitorStateInfo, StateMonitor, StateStatus,
+};
 // #[cfg(feature = "serialization")]
 // pub use visualization::{MachineVisualizer, VisualizationConfig, VisualizedMachine};

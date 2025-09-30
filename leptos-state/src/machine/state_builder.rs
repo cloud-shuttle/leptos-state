@@ -2,7 +2,7 @@ use super::*;
 use std::collections::HashMap;
 
 /// State builder for fluent API
-pub struct StateBuilder<C: Send + Sync, E: Send + Sync> {
+pub struct StateBuilder<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
     pub machine_builder: MachineBuilder<C, E>,
     pub current_state: String,
     pub transitions: Vec<Transition<C, E>>,
@@ -42,7 +42,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBu
     /// Add a function-based entry action
     pub fn on_entry_fn<F>(mut self, func: F) -> Self
     where
-        F: Fn(&mut C, &E) + Send + Sync + 'static,
+        F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
     {
         self.entry_actions
             .push(Box::new(actions::FunctionAction::new(func)));
@@ -52,7 +52,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBu
     /// Add a function-based exit action
     pub fn on_exit_fn<F>(mut self, func: F) -> Self
     where
-        F: Fn(&mut C, &E) + Send + Sync + 'static,
+        F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
     {
         self.exit_actions
             .push(Box::new(actions::FunctionAction::new(func)));
@@ -84,7 +84,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBu
     /// Add a pure entry action (no context modification)
     pub fn on_entry_pure<F>(mut self, func: F) -> Self
     where
-        F: Fn() + Send + Sync + 'static,
+        F: Fn() + Clone + Send + Sync + 'static,
     {
         self.entry_actions
             .push(Box::new(actions::PureAction::new(func)));
@@ -94,7 +94,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBu
     /// Add a pure exit action (no context modification)
     pub fn on_exit_pure<F>(mut self, func: F) -> Self
     where
-        F: Fn() + Send + Sync + 'static,
+        F: Fn() + Clone + Send + Sync + 'static,
     {
         self.exit_actions
             .push(Box::new(actions::PureAction::new(func)));

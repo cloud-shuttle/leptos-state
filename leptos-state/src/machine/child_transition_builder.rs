@@ -1,7 +1,7 @@
 use super::*;
 
 /// Transition builder for child states
-pub struct ChildTransitionBuilder<C: Send + Sync, E: Send + Sync> {
+pub struct ChildTransitionBuilder<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
     child_builder: ChildStateBuilder<C, E>,
     event: E,
     target: String,
@@ -9,7 +9,9 @@ pub struct ChildTransitionBuilder<C: Send + Sync, E: Send + Sync> {
     actions: Vec<Box<dyn Action<C, E>>>,
 }
 
-impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildTransitionBuilder<C, E> {
+impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static>
+    ChildTransitionBuilder<C, E>
+{
     pub fn new(child_builder: ChildStateBuilder<C, E>, event: E, target: String) -> Self {
         Self {
             child_builder,
@@ -37,7 +39,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildTr
     /// Add a field equality guard
     pub fn guard_field_equals<T, F>(mut self, field_extractor: F, expected_value: T) -> Self
     where
-        F: Fn(&C) -> T + Send + Sync + 'static,
+        F: Fn(&C) -> T + Clone + Send + Sync + 'static,
         T: PartialEq + Send + Sync + 'static,
     {
         self.guards.push(Box::new(guards::FieldEqualityGuard::new(
@@ -50,7 +52,7 @@ impl<C: Clone + 'static + Send + Sync, E: Clone + Send + Sync + 'static> ChildTr
     /// Add a range guard
     pub fn guard_field_range<T, F>(mut self, field_extractor: F, min: T, max: T) -> Self
     where
-        F: Fn(&C) -> T + Send + Sync + 'static,
+        F: Fn(&C) -> T + Clone + Send + Sync + 'static,
         T: PartialOrd + Send + Sync + 'static,
     {
         self.guards

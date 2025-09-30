@@ -1,7 +1,7 @@
 //! Machine metadata for persistence
 
-use super::*;
 use super::persistence_core::PersistenceError;
+use super::*;
 
 /// Machine metadata for persistence
 #[derive(Debug, Clone)]
@@ -142,20 +142,28 @@ impl MachineMetadata {
     /// Validate metadata
     pub fn validate(&self) -> Result<(), PersistenceError> {
         if self.version.is_empty() {
-            return Err(PersistenceError::ValidationError("Version cannot be empty".to_string()));
+            return Err(PersistenceError::ValidationError(
+                "Version cannot be empty".to_string(),
+            ));
         }
 
         // Validate version format (basic semver check)
         if !self.version.contains('.') {
-            return Err(PersistenceError::ValidationError("Version must be in semver format".to_string()));
+            return Err(PersistenceError::ValidationError(
+                "Version must be in semver format".to_string(),
+            ));
         }
 
         if self.created_at == 0 {
-            return Err(PersistenceError::ValidationError("Created timestamp cannot be zero".to_string()));
+            return Err(PersistenceError::ValidationError(
+                "Created timestamp cannot be zero".to_string(),
+            ));
         }
 
         if self.modified_at < self.created_at {
-            return Err(PersistenceError::ValidationError("Modified timestamp cannot be before created timestamp".to_string()));
+            return Err(PersistenceError::ValidationError(
+                "Modified timestamp cannot be before created timestamp".to_string(),
+            ));
         }
 
         Ok(())
@@ -265,9 +273,10 @@ impl ValidationRule {
         match self.rule_type {
             ValidationType::Required => {
                 if data.get(&self.path).is_none() {
-                    return Err(PersistenceError::ValidationError(
-                        format!("Required field '{}' is missing", self.path)
-                    ));
+                    return Err(PersistenceError::ValidationError(format!(
+                        "Required field '{}' is missing",
+                        self.path
+                    )));
                 }
             }
             ValidationType::Type => {
@@ -501,7 +510,11 @@ pub mod utils {
             created_at: base.created_at, // Keep original creation time
             modified_at: std::cmp::max(base.modified_at, other.modified_at),
             author: other.author.or(base.author),
-            tags: if other.tags.is_empty() { base.tags } else { other.tags },
+            tags: if other.tags.is_empty() {
+                base.tags
+            } else {
+                other.tags
+            },
             properties: {
                 let mut merged = base.properties;
                 merged.extend(other.properties);

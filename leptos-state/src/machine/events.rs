@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::machine::core_actions::Action;
+use std::fmt;
 
 /// Trait for machine events
 pub trait Event: Clone + fmt::Debug {
@@ -59,9 +59,6 @@ impl<T: Clone + fmt::Debug> Event for DataEvent<T> {
 }
 
 // Action trait moved to core_actions.rs
-
-
-
 
 #[cfg(test)]
 mod tests {

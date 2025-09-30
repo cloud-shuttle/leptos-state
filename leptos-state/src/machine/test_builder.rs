@@ -1,11 +1,14 @@
 //! Test builder for fluent test creation
 
 use super::*;
-use std::time::Duration;
 use std::hash::Hash;
+use std::time::Duration;
 
 /// Test builder for fluent test creation
-pub struct TestBuilder<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub struct TestBuilder<
+    C: Send + Sync + Clone + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+> {
     /// Machine being tested
     pub machine: Machine<C, E, C>,
     /// Test configuration
@@ -18,7 +21,11 @@ pub struct TestBuilder<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync 
     pub scenarios: Vec<IntegrationScenario<C, E>>,
 }
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> TestBuilder<C, E> {
+impl<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    > TestBuilder<C, E>
+{
     /// Create a new test builder
     pub fn new(machine: Machine<C, E, C>) -> Self {
         Self {
@@ -78,7 +85,11 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash
                         execution_time: property_result.total_execution_time,
                         transitions_executed: 0, // Property tests don't track transitions
                         final_state: "property_tested".to_string(),
-                        error_message: if property_result.passed { None } else { Some("Property test failed".to_string()) },
+                        error_message: if property_result.passed {
+                            None
+                        } else {
+                            Some("Property test failed".to_string())
+                        },
                         coverage: TestCoverage {
                             state_coverage: 0.0,
                             transition_coverage: 0.0,
@@ -179,12 +190,20 @@ impl TestSuiteResult {
 }
 
 /// Extension trait for adding testing to machines
-pub trait MachineTestingExt<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> {
+pub trait MachineTestingExt<
+    C: Send + Sync + Clone + PartialEq + 'static,
+    E: Clone + Send + Sync + Hash + Eq + 'static,
+>
+{
     /// Create a test builder for this machine
     fn test(&self) -> TestBuilder<C, E>;
 }
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + Hash + Eq + 'static> MachineTestingExt<C, E> for Machine<C, E, C> {
+impl<
+        C: Send + Sync + Clone + PartialEq + 'static,
+        E: Clone + Send + Sync + Hash + Eq + 'static,
+    > MachineTestingExt<C, E> for Machine<C, E, C>
+{
     fn test(&self) -> TestBuilder<C, E> {
         TestBuilder::new(self.clone())
     }

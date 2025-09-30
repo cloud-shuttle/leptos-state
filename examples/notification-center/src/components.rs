@@ -1,6 +1,6 @@
-use leptos::*;
-use leptos::prelude::*;
 use crate::notification_machine::*;
+use leptos::prelude::*;
+use leptos::*;
 use web_sys::AnimationEvent;
 
 /// Individual notification component
@@ -35,9 +35,7 @@ where
         }
     });
 
-    let should_show_progress = Memo::new(move |_| {
-        notification.get().should_show_progress()
-    });
+    let should_show_progress = Memo::new(move |_| notification.get().should_show_progress());
 
     let on_close_clone = on_close.clone();
     let on_hover_change_clone = on_hover_change.clone();
@@ -151,14 +149,13 @@ where
 
 /// Demo form component
 #[component]
-pub fn NotificationDemo<F>(
-    on_trigger: F,
-) -> impl IntoView
+pub fn NotificationDemo<F>(on_trigger: F) -> impl IntoView
 where
     F: Fn((String, String, Option<u32>, NotificationType)) + Send + Clone + 'static,
 {
     let (title, set_title) = signal("Successfully saved!".to_string());
-    let (description, set_description) = signal("Your XState machine has been saved 👌".to_string());
+    let (description, set_description) =
+        signal("Your XState machine has been saved 👌".to_string());
     let (timeout, set_timeout) = signal(Some(5000u32));
     let (notification_type, set_notification_type) = signal(NotificationType::Success);
 

@@ -13,10 +13,10 @@
 //! - `guard_builder`: Guard builder for fluent guard construction
 
 // Re-export all guard functionality from the split modules
+pub use super::guard_builder::*;
+pub use super::guard_composite::*;
+pub use super::guard_context::*;
 pub use super::guard_core::*;
 pub use super::guard_logical::*;
-pub use super::guard_context::*;
 pub use super::guard_state::*;
 pub use super::guard_temporal::*;
-pub use super::guard_composite::*;
-pub use super::guard_builder::*;
