@@ -44,7 +44,7 @@ pub mod integration;
 pub mod integration_adapters;
 pub mod integration_config;
 pub mod integration_core;
-pub mod integration_events;
+// Integration events are now in integration::events
 pub mod integration_ext;
 pub mod integration_metrics;
 pub mod lazy_evaluation;
@@ -200,7 +200,7 @@ pub use history_core::{
 };
 pub use history_machine::{HistoryMachineBuilder, MachineHistoryExt};
 pub use history_tracker::{HistoryIterator, HistorySnapshot};
-pub use integration::{IntegrationAdapter, IntegrationManager};
+pub use integration_core::{IntegrationAdapter, IntegrationManager};
 pub use integration_adapters::{
     DatabaseAdapter, FileFormat, FileSystemAdapter, HttpApiAdapter, MessageQueueAdapter,
     WebSocketAdapter,
@@ -211,7 +211,7 @@ pub use integration_config::{
     IntegrationConfig as IntegrationConfigCore, PoolConfig, RetryConfig, RoutingRule,
 };
 pub use integration_core::{AdapterType, HealthStatus, IntegrationAdapterTrait};
-pub use integration_events::{
+pub use integration::events::{
     ErrorAction, ErrorHandlingStrategy as IntegrationErrorHandlingStrategy, EventBatch,
     EventFilter, EventPriority, IntegrationError, IntegrationErrorType, IntegrationEvent,
 };
