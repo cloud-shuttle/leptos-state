@@ -54,16 +54,16 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Machine
         }
     }
 
-    // TODO: Implement persistence features
-    // #[cfg(feature = "persist")]
-    // /// Build a machine with persistence capabilities
-    // pub fn build_with_persistence(self, config: PersistenceConfig) -> PersistentMachine<C, E, C>
-    // where
-    //     C: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
-    //     E: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
-    // {
-    //     self.build().with_persistence(config)
-    // }
+    /// Build a machine with persistence capabilities
+    #[cfg(feature = "persist")]
+    pub fn build_with_persistence(self, config: crate::machine::persistence_core::PersistenceConfig) -> crate::machine::persistence_ext::PersistentMachine<C, E, C>
+    where
+        C: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
+        E: Clone + serde::Serialize + for<'de> serde::Deserialize<'de>,
+    {
+        use crate::machine::persistence_ext::MachinePersistenceExt;
+        self.build().with_persistence(config)
+    }
 
     // #[cfg(feature = "persist")]
     // /// Build a machine with default persistence settings
@@ -82,16 +82,16 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Machine
     //     self.build_with_persistence(config)
     // }
 
-    // TODO: Implement visualization features
-    // #[cfg(feature = "visualization")]
-    // /// Build a machine with visualization capabilities
-    // pub fn build_with_visualization(self, config: VisualizationConfig) -> VisualizedMachine<C, E, C>
-    // where
-    //     C: Clone + serde::Serialize,
-    //     E: Clone + serde::Serialize,
-    // {
-    //     self.build().with_visualization(config)
-    // }
+    /// Build a machine with visualization capabilities
+    #[cfg(feature = "visualization")]
+    pub fn build_with_visualization(self, config: crate::machine::visualization_core::VisualizationConfig) -> crate::machine::visualization_ext::VisualizedMachine<C, E, C>
+    where
+        C: Clone + serde::Serialize,
+        E: Clone + serde::Serialize,
+    {
+        use crate::machine::visualization_ext::MachineVisualizationExt;
+        self.build().with_visualization(config)
+    }
 
     // #[cfg(feature = "visualization")]
     // /// Build a machine with default visualization settings
@@ -115,16 +115,16 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Machine
     //     self.build_with_visualization(config)
     // }
 
-    // TODO: Implement testing features
-    // #[cfg(feature = "testing")]
-    // /// Build a machine with testing capabilities
-    // pub fn build_with_testing(self, config: TestConfig) -> MachineTestRunner<C, E>
-    // where
-    //     C: Clone + std::fmt::Debug + PartialEq,
-    //     E: Clone + std::fmt::Debug + Event,
-    // {
-    //     self.build().with_testing(config)
-    // }
+    /// Build a machine with testing capabilities
+    #[cfg(feature = "testing")]
+    pub fn build_with_testing(self, config: crate::machine::testing::TestConfig) -> crate::machine::testing::MachineTestRunner<C, E>
+    where
+        C: Clone + std::fmt::Debug + PartialEq,
+        E: Clone + std::fmt::Debug + crate::machine::Event,
+    {
+        use crate::machine::testing::MachineTestingExt;
+        self.build().with_testing(config)
+    }
 
     // #[cfg(feature = "testing")]
     // /// Build a machine with default testing settings

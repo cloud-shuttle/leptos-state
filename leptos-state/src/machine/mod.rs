@@ -296,7 +296,7 @@ pub use visualization_events::{
 pub use visualization_ext::{
     AutoExportSettings, AutoVisualizer, MachineVisualizationExt, VisualizedMachine,
 };
-// TODO: Re-export monitor types once the module structure is finalized
+// Monitor types are now re-exported from visualization::monitor
 // pub use visualization_monitor::{
 //     HealthCheckResult, HealthChecker, HealthStatus as VisualizationHealthStatus, MonitoringStats,
 //     StateInfo as MonitorStateInfo, StateMonitor, StateStatus,
