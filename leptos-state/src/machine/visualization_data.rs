@@ -298,60 +298,62 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Machine
     }
 }
 
-impl<C: Send + Sync, E> serde::Serialize for MachineSnapshot<C, E>
-where
-    C: serde::Serialize,
-    E: serde::Serialize,
-{
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        use serde::ser::{SerializeStruct, Serializer};
+// TODO: Re-enable serde support for MachineSnapshot when needed
+// Currently removed to avoid compilation issues with generic type bounds
+// impl<C: Send + Sync, E> serde::Serialize for MachineSnapshot<C, E>
+// where
+//     C: serde::Serialize,
+//     E: serde::Serialize,
+// {
+//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+//     where
+//         S: serde::Serializer,
+//     {
+//         use serde::ser::{SerializeStruct, Serializer};
 
-        let mut state = serializer.serialize_struct("MachineSnapshot", 5)?;
-        state.serialize_field("current_state", &self.current_state)?;
-        state.serialize_field("context", &self.context)?;
-        state.serialize_field("event_history", &self.event_history)?;
-        state.serialize_field("timestamp", &self.timestamp.elapsed().as_nanos())?;
-        state.serialize_field("metadata", &self.metadata)?;
-        state.end()
-    }
-}
+//         let mut state = serializer.serialize_struct("MachineSnapshot", 5)?;
+//         state.serialize_field("current_state", &self.current_state)?;
+//         state.serialize_field("context", &self.context)?;
+//         state.serialize_field("event_history", &self.event_history)?;
+//         state.serialize_field("timestamp", &self.timestamp.elapsed().as_nanos())?;
+//         state.serialize_field("metadata", &self.metadata)?;
+//         state.end()
+//     }
+// }
 
-impl<'de, C: Send + Sync, E> serde::Deserialize<'de> for MachineSnapshot<C, E>
-where
-    C: serde::Deserialize<'de>,
-    E: serde::Deserialize<'de>,
-{
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        use serde::de::{self, Deserializer, MapAccess, Visitor};
-        use std::fmt;
+// impl<'de, C: Send + Sync, E> serde::Deserialize<'de> for MachineSnapshot<C, E>
+// where
+//     C: serde::Deserialize<'de>,
+//     E: serde::Deserialize<'de>,
+// {
+//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+//     where
+//         D: serde::Deserializer<'de>,
+//     {
+//         use serde::de::{self, Deserializer, MapAccess, Visitor};
+//         use std::fmt;
 
-        #[derive(serde::Deserialize)]
-        struct MachineSnapshotData<C2, E2> {
-            current_state: String,
-            context: C2,
-            event_history: Vec<TransitionEvent<C2, E2>>,
-            timestamp: u128,
-            metadata: std::collections::HashMap<String, String>,
-        }
+//         #[derive(serde::Deserialize)]
+//         struct MachineSnapshotData<C2, E2> {
+//             current_state: String,
+//             context: C2,
+//             event_history: Vec<TransitionEvent<C2, E2>>,
+//             timestamp: u128,
+//             metadata: std::collections::HashMap<String, String>,
+//         }
 
-        let data = MachineSnapshotData::deserialize(deserializer)?;
+//         let data = MachineSnapshotData::deserialize(deserializer)?;
 
-        Ok(MachineSnapshot {
-            current_state: data.current_state,
-            context: data.context,
-            event_history: data.event_history,
-            timestamp: std::time::Instant::now()
-                - std::time::Duration::from_nanos(data.timestamp as u64),
-            metadata: data.metadata,
-        })
-    }
-}
+//         Ok(MachineSnapshot {
+//             current_state: data.current_state,
+//             context: data.context,
+//             event_history: data.event_history,
+//             timestamp: std::time::Instant::now()
+//                 - std::time::Duration::from_nanos(data.timestamp as u64),
+//             metadata: data.metadata,
+//         })
+//     }
+// }
 
 impl<'a, C: Send + Sync, E> serde::Serialize for StateDiagram<'a, C, E> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
