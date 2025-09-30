@@ -18,7 +18,7 @@ pub struct HistoryMachine<
     pub history_states: std::collections::HashMap<String, HistoryState>,
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + 'static>
     HistoryMachine<C, E>
 {
     /// Create a new history machine
@@ -219,7 +219,7 @@ pub trait MachineHistoryExt<
     fn history_state(self, state: HistoryState) -> Self;
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + 'static>
     MachineHistoryExt<C, E> for Machine<C, E, C>
 {
     fn with_history(self, config: HistoryConfig) -> HistoryMachine<C, E> {

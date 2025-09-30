@@ -14,7 +14,7 @@ pub struct HistoryTracker<C: Send + Sync + Clone + 'static> {
     pub stats: HistoryStats,
 }
 
-impl<C: Send + Sync + Clone + 'static> HistoryTracker<C> {
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static> HistoryTracker<C> {
     /// Create a new history tracker
     pub fn new() -> Self {
         Self {
@@ -307,7 +307,7 @@ pub struct HistorySnapshot<C: Send + Sync + Clone + 'static> {
     pub timestamp: std::time::Instant,
 }
 
-impl<C: Send + Sync + Clone + 'static> HistorySnapshot<C> {
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static> HistorySnapshot<C> {
     /// Get the age of this snapshot
     pub fn age(&self) -> std::time::Duration {
         self.timestamp.elapsed()
@@ -325,7 +325,7 @@ impl<C: Send + Sync + Clone + 'static> HistorySnapshot<C> {
 }
 
 /// Default implementation for HistoryTracker
-impl<C: Clone + PartialEq + Default + Send + Sync + 'static> Default for HistoryTracker<C> {
+impl<C: Clone + PartialEq + Default + Send + Sync + std::fmt::Debug + 'static> Default for HistoryTracker<C> {
     fn default() -> Self {
         Self::new()
     }
