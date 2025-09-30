@@ -19,7 +19,7 @@ pub struct StateDiagram<'a, C: Send + Sync, E> {
     pub generated_at: std::time::Instant,
 }
 
-impl<'a, C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateDiagram<'a, C, E> {
+impl<'a, C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> StateDiagram<'a, C, E> {
     /// Create a new state diagram from a machine
     pub fn new(machine: &'a Machine<C, E, C>, config: &VisualizationConfig) -> Self {
         let name = "StateMachine".to_string(); // Could be made configurable
@@ -108,7 +108,7 @@ pub struct StateInfo<'a, C: Send + Sync, E> {
     pub metadata: std::collections::HashMap<String, String>,
 }
 
-impl<'a, C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateInfo<'a, C, E> {
+impl<'a, C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> StateInfo<'a, C, E> {
     /// Create state info from a state node
     pub fn new(
         state_name: &str,
@@ -185,7 +185,7 @@ pub struct TransitionInfo<'a, C: Send + Sync, E> {
     pub metadata: std::collections::HashMap<String, String>,
 }
 
-impl<'a, C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> TransitionInfo<'a, C, E> {
+impl<'a, C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> TransitionInfo<'a, C, E> {
     /// Create transition info from a transition
     pub fn new(
         from_state: &str,
@@ -267,7 +267,7 @@ pub struct MachineSnapshot<C: Send + Sync, E> {
     pub metadata: std::collections::HashMap<String, String>,
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> MachineSnapshot<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> MachineSnapshot<C, E> {
     /// Create a new snapshot
     pub fn new(machine: Machine<C, E, C>) -> Self {
         // This is a simplified implementation

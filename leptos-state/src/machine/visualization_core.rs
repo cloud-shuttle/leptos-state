@@ -26,7 +26,7 @@ pub struct MachineVisualizer<C: Clone + Send + Sync + std::fmt::Debug + 'static,
     pub enabled: bool,
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> MachineVisualizer<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> MachineVisualizer<C, E> {
     /// Create a new machine visualizer
     pub fn new() -> Self {
         Self {
