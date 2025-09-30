@@ -298,7 +298,7 @@ pub struct PerformanceEvent {
     pub metadata: std::collections::HashMap<String, String>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PerformanceEventType {
     /// State transition
     Transition,

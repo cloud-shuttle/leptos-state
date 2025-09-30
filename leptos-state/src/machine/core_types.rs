@@ -35,7 +35,7 @@ pub struct Transition<
 #[derive(Debug)]
 pub struct Machine<
     C: Send + Sync + Clone + std::fmt::Debug + 'static,
-    E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+    E: Send + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
     S: Clone + std::fmt::Debug,
 > {
     pub states: HashMap<String, StateNode<C, E, C>>,
@@ -71,7 +71,7 @@ impl<C: Clone, E: Clone + Send> Clone for StateNode<C, E, C> {
 }
 
 // Manual Clone implementation for Machine since trait objects can't be cloned
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> Clone for Machine<C, E, C> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> Clone for Machine<C, E, C> {
     fn clone(&self) -> Self {
         Self {
             states: self.states.clone(),
