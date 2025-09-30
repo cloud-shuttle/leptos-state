@@ -1,6 +1,6 @@
 //! Core integration functionality
 
-use super::integration_metrics::IntegrationMetrics;
+use crate::machine::integration::metrics::IntegrationMetrics;
 use super::*;
 use std::hash::Hash;
 

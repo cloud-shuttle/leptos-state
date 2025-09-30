@@ -46,7 +46,7 @@ pub mod integration_adapters;
 pub mod integration_core;
 // Integration events are now in integration::events
 pub mod integration_ext;
-pub mod integration_metrics;
+// Integration metrics are now in integration::metrics
 pub mod lazy_evaluation;
 pub mod machine_builder;
 pub mod machine_state_impl;
@@ -216,8 +216,8 @@ pub use integration::events::{
     EventFilter, EventPriority, IntegrationError, IntegrationErrorType, IntegrationEvent,
 };
 pub use integration_ext::{integrations, presets};
-pub use integration_metrics::{
-    AdapterMetrics, MetricsSummary, Percentiles, PerformanceMonitor, PerformanceReport,
+pub use integration::metrics::{
+    AdapterMetrics, MetricsSummary, Percentiles, PerformanceReport,
     ResourceUsage, ThroughputMetrics,
 };
 pub use lazy_evaluation::{Lazy, LazyEvaluator, LazyResult, LazyWithMetadata, PerformanceLazy};
