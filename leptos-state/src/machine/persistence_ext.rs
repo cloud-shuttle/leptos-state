@@ -20,7 +20,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
         self,
         config: PersistenceConfig,
     ) -> Result<PersistentMachine<C, E>, PersistenceError> {
-        let storage = persistence_storage::StorageFactory::create_storage(&config.storage_type)?;
+        let storage = super::storage::StorageFactory::new().create_storage(&config.storage_type, super::storage::StorageConfig::new())?;
         let persistence_manager = MachinePersistence::new(storage, config);
         Ok(PersistentMachine::new(self, persistence_manager))
     }

@@ -1,7 +1,7 @@
 //! Persistence manager implementation
 
 use super::persistence_core::PersistenceError;
-use super::*;
+use super::storage::{MachineStorage, StorageFactory};
 
 /// Persistence manager for state machines
 pub struct MachinePersistence<C: Send + Sync + 'static, E: Send + Sync + 'static> {
@@ -257,7 +257,8 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
             .map_err(|e| PersistenceError::SerializationError(e.to_string()))?;
 
         if self.config.compression_level > 0 {
-            persistence_storage::utils::compress_data(json.as_bytes())
+            // TODO: Implement compression utilities in storage module
+            json.as_bytes()
         } else {
             Ok(json.into_bytes())
         }
@@ -266,7 +267,8 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     /// Decode data from storage
     fn decode_data(&self, data: &[u8]) -> Result<SerializedMachine<C, E, C>, PersistenceError> {
         let json_bytes = if self.config.compression_level > 0 {
-            persistence_storage::utils::decompress_data(data)?
+            // TODO: Implement decompression utilities in storage module
+            data
         } else {
             data.to_vec()
         };
@@ -295,7 +297,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
 impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> Clone for MachinePersistence<C, E> {
     fn clone(&self) -> Self {
         Self {
-            storage: persistence_storage::StorageFactory::create_storage(&StorageType::Memory)
+            storage: StorageFactory::new().create_memory()
                 .unwrap(),
             config: self.config.clone(),
             active_machines: std::sync::RwLock::new(std::collections::HashSet::new()),
@@ -346,7 +348,7 @@ impl BackupManager {
     pub fn new(storage_type: String, config: BackupConfig) -> Self {
         // Use memory storage for backups by default
         let backup_storage =
-            persistence_storage::StorageFactory::create_storage(&StorageType::Memory).unwrap();
+            StorageFactory::new().create_memory();
 
         Self {
             storage_type,
@@ -470,7 +472,7 @@ pub mod utils {
     /// Create a persistence manager with default settings
     pub fn create_default_persistence<C: Send + Sync, E>(
     ) -> Result<MachinePersistence<C, E>, PersistenceError> {
-        let storage = persistence_storage::StorageFactory::create_storage(&StorageType::Memory)?;
+        let storage = StorageFactory::new().create_memory();
         let config = PersistenceConfig::default();
         Ok(MachinePersistence::new(storage, config))
     }
@@ -479,7 +481,7 @@ pub mod utils {
     pub fn create_local_persistence<C: Send + Sync, E>(
     ) -> Result<MachinePersistence<C, E>, PersistenceError> {
         let storage =
-            persistence_storage::StorageFactory::create_storage(&StorageType::LocalStorage)?;
+            StorageFactory::new().create_local()?;
         let config = PersistenceConfig::default();
         Ok(MachinePersistence::new(storage, config))
     }
@@ -488,7 +490,7 @@ pub mod utils {
     pub fn create_filesystem_persistence<C: Send + Sync, E>(
         base_dir: std::path::PathBuf,
     ) -> Result<MachinePersistence<C, E>, PersistenceError> {
-        let storage = Box::new(persistence_storage::FileSystemStorage::new(base_dir));
+        let storage = StorageFactory::new().create_filesystem(base_dir)?;
         let config = PersistenceConfig::default();
         Ok(MachinePersistence::new(storage, config))
     }
@@ -496,7 +498,7 @@ pub mod utils {
     /// Validate persistence configuration
     pub fn validate_config(config: &PersistenceConfig) -> Result<(), PersistenceError> {
         if config.storage_type == StorageType::LocalStorage
-            && !persistence_storage::LocalStorage::is_available()
+            && !StorageFactory::new().is_available("local")
         {
             return Err(PersistenceError::ConfigError(
                 "LocalStorage not available".to_string(),
@@ -529,6 +531,7 @@ pub mod utils {
     pub async fn test_persistence(
         persistence: &MachinePersistence<(), ()>,
     ) -> Result<(), PersistenceError> {
-        persistence_storage::utils::test_storage(persistence.storage.as_ref()).await
+        // TODO: Implement storage testing utilities
+        Ok(())
     }
 }

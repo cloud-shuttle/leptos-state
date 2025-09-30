@@ -57,7 +57,7 @@ pub mod performance_config;
 pub mod performance_metrics;
 pub mod performance_profiler;
 // #[cfg(feature = "serialization")]
-// pub mod persistence;
+pub mod persistence;
 pub mod core_actions;
 pub mod core_errors;
 pub mod core_guards;
@@ -73,7 +73,7 @@ pub mod persistence_ext;
 pub mod persistence_manager;
 pub mod persistence_metadata;
 pub mod persistence_serialization;
-pub mod persistence_storage;
+// Storage backends are now in persistence::storage
 pub mod property_testing;
 pub mod state_builder;
 pub mod states;
@@ -257,7 +257,7 @@ pub use persistence_metadata::{
 pub use persistence_serialization::{
     ComplexityMetrics, SerializedMachine, SerializedState, SerializedTransition, StateType,
 };
-pub use persistence_storage::{
+pub use persistence::storage::{
     FileSystemStorage, LocalStorage, MachineStorage, MemoryStorage, StorageFactory, StorageInfo,
 };
 pub use property_testing::{Property, PropertyResult, PropertyTestResult, PropertyTestRunner};
