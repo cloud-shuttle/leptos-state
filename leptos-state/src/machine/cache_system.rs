@@ -164,7 +164,7 @@ pub struct TransitionCache<C: Send + Sync + Clone + 'static, E> {
     created_at: Instant,
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone> TransitionCache<C, E> {
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + std::fmt::Debug> TransitionCache<C, E> {
     /// Create a new transition cache
     pub fn new(max_size: usize, ttl: Duration) -> Self {
         Self {
@@ -260,7 +260,7 @@ pub struct CacheKey<C: Send + Sync + Clone + 'static, E> {
     pub context_hash: u64,
 }
 
-impl<C: Send + Sync + Clone + 'static, E> CacheKey<C, E> {
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: std::fmt::Debug> CacheKey<C, E> {
     /// Create a new cache key
     pub fn new(state_value: String, event: E, context: &C) -> Self
     where
@@ -298,7 +298,7 @@ pub struct CachedTransition<C: Send + Sync + Clone + 'static> {
     pub last_accessed: Instant,
 }
 
-impl<C: Send + Sync + Clone + 'static> CachedTransition<C> {
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static> CachedTransition<C> {
     /// Create a new cached transition
     pub fn new(result_state: MachineStateImpl<C>) -> Self {
         let now = Instant::now();

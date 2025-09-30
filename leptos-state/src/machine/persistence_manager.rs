@@ -17,7 +17,7 @@ pub struct MachinePersistence<C: Send + Sync + 'static, E: Send + Sync + 'static
     backup_manager: Option<BackupManager>,
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> MachinePersistence<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> MachinePersistence<C, E> {
     /// Create a new persistence manager
     pub fn new(storage: Box<dyn MachineStorage>, config: PersistenceConfig) -> Self {
         let backup_manager = if config.backup_config.enabled {
@@ -292,7 +292,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Machine
     }
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Clone for MachinePersistence<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> Clone for MachinePersistence<C, E> {
     fn clone(&self) -> Self {
         Self {
             storage: persistence_storage::StorageFactory::create_storage(&StorageType::Memory)

@@ -25,7 +25,7 @@ pub struct IntegrationManager<
     pub task_handles: std::sync::Mutex<Vec<tokio::task::JoinHandle<()>>>,
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + 'static>
     IntegrationManager<C, E>
 {
     /// Create a new integration manager
@@ -417,7 +417,7 @@ pub struct IntegrationPipeline<
     pub config: PipelineConfig,
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + 'static>
     IntegrationPipeline<C, E>
 {
     /// Create a new integration pipeline
