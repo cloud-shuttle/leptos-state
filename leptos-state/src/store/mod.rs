@@ -18,10 +18,11 @@ pub mod devtools_timeline;
 pub mod middleware;
 pub mod store;
 pub mod store_core;
-pub mod store_memoized;
+// Memoized selectors are now in memoized module
 pub mod store_persistence;
 pub mod store_selectors;
 pub mod store_simple;
+pub mod memoized;
 
 pub use async_store::*;
 #[cfg(feature = "devtools")]
@@ -29,10 +30,11 @@ pub use devtools::*;
 pub use middleware::*;
 pub use store::*;
 pub use store_core::{create_store, Store, StoreContext};
-pub use store_memoized::{
-    composition, factory, DependencyTrackedSelector, LazySelector, PerformanceSelector,
+pub use memoized::{
+    factory, DependencyTrackedSelector, LazySelector, PerformanceSelector,
     SelectorStats,
 };
+pub use memoized::combined::composition;
 pub use store_persistence::{
     clear_from_local_storage, is_local_storage_available, load_from_local_storage,
     persist_to_local_storage, save_to_local_storage, MigrationManager, PersistenceMiddleware,
