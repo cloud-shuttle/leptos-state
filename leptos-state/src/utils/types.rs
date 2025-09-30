@@ -11,5 +11,5 @@
 pub use super::collections::*;
 pub use super::utils_config::*;
 pub use super::utils_error::*;
-pub use super::utils_time::*;
+pub use super::time::*;
 pub use super::utils_traits::*;
