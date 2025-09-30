@@ -5,10 +5,10 @@
 //! - `utils_config`: Configuration structures and environment handling
 //! - `utils_traits`: Common traits (WithId, Validate, Serialize, Deserialize, etc.)
 //! - `utils_time`: Time utilities, timeouts, and rate limiting
-//! - `utils_collections`: Collection utilities, registries, and event buses
+//! - `collections`: Collection utilities, registries, and event buses
 
 // Re-export all utility functionality from the split modules
-pub use super::utils_collections::*;
+pub use super::collections::*;
 pub use super::utils_config::*;
 pub use super::utils_error::*;
 pub use super::utils_time::*;
