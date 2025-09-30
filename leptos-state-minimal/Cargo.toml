@@ -1,0 +1,24 @@
+[package]
+name = "leptos-state-minimal"
+version = "0.1.0"
+edition = "2021"
+authors = ["Cloud Shuttle <team@cloud-shuttle.com>"]
+description = "Minimal, maintainable state management for Leptos"
+license = "MIT OR Apache-2.0"
+keywords = ["leptos", "state-management", "reactive", "wasm"]
+categories = ["wasm", "web-programming"]
+
+[workspace]
+# Keep this as a standalone package
+
+[dependencies]
+leptos = { version = "0.8" }
+serde = { version = "1.0", features = ["derive"], optional = true }
+thiserror = "2.0"
+
+[features]
+default = []
+serde = ["dep:serde"]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"

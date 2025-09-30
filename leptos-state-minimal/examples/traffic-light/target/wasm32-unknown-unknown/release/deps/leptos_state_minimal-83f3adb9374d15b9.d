@@ -1,0 +1,11 @@
+/Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/examples/traffic-light/target/wasm32-unknown-unknown/release/deps/leptos_state_minimal-83f3adb9374d15b9.d: /Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/lib.rs /Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/error.rs /Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/store.rs /Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/machine.rs /Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/hooks.rs
+
+/Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/examples/traffic-light/target/wasm32-unknown-unknown/release/deps/libleptos_state_minimal-83f3adb9374d15b9.rlib: /Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/lib.rs /Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/error.rs /Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/store.rs /Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/machine.rs /Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/hooks.rs
+
+/Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/examples/traffic-light/target/wasm32-unknown-unknown/release/deps/libleptos_state_minimal-83f3adb9374d15b9.rmeta: /Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/lib.rs /Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/error.rs /Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/store.rs /Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/machine.rs /Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/hooks.rs
+
+/Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/lib.rs:
+/Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/error.rs:
+/Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/store.rs:
+/Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/machine.rs:
+/Users/peterhanssens/consulting/Leptos/leptos-state/leptos-state-minimal/src/hooks.rs:

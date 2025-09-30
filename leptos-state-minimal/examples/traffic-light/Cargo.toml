@@ -1,0 +1,14 @@
+[package]
+name = "traffic-light-example"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+
+[dependencies]
+leptos = { version = "0.8", features = ["csr"] }
+leptos-state-minimal = { path = "../../" }
+console_error_panic_hook = "0.1"
+console_log = "1"
+log = "0.4"
+wasm-bindgen = "0.2"
