@@ -36,7 +36,7 @@ impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> ActionBuilder<C, E> {
     }
 
     /// Add a function action
-    pub fn function<F>(mut self, func: F) -> Self
+    pub fn function<F: Send + Sync>(mut self, func: F) -> Self
     where
         F: Fn(&mut C, &E) + Clone + 'static,
     {
@@ -45,7 +45,7 @@ impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> ActionBuilder<C, E> {
     }
 
     /// Add an assign action
-    pub fn assign<T, F>(mut self, assign_fn: F) -> Self
+    pub fn assign<T: Send + Sync, F: Send + Sync>(mut self, assign_fn: F) -> Self
     where
         F: Fn(&mut C, &E) -> T + Clone + 'static,
     {
@@ -60,7 +60,7 @@ impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> ActionBuilder<C, E> {
     }
 
     /// Add a pure action
-    pub fn pure<F>(mut self, func: F) -> Self
+    pub fn pure<F: Send + Sync>(mut self, func: F) -> Self
     where
         F: Fn() + Clone + 'static,
     {
@@ -69,7 +69,7 @@ impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> ActionBuilder<C, E> {
     }
 
     /// Add a conditional action
-    pub fn conditional<F>(mut self, condition: F, action: Box<dyn Action<C, E>>) -> Self
+    pub fn conditional<F: Send + Sync>(mut self, condition: F, action: Box<dyn Action<C, E>>) -> Self
     where
         F: Fn(&C, &E) -> bool + Clone + 'static,
     {
@@ -153,7 +153,7 @@ impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> ActionBuilder<C, E> {
     }
 
     /// Create a conditional action builder
-    pub fn when<F>(condition: F) -> ConditionalActionBuilder<C, E, F>
+    pub fn when<F: Send + Sync>(condition: F) -> ConditionalActionBuilder<C, E, F>
     where
         F: Fn(&C, &E) -> bool + Clone + 'static,
     {

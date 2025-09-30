@@ -219,7 +219,7 @@ where
     }
 }
 
-impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static, F> GuardEvaluator<C, E> for EventDataGuard<C, E, F>
+impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static, F: Send + Sync> GuardEvaluator<C, E> for EventDataGuard<C, E, F>
 where
     F: Fn(&E) -> String + Clone + 'static,
 {
@@ -272,7 +272,7 @@ where
     }
 }
 
-impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static, F> GuardEvaluator<C, E> for ContextStateGuard<C, E, F>
+impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static, F: Send + Sync> GuardEvaluator<C, E> for ContextStateGuard<C, E, F>
 where
     F: Fn(&C, &E) -> bool + Clone + 'static,
 {

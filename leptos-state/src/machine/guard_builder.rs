@@ -47,7 +47,7 @@ impl<C, E> GuardBuilder<C, E> {
     }
 
     /// Add a field equality guard
-    pub fn field_equals<T, F>(mut self, field_extractor: F, expected_value: T) -> Self
+    pub fn field_equals<T: Send + Sync, F: Send + Sync>(mut self, field_extractor: F, expected_value: T) -> Self
     where
         F: Fn(&C) -> &T + Clone + 'static,
         T: PartialEq + Clone + 'static,
@@ -69,7 +69,7 @@ impl<C, E> GuardBuilder<C, E> {
     }
 
     /// Add a comparison guard
-    pub fn compare<T, F1, F2>(
+    pub fn compare<T: Send + Sync, F1: Send + Sync, F2: Send + Sync>(
         mut self,
         field1_extractor: F1,
         field2_extractor: F2,
@@ -193,7 +193,7 @@ pub struct RangeGuardBuilder<C, E, T, F> {
     max_value: Option<T>,
 }
 
-impl<C, E, T, F> RangeGuardBuilder<C, E, T, F>
+impl<C, E, T: Send + Sync, F: Send + Sync> RangeGuardBuilder<C, E, T, F>
 where
     F: Fn(&C) -> &T + Clone + 'static,
     T: PartialOrd + Clone + 'static,

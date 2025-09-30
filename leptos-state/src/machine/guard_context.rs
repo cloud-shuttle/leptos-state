@@ -40,7 +40,7 @@ where
     }
 }
 
-impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static, T, F> GuardEvaluator<C, E> for FieldEqualityGuard<C, E, T, F>
+impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static, T: Send + Sync, F: Send + Sync> GuardEvaluator<C, E> for FieldEqualityGuard<C, E, T, F>
 where
     F: Fn(&C) -> &T + Clone + 'static,
     T: PartialEq + Clone + 'static,
@@ -113,7 +113,7 @@ where
     }
 }
 
-impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, T, F> GuardEvaluator<C, E> for RangeGuard<C, E, T, F>
+impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static, T: Send + Sync, F: Send + Sync> GuardEvaluator<C, E> for RangeGuard<C, E, T, F>
 where
     F: Fn(&C) -> &T + Clone + 'static,
     T: PartialOrd + Clone + 'static,
@@ -212,7 +212,7 @@ where
     }
 }
 
-impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, T, F1, F2> GuardEvaluator<C, E> for ComparisonGuard<C, E, T, F1, F2>
+impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static, T: Send + Sync, F1: Send + Sync, F2: Send + Sync> GuardEvaluator<C, E> for ComparisonGuard<C, E, T, F1, F2>
 where
     F1: Fn(&C) -> &T + Clone + 'static,
     F2: Fn(&C) -> &T + Clone + 'static,
@@ -299,7 +299,7 @@ where
     }
 }
 
-impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F, T> GuardEvaluator<C, E> for NullCheckGuard<C, E, F>
+impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static, F: Send + Sync, T> GuardEvaluator<C, E> for NullCheckGuard<C, E, F>
 where
     F: Fn(&C) -> Option<&T> + Clone + 'static,
 {

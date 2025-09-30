@@ -268,8 +268,8 @@ impl<
 
     /// Calculate test coverage
     pub fn calculate_coverage<
-        C2: Send + Sync + Clone + PartialEq + 'static,
-        E2: Clone + Send + Sync + Hash + Eq + 'static,
+        C2: Send + Sync + Clone + PartialEq + std::fmt::Debug + Default + 'static,
+        E2: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + 'static,
     >(
         &self,
         machine: &Machine<C2, E2, C2>,
