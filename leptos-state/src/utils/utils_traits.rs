@@ -196,7 +196,7 @@ pub trait Factory<T> {
 }
 
 // Re-export Config for the Factory trait
-use super::utils_config::Config;
+use super::config::Config;
 
 /// Named factory for creating named instances
 pub trait NamedFactory<T>: Factory<T> {

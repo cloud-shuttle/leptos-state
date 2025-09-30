@@ -3,7 +3,8 @@
 pub mod types;
 pub mod collections;
 pub mod time;
-pub mod utils_config;
+pub mod config;
+// Configuration utilities are now in config::*
 pub mod utils_error;
 pub mod utils_traits;
 
@@ -11,6 +12,6 @@ pub mod utils_traits;
 pub use time::*;
 pub use types::*;
 pub use collections::*;
-pub use utils_config::*;
+pub use config::*;
 pub use utils_error::*;
 pub use utils_traits::*;
