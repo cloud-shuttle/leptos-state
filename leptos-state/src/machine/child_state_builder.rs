@@ -2,7 +2,7 @@ use super::*;
 use std::collections::HashMap;
 
 /// Builder for child states in hierarchical machines
-pub struct ChildStateBuilder<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
+pub struct ChildStateBuilder<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + 'static> {
     pub parent_builder: StateBuilder<C, E>,
     pub child_id: String,
     pub transitions: Vec<Transition<C, E>>,
@@ -10,7 +10,7 @@ pub struct ChildStateBuilder<C: Clone + Send + Sync + 'static, E: Clone + Send +
     pub exit_actions: Vec<Box<dyn Action<C, E>>>,
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> ChildStateBuilder<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + 'static> ChildStateBuilder<C, E> {
     pub fn new(parent_builder: StateBuilder<C, E>, child_id: String) -> Self {
         Self {
             parent_builder,

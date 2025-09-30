@@ -258,6 +258,8 @@ pub struct CacheKey<C: Send + Sync + Clone + 'static> {
     pub event: String,
     /// Context hash (simplified)
     pub context_hash: u64,
+    /// Phantom data to satisfy generic parameter
+    _phantom: std::marker::PhantomData<C>,
 }
 
 impl<C: Send + Sync + Clone + std::fmt::Debug + 'static> CacheKey<C> {
@@ -280,6 +282,7 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static> CacheKey<C> {
             state_value,
             event: format!("{:?}", event_hash), // Simplified event representation
             context_hash,
+            _phantom: std::marker::PhantomData,
         }
     }
 }

@@ -7,3 +7,4 @@ edition = "2021"
 leptos = { workspace = true, features = ["csr"] }
 console_error_panic_hook = { workspace = true }
 wasm-bindgen = { workspace = true }
+getrandom = { workspace = true }

@@ -20,6 +20,8 @@ pub struct CodeGenBuilder<
     pub post_hooks: Vec<Box<dyn Fn(&mut GeneratedFile) + Send + Sync>>,
     /// Generation context
     pub context: Option<CodeGenContext>,
+    /// Phantom data for generic types
+    _phantom: std::marker::PhantomData<(C, E)>,
 }
 
 impl<
@@ -36,6 +38,7 @@ impl<
             pre_hooks: Vec::new(),
             post_hooks: Vec::new(),
             context: None,
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -213,7 +216,7 @@ impl<
         let mut pipeline = CodeGenPipeline::new();
 
         // Add this builder as a step
-        let builder_step = BuilderStep { builder: self };
+        let builder_step = BuilderStep { builder: self, _phantom: std::marker::PhantomData };
 
         pipeline.add_step(Box::new(builder_step));
         pipeline
@@ -226,6 +229,7 @@ struct BuilderStep<
     E: Clone + Send + Sync + Hash + Eq + 'static,
 > {
     builder: CodeGenBuilder<C, E>,
+    _phantom: std::marker::PhantomData<(C, E)>,
 }
 
 impl<

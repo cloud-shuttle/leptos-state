@@ -12,7 +12,7 @@ pub struct OptimizedMachine<
     /// Base machine
     base_machine: Machine<C, E, C>,
     /// Transition cache
-    cache: TransitionCache<C, E>,
+    cache: TransitionCache<C>,
     /// Performance profiler
     profiler: PerformanceProfiler,
     /// Lazy evaluators for expensive operations

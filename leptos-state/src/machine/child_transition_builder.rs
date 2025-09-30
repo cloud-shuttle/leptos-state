@@ -1,7 +1,7 @@
 use super::*;
 
 /// Transition builder for child states
-pub struct ChildTransitionBuilder<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
+pub struct ChildTransitionBuilder<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> {
     child_builder: ChildStateBuilder<C, E>,
     event: E,
     target: String,

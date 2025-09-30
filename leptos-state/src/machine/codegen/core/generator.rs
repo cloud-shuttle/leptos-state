@@ -17,8 +17,8 @@ pub struct CodeGenerator<
     pub generated_code: std::collections::HashMap<String, String>,
     /// Generation statistics
     pub stats: super::stats::GenerationStats,
-    /// Phantom data for unused type parameter
-    pub _phantom: std::marker::PhantomData<C>,
+    /// Phantom data for generic types
+    _phantom: std::marker::PhantomData<(C, E)>,
 }
 
 impl<

@@ -218,7 +218,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 
     /// Deserialize a machine
-    async fn deserialize_machine(&self, serialized: SerializedMachine) -> Result<Machine<C, E, C>, PersistenceError> {
+    async fn deserialize_machine(&self, serialized: SerializedMachine<C, E, String>) -> Result<Machine<C, E, C>, PersistenceError> {
         use crate::machine::MachineBuilderImpl;
 
         // Create a basic machine builder

@@ -1,7 +1,7 @@
 //! Error handling structures for integration events
 
 /// Error handling strategy
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum ErrorHandlingStrategy {
     /// Fail immediately on error
     FailFast,

@@ -90,7 +90,7 @@ where
 /// Convenience function to create a new machine builder
 pub fn create_machine_builder<S, E, C>() -> MachineBuilderImpl<S, E, C>
 where
-    S: Clone + Send + Sync + 'static,
+    S: Clone + Send + Sync + std::fmt::Debug + 'static,
     E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static + std::hash::Hash + Eq,
     C: Clone + PartialEq + Send + Sync + std::fmt::Debug + Default + 'static,
 {

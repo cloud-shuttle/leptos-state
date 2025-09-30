@@ -26,7 +26,10 @@ pub trait IntegrationAdapterTrait: Send + Sync {
 
     /// Check if the adapter is connected
     fn is_connected(&self) -> bool {
-        matches!(self.health_check().await, HealthStatus::Healthy)
+        // Note: This is a synchronous check. For async health checks,
+        // use health_check().await and check the result.
+        // Default implementation assumes connected unless overridden.
+        true
     }
 
     /// Get connection information

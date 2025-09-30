@@ -3,7 +3,6 @@
 use super::super::EventPriority;
 
 /// Event filter for selective processing
-#[derive(Debug, Clone)]
 pub struct EventFilter {
     /// Filter name
     pub name: String,

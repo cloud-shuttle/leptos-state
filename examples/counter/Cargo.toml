@@ -8,6 +8,7 @@ leptos = { workspace = true, features = ["csr"] }
 leptos-state = { path = "../../leptos-state" }
 console_error_panic_hook = { workspace = true }
 wasm-bindgen = { workspace = true }
+getrandom = { workspace = true }
 
 [target.wasm32-unknown-unknown.dependencies]
 wasm-bindgen = { workspace = true }
