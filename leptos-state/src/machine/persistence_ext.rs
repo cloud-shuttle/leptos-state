@@ -4,7 +4,7 @@ use super::persistence_core::PersistenceError;
 use super::*;
 
 /// Extension trait for adding persistence to machines
-pub trait MachinePersistenceExt<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
+pub trait MachinePersistenceExt<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> {
     /// Create a persistent machine
     fn with_persistence(
         self,
@@ -15,7 +15,7 @@ pub trait MachinePersistenceExt<C: Clone + Send + Sync + 'static, E: Clone + Sen
     fn persistent(self) -> Result<PersistentMachine<C, E>, PersistenceError>;
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> MachinePersistenceExt<C, E> for Machine<C, E, C> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> MachinePersistenceExt<C, E> for Machine<C, E, C> {
     fn with_persistence(
         self,
         config: PersistenceConfig,
@@ -32,7 +32,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
 }
 
 /// A state machine with persistence capabilities
-pub struct PersistentMachine<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
+pub struct PersistentMachine<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> {
     /// The underlying machine
     machine: Machine<C, E, C>,
     /// Persistence manager
@@ -41,7 +41,7 @@ pub struct PersistentMachine<C: Clone + Send + Sync + 'static, E: Clone + Send +
     auto_save_enabled: bool,
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> PersistentMachine<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> PersistentMachine<C, E> {
     /// Create a new persistent machine
     pub fn new(machine: Machine<C, E, C>, persistence: MachinePersistence<C, E>) -> Self {
         Self {
@@ -207,13 +207,13 @@ pub mod persistence_builder {
     use super::*;
 
     /// Builder for persistent machines
-    pub struct PersistenceBuilder<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
+    pub struct PersistenceBuilder<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> {
         machine: Option<Machine<C, E, C>>,
         config: PersistenceConfig,
         enable_auto_save: bool,
     }
 
-    impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> PersistenceBuilder<C, E> {
+    impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> PersistenceBuilder<C, E> {
         /// Create a new persistence builder
         pub fn new() -> Self {
             Self {
@@ -299,12 +299,12 @@ pub mod persistence_builder {
     }
 
     /// Create a persistence builder
-    pub fn persistent_machine<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static>() -> PersistenceBuilder<C, E> {
+    pub fn persistent_machine<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static>() -> PersistenceBuilder<C, E> {
         PersistenceBuilder::new()
     }
 
     /// Create a machine with local storage persistence
-    pub fn with_local_storage<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static>(
+    pub fn with_local_storage<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static>(
         machine: Machine<C, E, C>,
     ) -> Result<PersistentMachine<C, E>, PersistenceError> {
         persistent_machine()
@@ -314,7 +314,7 @@ pub mod persistence_builder {
     }
 
     /// Create a machine with memory persistence (for testing)
-    pub fn with_memory_storage<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static>(
+    pub fn with_memory_storage<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static>(
         machine: Machine<C, E, C>,
     ) -> Result<PersistentMachine<C, E>, PersistenceError> {
         persistent_machine()
@@ -324,7 +324,7 @@ pub mod persistence_builder {
     }
 
     /// Create a machine with file system persistence
-    pub fn with_filesystem_storage<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static>(
+    pub fn with_filesystem_storage<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static>(
         machine: Machine<C, E, C>,
         base_dir: std::path::PathBuf,
     ) -> Result<PersistentMachine<C, E>, PersistenceError> {
