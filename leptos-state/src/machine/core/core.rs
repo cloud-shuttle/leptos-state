@@ -65,7 +65,7 @@ where
 }
 
 /// Complete machine implementation
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Machine<
     C: Send + Sync + Clone + std::fmt::Debug + Default + 'static,
     E: Send + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
@@ -103,16 +103,6 @@ impl<C: Clone + Default, E: Clone + Send> Clone for StateNode<C, E, C> {
     }
 }
 
-// Manual Clone implementation for Machine since trait objects can't be cloned
-impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> Clone for Machine<C, E, C> {
-    fn clone(&self) -> Self {
-        Self {
-            states: self.states.clone(),
-            initial: self.initial.clone(),
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
 
 impl<C: Send + Sync + Clone + std::fmt::Debug + Default + 'static, E: Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash> Machine<C, E, C> {
     /// Get all state IDs in the machine

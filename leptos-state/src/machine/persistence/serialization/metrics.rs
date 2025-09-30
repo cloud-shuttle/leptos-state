@@ -1,7 +1,7 @@
 //! Serialization metrics and analysis
 
 /// Complexity metrics for analysis
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 pub struct ComplexityMetrics {
     /// Total number of states
     pub state_count: usize,
@@ -185,7 +185,7 @@ impl ComplexityMetrics {
 }
 
 /// Serialization format information
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct SerializationFormat {
     /// Format name
     pub name: String,

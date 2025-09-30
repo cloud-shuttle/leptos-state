@@ -3,7 +3,7 @@
 use crate::machine::persistence_metadata::MachineMetadata;
 
 /// Serialized state machine data
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct SerializedMachine<C, E, S> {
     /// Machine format version
     pub version: u32,
@@ -135,7 +135,7 @@ impl<C, E, S> Default for SerializedMachine<C, E, S> {
 }
 
 /// Serialized state data
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct SerializedState<C> {
     /// State ID
     pub id: String,
@@ -234,7 +234,7 @@ impl<C> SerializedState<C> {
 }
 
 /// Serialized transition data
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct SerializedTransition<E> {
     /// Transition event
     pub event: E,
@@ -294,7 +294,7 @@ impl<E> SerializedTransition<E> {
 }
 
 /// State types
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum StateType {
     /// Simple state with no children
     Simple,

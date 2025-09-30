@@ -17,7 +17,7 @@ pub mod codegen_builder;
 pub mod codegen_config;
 pub mod codegen_core;
 pub mod codegen_ext;
-pub mod codegen_types;
+// Code generation types are now in codegen::types
 pub mod core;
 pub mod core_types;
 pub mod doc_builder;
@@ -140,7 +140,10 @@ pub use action_executor::{
 };
 pub use actions::{ActionBuilder, ActionExecution, ActionExecutor};
 pub use cache_system::{CacheKey, CacheStats, CachedTransition, MemoryTracker, TransitionCache};
-pub use codegen::{CodeGenConfig, CodeGenerator, GeneratedFile, MachineCodeGenExt};
+pub use codegen_config::CodeGenConfig;
+pub use codegen_core::CodeGenerator;
+pub use codegen_ext::MachineCodeGenExt;
+pub use codegen::types::GeneratedFile;
 pub use codegen_builder::{presets as codegen_presets, CodeGenBuilder as BuilderCodeGenBuilder};
 pub use codegen_config::{CodeGenOptions, CodeTemplates, IndentationStyle, ProgrammingLanguage};
 pub use codegen_core::{CodeGenerator as CoreCodeGenerator, GenerationStats};
@@ -148,7 +151,7 @@ pub use codegen_ext::{
     CodeGenPipeline, CodeGenStep, MachineBuilderCodeGenExt,
     MachineCodeGenExt as ExtMachineCodeGenExt, PipelineConfig, PipelineResult,
 };
-pub use codegen_types::{
+pub use codegen::types::{
     ActionGenInfo, ActionType, CodeGenContext, EventGenInfo, GeneratedFile as TypesGeneratedFile,
     GuardGenInfo, GuardType, MachineGenInfo, MachineType, StateGenInfo,
     TransitionInfo as TypesTransitionInfo,
