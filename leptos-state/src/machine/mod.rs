@@ -69,7 +69,7 @@ pub mod coverage_tracking;
 pub mod integration_testing;
 pub mod performance_tracking;
 pub mod persistence_core;
-pub mod persistence_ext;
+// Persistence extensions are now in persistence::ext
 pub mod persistence_manager;
 pub mod persistence_metadata;
 // Serialization is now in persistence::serialization
@@ -247,8 +247,8 @@ pub use persistence_core::{
     BackupConfig, MachineDeserialize, MachineSerialize, PersistenceConfig,
     PersistenceError as CorePersistenceError, PersistenceStrategy, StorageType,
 };
-pub use persistence_ext::{
-    migrations, monitoring, persistence_builder, MachinePersistenceExt, PersistenceInfo,
+pub use persistence::ext::{
+    migration as migrations, monitoring, factories as persistence_builder, MachinePersistenceExt, PersistenceInfo,
     PersistentMachine,
 };
 pub use persistence_manager::{
