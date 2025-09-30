@@ -14,7 +14,7 @@ pub mod child_state_builder;
 pub mod child_transition_builder;
 pub mod codegen;
 pub mod codegen_builder;
-pub mod codegen_config;
+// Code generation config is now in codegen::config
 pub mod codegen_core;
 pub mod codegen_ext;
 // Code generation types are now in codegen::types
@@ -140,12 +140,12 @@ pub use action_executor::{
 };
 pub use actions::{ActionBuilder, ActionExecution, ActionExecutor};
 pub use cache_system::{CacheKey, CacheStats, CachedTransition, MemoryTracker, TransitionCache};
-pub use codegen_config::CodeGenConfig;
+pub use codegen::config::CodeGenConfig;
 pub use codegen_core::CodeGenerator;
 pub use codegen_ext::MachineCodeGenExt;
 pub use codegen::types::GeneratedFile;
 pub use codegen_builder::{presets as codegen_presets, CodeGenBuilder as BuilderCodeGenBuilder};
-pub use codegen_config::{CodeGenOptions, CodeTemplates, IndentationStyle, ProgrammingLanguage};
+pub use codegen::config::{CodeGenOptions, CodeTemplates, IndentationStyle, ProgrammingLanguage};
 pub use codegen_core::{CodeGenerator as CoreCodeGenerator, GenerationStats};
 pub use codegen_ext::{
     CodeGenPipeline, CodeGenStep, MachineBuilderCodeGenExt,

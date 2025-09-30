@@ -1,6 +1,6 @@
 //! Generated file management and utilities
 
-use crate::machine::codegen_config::ProgrammingLanguage;
+use crate::machine::codegen::config::ProgrammingLanguage;
 
 /// Generated file information
 #[derive(Debug, Clone)]

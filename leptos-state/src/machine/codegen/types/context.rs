@@ -1,6 +1,6 @@
 //! Code generation context
 
-use crate::machine::codegen_config::ProgrammingLanguage;
+use crate::machine::codegen::config::ProgrammingLanguage;
 
 /// Code generation context
 #[derive(Debug, Clone)]
