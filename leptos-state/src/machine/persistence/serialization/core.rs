@@ -1,6 +1,6 @@
 //! Core serialization structures and data models
 
-use crate::machine::persistence_metadata::MachineMetadata;
+use crate::machine::persistence::metadata::MachineMetadata;
 
 /// Serialized state machine data
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

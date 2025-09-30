@@ -71,7 +71,7 @@ pub mod performance_tracking;
 pub mod persistence_core;
 // Persistence extensions are now in persistence::ext
 pub mod persistence_manager;
-pub mod persistence_metadata;
+// Persistence metadata is now in persistence::metadata
 // Serialization is now in persistence::serialization
 // Storage backends are now in persistence::storage
 pub mod property_testing;
@@ -254,7 +254,7 @@ pub use persistence::ext::{
 pub use persistence_manager::{
     BackupEntry, BackupManager, MachineInfo, MachinePersistence, PersistenceStats,
 };
-pub use persistence_metadata::{
+pub use persistence::metadata::{
     MachineMetadata, MachineStats, MetadataBuilder, SchemaInfo, ValidationRule, ValidationType,
 };
 pub use persistence::serialization::{
