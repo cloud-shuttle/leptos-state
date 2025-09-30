@@ -3,7 +3,7 @@
 use super::*;
 
 /// Extension trait for adding visualization to machines
-pub trait MachineVisualizationExt<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> {
+pub trait MachineVisualizationExt<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> {
     /// Create a visualizer for this machine
     fn visualizer(&self) -> MachineVisualizer<C, E>;
 
@@ -20,7 +20,7 @@ pub trait MachineVisualizationExt<C: Clone + Send + Sync + std::fmt::Debug + 'st
     fn monitor(&self) -> StateMonitor<C, E>;
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> MachineVisualizationExt<C, E> for Machine<C, E, C> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> MachineVisualizationExt<C, E> for Machine<C, E, C> {
     fn visualizer(&self) -> MachineVisualizer<C, E> {
         MachineVisualizer::new().with_machine(self.clone())
     }
@@ -46,9 +46,11 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
 
 /// A state machine with visualization capabilities
 #[derive(Debug)]
-pub struct VisualizedMachine<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> {
+pub struct VisualizedMachine<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> {
     /// The underlying machine
     pub machine: Machine<C, E, C>,
+    /// The current state
+    pub current_state: MachineStateImpl<C>,
     /// The visualizer
     pub visualizer: MachineVisualizer<C, E>,
     /// The monitor
@@ -57,15 +59,17 @@ pub struct VisualizedMachine<C: Clone + Send + Sync + std::fmt::Debug + 'static,
     pub debugger: TimeTravelDebugger<C, E>,
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> VisualizedMachine<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> VisualizedMachine<C, E> {
     /// Create a new visualized machine
     pub fn new(machine: Machine<C, E, C>) -> Self {
+        let current_state = machine.initial_state();
         let visualizer = machine.visualizer();
         let monitor = machine.monitor();
         let debugger = TimeTravelDebugger::new();
 
         Self {
             machine,
+            current_state,
             visualizer,
             monitor,
             debugger,
@@ -74,12 +78,14 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
 
     /// Create with custom configuration
     pub fn with_config(machine: Machine<C, E, C>, config: VisualizationConfig) -> Self {
+        let current_state = machine.initial_state();
         let visualizer = machine.visualizer_with_config(config);
         let monitor = machine.monitor();
         let debugger = TimeTravelDebugger::new();
 
         Self {
             machine,
+            current_state,
             visualizer,
             monitor,
             debugger,
@@ -89,81 +95,52 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     /// Transition with full visualization tracking
     pub fn transition(&mut self, event: &E) -> Result<(), String> {
         let start_time = std::time::Instant::now();
-        let from_state = self.machine.current_state.clone();
+        let from_state = self.current_state.clone();
 
         // Create transition event
         let transition_event = TransitionEvent::success(
-            from_state,
+            from_state.clone(),
             String::new(), // Will be filled after transition
             Some(event.clone()),
             None, // Context not easily accessible
         );
 
         // Perform the transition
-        match self.machine.transition(event) {
-            Ok(_) => {
-                let to_state = self.machine.current_state.clone();
+        let new_state = self.machine.transition(&self.current_state, event.clone());
+        self.current_state = new_state.clone();
 
-                // Complete the transition event
-                let mut completed_event = transition_event;
-                completed_event.to_state = to_state.clone();
-                completed_event.success = true;
+        // Complete the transition event
+        let mut completed_event = transition_event;
+        completed_event.to_state = new_state.value().to_string();
+        completed_event.success = true;
 
-                // Record the event
-                self.visualizer.record_transition(completed_event.clone());
+        // Record the event
+        self.visualizer.record_transition(completed_event.clone())?;
 
-                // Notify monitor
-                let state_change = StateChangeEvent::new(
-                    transition_event.from_state,
-                    to_state,
-                    StateChangeType::Transition,
-                );
-                self.monitor.notify_state_change(&state_change);
+        // Notify monitor
+        let state_change = StateChangeEvent::new(
+            from_state.value().to_string(),
+            new_state.value().to_string(),
+            StateChangeType::Transition,
+        );
+        self.monitor.notify_state_change(&state_change);
 
-                // Take snapshot for debugging
-                if let Ok(()) = self.machine.take_snapshot() {
-                    if let Some(snapshot) = &self.machine.current_snapshot {
-                        self.debugger.add_snapshot(snapshot.clone());
-                    }
-                }
+        // Record performance
+        let duration = start_time.elapsed();
+        let perf_event = PerformanceEvent::new(PerformanceEventType::Transition, duration);
+        self.visualizer.record_performance(perf_event)?;
 
-                // Record performance
-                let duration = start_time.elapsed();
-                let perf_event = PerformanceEvent::new(PerformanceEventType::Transition, duration);
-                self.visualizer.record_performance(perf_event);
-                self.monitor.notify_performance(&perf_event);
-
-                Ok(())
-            }
-            Err(error) => {
-                // Record failed transition
-                let mut failed_event = transition_event;
-                failed_event.success = false;
-                failed_event.error_message = Some(error.clone());
-                self.visualizer.record_transition(failed_event);
-
-                // Record error
-                let error_event = ErrorEvent::new(
-                    ErrorEventType::TransitionError,
-                    error.clone(),
-                    self.machine.current_state.clone(),
-                );
-                self.visualizer.record_error(error_event.clone());
-                self.monitor.notify_error(&error_event);
-
-                Err(error)
-            }
-        }
+        Ok(())
     }
 
     /// Get current state
-    pub fn current_state(&self) -> &str {
-        &self.machine.current_state
+    pub fn current_state(&self) -> &MachineStateImpl<C> {
+        &self.current_state
     }
 
     /// Get current context
     pub fn current_context(&self) -> &C {
-        &self.machine.context
+        self.current_state.context()
     }
 
     /// Export current diagram

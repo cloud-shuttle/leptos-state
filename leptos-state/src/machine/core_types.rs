@@ -6,7 +6,7 @@ use std::collections::HashMap;
 /// State node in the machine definition
 #[derive(Debug)]
 pub struct StateNode<
-    C: Clone + std::fmt::Debug + 'static,
+    C: Clone + std::fmt::Debug + Default + 'static,
     E: Send + Clone + std::fmt::Debug + 'static,
     S: Clone + std::fmt::Debug,
 > {
@@ -22,7 +22,7 @@ pub struct StateNode<
 /// Transition definition
 #[derive(Debug)]
 pub struct Transition<
-    C: Clone + std::fmt::Debug + 'static,
+    C: Clone + std::fmt::Debug + Default + 'static,
     E: Send + Clone + std::fmt::Debug + 'static,
 > {
     pub event: E,
@@ -34,7 +34,7 @@ pub struct Transition<
 /// Complete machine implementation
 #[derive(Debug)]
 pub struct Machine<
-    C: Send + Sync + Clone + std::fmt::Debug + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + Default + 'static,
     E: Send + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
     S: Clone + std::fmt::Debug,
 > {
@@ -44,7 +44,7 @@ pub struct Machine<
 }
 
 // Manual Clone implementation for Transition since trait objects can't be cloned
-impl<C: Clone, E: Clone + Send> Clone for Transition<C, E> {
+impl<C: Clone + Default, E: Clone + Send> Clone for Transition<C, E> {
     fn clone(&self) -> Self {
         Self {
             event: self.event.clone(),
@@ -56,7 +56,7 @@ impl<C: Clone, E: Clone + Send> Clone for Transition<C, E> {
 }
 
 // Manual Clone implementation for StateNode since Action trait objects can't be cloned
-impl<C: Clone, E: Clone + Send> Clone for StateNode<C, E, C> {
+impl<C: Clone + Default, E: Clone + Send> Clone for StateNode<C, E, C> {
     fn clone(&self) -> Self {
         Self {
             id: self.id.clone(),
@@ -71,7 +71,7 @@ impl<C: Clone, E: Clone + Send> Clone for StateNode<C, E, C> {
 }
 
 // Manual Clone implementation for Machine since trait objects can't be cloned
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> Clone for Machine<C, E, C> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> Clone for Machine<C, E, C> {
     fn clone(&self) -> Self {
         Self {
             states: self.states.clone(),
@@ -82,7 +82,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
 }
 
 
-impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash> Machine<C, E, C> {
+impl<C: Send + Sync + Clone + std::fmt::Debug + Default + 'static, E: Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash> Machine<C, E, C> {
     /// Get all state IDs in the machine
     pub fn get_states(&self) -> Vec<String> {
         self.states.keys().cloned().collect()

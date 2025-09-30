@@ -149,9 +149,9 @@ impl MemoryTracker {
 }
 
 /// Transition cache for performance optimization
-pub struct TransitionCache<C: Send + Sync + Clone + 'static, E> {
+pub struct TransitionCache<C: Send + Sync + Clone + 'static> {
     /// Cache storage
-    cache: HashMap<CacheKey<C, E>, CachedTransition<C>>,
+    cache: HashMap<CacheKey<C>, CachedTransition<C>>,
     /// Cache statistics
     stats: CacheStats,
     /// Memory tracker
@@ -164,7 +164,7 @@ pub struct TransitionCache<C: Send + Sync + Clone + 'static, E> {
     created_at: Instant,
 }
 
-impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + std::fmt::Debug> TransitionCache<C, E> {
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static> TransitionCache<C> {
     /// Create a new transition cache
     pub fn new(max_size: usize, ttl: Duration) -> Self {
         Self {
@@ -178,7 +178,7 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + std::fmt::De
     }
 
     /// Get a cached transition result
-    pub fn get(&mut self, key: &CacheKey<C, E>) -> Option<&CachedTransition<C>> {
+    pub fn get(&mut self, key: &CacheKey<C>) -> Option<&CachedTransition<C>> {
         if let Some(cached) = self.cache.get(key) {
             // Check if cache entry is expired
             if self.created_at.elapsed() > self.ttl {
@@ -195,7 +195,7 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + std::fmt::De
     }
 
     /// Insert a transition result into the cache
-    pub fn insert(&mut self, key: CacheKey<C, E>, value: CachedTransition<C>) {
+    pub fn insert(&mut self, key: CacheKey<C>, value: CachedTransition<C>) {
         // Check if we need to evict entries
         if self.cache.len() >= self.max_size {
             // Simple LRU eviction - remove oldest entry
@@ -251,7 +251,7 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + std::fmt::De
 
 /// Cache key for transitions
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct CacheKey<C: Send + Sync + Clone + 'static, E> {
+pub struct CacheKey<C: Send + Sync + Clone + 'static> {
     /// Current state value
     pub state_value: String,
     /// Event that triggered the transition
@@ -260,11 +260,10 @@ pub struct CacheKey<C: Send + Sync + Clone + 'static, E> {
     pub context_hash: u64,
 }
 
-impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: std::fmt::Debug> CacheKey<C, E> {
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static> CacheKey<C> {
     /// Create a new cache key
-    pub fn new(state_value: String, event: E, context: &C) -> Self
+    pub fn new<E2: Hash>(state_value: String, event: E2, context: &C) -> Self
     where
-        E: Hash,
         C: Hash,
     {
         let mut hasher = std::collections::hash_map::DefaultHasher::new();

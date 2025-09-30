@@ -1,357 +1,366 @@
-# 🤖 Machine Core Design
+# 🎯 Machine Core Design - September 20, 2025
 
-## Overview
-Finite state machine implementation with hierarchical states, guards, actions, and transitions.
+## Executive Summary
 
-## Architecture
+**Component**: State Machine Core Engine
+**Status**: Core compilation fixed, architecture validated
+**Complexity**: High (handles state transitions, guards, actions)
+**Dependencies**: State types, event system, action framework
+
+## Architecture Overview
 
 ### Core Components
+
 ```
-machine/
-├── core.rs        # Machine struct and state management (200 lines)
-├── states.rs      # State definitions and hierarchy (150 lines)
-├── transitions.rs # Transition logic and validation (120 lines)
-├── guards.rs      # Guard evaluation system (100 lines)
-├── actions.rs     # Action execution framework (120 lines)
-└── types.rs       # Type definitions (80 lines)
+MachineCore
+├── Machine (static definition)
+├── MachineStateImpl (runtime state)
+├── Transition (state changes)
+├── StateNode (state definitions)
+├── Guards (transition conditions)
+├── Actions (state change effects)
+└── Events (transition triggers)
 ```
 
-## Core Machine Struct
+### Design Principles
+
+#### 1. **Separation of Concerns**
+- **Machine**: Static definition of possible states/transitions
+- **MachineStateImpl**: Runtime execution state
+- **Transition**: Atomic state change operations
+- **Guards/Actions**: Conditional logic and side effects
+
+#### 2. **Type Safety First**
+- Compile-time guarantees for state transitions
+- Strong typing for events, contexts, and states
+- Trait-based extensibility for guards and actions
+
+#### 3. **Performance Optimized**
+- Minimal runtime overhead for transitions
+- Efficient state storage and lookup
+- Lazy evaluation where appropriate
+
+## Core Types Design
+
+### 1. Machine Definition
 
 ```rust
-pub struct Machine {
-    id: String,
-    states: HashMap<String, StateNode>,
-    current_state: String,
-    context: Context,
-    guards: HashMap<String, Box<dyn Guard>>,
-    actions: HashMap<String, Box<dyn Action>>,
-    history: MachineHistory,
-    config: MachineConfig,
-}
+/// Static state machine definition
+#[derive(Debug)]
+pub struct Machine<C, E, S> {
+    /// All possible states in the machine
+    pub states: HashMap<String, StateNode<C, E, S>>,
 
-impl Machine {
-    pub fn new(id: String) -> Self {
-        Self {
-            id,
-            states: HashMap::new(),
-            current_state: "initial".to_string(),
-            context: Context::new(),
-            guards: HashMap::new(),
-            actions: HashMap::new(),
-            history: MachineHistory::new(),
-            config: MachineConfig::default(),
-        }
-    }
+    /// Initial state identifier
+    pub initial: String,
 
-    pub fn add_state(&mut self, state: StateNode) -> &mut Self {
-        let state_name = state.name.clone();
-        self.states.insert(state_name.clone(), state);
-        if self.current_state == "initial" {
-            self.current_state = state_name;
-        }
-        self
-    }
-
-    pub fn transition(&mut self, event: &str) -> Result<(), MachineError> {
-        let current_state = self.states.get(&self.current_state)
-            .ok_or(MachineError::InvalidState)?;
-
-        let next_state = current_state.get_transition(event)?;
-
-        self.execute_transition(&current_state.name, &next_state)?;
-        self.current_state = next_state.clone();
-        self.history.record_transition(&current_state.name, &next_state);
-
-        Ok(())
-    }
-
-    pub fn can_transition_to(&self, state: &str) -> bool {
-        self.states.contains_key(state)
-    }
+    /// Type-level phantom data
+    pub _phantom: PhantomData<S>,
 }
 ```
 
-## State Management
+**Design Decisions**:
+- **HashMap for O(1) lookup**: States accessed by string identifiers
+- **Generic over context (C)**: Allows any context type
+- **Generic over events (E)**: Type-safe event handling
+- **PhantomData for S**: Preserves state type information
+
+### 2. Runtime State
 
 ```rust
-#[derive(Clone, Debug)]
-pub struct StateNode {
-    pub name: String,
-    pub state_type: StateType,
-    pub transitions: HashMap<String, String>,
-    pub entry_actions: Vec<String>,
-    pub exit_actions: Vec<String>,
-    pub children: HashMap<String, StateNode>,
-    pub parent: Option<String>,
-}
+/// Runtime state implementation
+#[derive(Debug, Clone, PartialEq)]
+pub struct MachineStateImpl<C: Send + Sync> {
+    /// Current state value (simple, compound, or parallel)
+    pub value: StateValue,
 
-impl StateNode {
-    pub fn new(name: String, state_type: StateType) -> Self {
-        Self {
-            name,
-            state_type,
-            transitions: HashMap::new(),
-            entry_actions: Vec::new(),
-            exit_actions: Vec::new(),
-            children: HashMap::new(),
-            parent: None,
-        }
-    }
-
-    pub fn add_transition(&mut self, event: String, target: String) -> &mut Self {
-        self.transitions.insert(event, target);
-        self
-    }
-
-    pub fn get_transition(&self, event: &str) -> Result<&String, MachineError> {
-        self.transitions.get(event)
-            .ok_or(MachineError::InvalidTransition)
-    }
-
-    pub fn is_compound(&self) -> bool {
-        matches!(self.state_type, StateType::Compound)
-    }
-
-    pub fn is_atomic(&self) -> bool {
-        matches!(self.state_type, StateType::Atomic)
-    }
+    /// Current context data
+    pub context: C,
 }
 ```
 
-## Transition System
+**Design Decisions**:
+- **Value-based state**: Efficient comparison and storage
+- **Context separation**: State logic independent of context
+- **Send + Sync bounds**: Thread-safe for async operations
+- **Clone + PartialEq**: Easy testing and comparison
+
+### 3. State Value Representation
 
 ```rust
-pub struct TransitionEngine {
-    machine: Arc<RwLock<Machine>>,
-}
+/// Represents different types of state values
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum StateValue {
+    /// Simple state with identifier
+    Simple(String),
 
-impl TransitionEngine {
-    pub fn new(machine: Arc<RwLock<Machine>>) -> Self {
-        Self { machine }
-    }
+    /// Compound state with parent and active child
+    Compound {
+        parent: String,
+        child: Box<StateValue>,
+    },
 
-    pub fn validate_transition(&self, from: &str, to: &str, event: &str) -> Result<(), MachineError> {
-        let machine = self.machine.read().unwrap();
-
-        // Check if target state exists
-        if !machine.states.contains_key(to) {
-            return Err(MachineError::InvalidState(to.to_string()));
-        }
-
-        // Check if transition is allowed from current state
-        let current_state = machine.states.get(from)
-            .ok_or(MachineError::InvalidState(from.to_string()))?;
-
-        if !current_state.transitions.contains_key(event) {
-            return Err(MachineError::InvalidTransition);
-        }
-
-        // Evaluate guards
-        let target_state = machine.states.get(to).unwrap();
-        for guard_name in &target_state.entry_guards {
-            let guard = machine.guards.get(guard_name)
-                .ok_or(MachineError::MissingGuard(guard_name.clone()))?;
-
-            if !guard.evaluate(&machine.context)? {
-                return Err(MachineError::GuardFailed(guard_name.clone()));
-            }
-        }
-
-        Ok(())
-    }
-
-    pub fn execute_transition(&self, from: &str, to: &str) -> Result<(), MachineError> {
-        let mut machine = self.machine.write().unwrap();
-
-        // Execute exit actions
-        let from_state = machine.states.get(from).unwrap();
-        for action_name in &from_state.exit_actions {
-            let action = machine.actions.get(action_name)
-                .ok_or(MachineError::MissingAction(action_name.clone()))?;
-            action.execute(&mut machine.context)?;
-        }
-
-        // Execute transition actions
-        for action_name in &from_state.transition_actions {
-            let action = machine.actions.get(action_name)
-                .ok_or(MachineError::MissingAction(action_name.clone()))?;
-            action.execute(&mut machine.context)?;
-        }
-
-        // Execute entry actions
-        let to_state = machine.states.get(to).unwrap();
-        for action_name in &to_state.entry_actions {
-            let action = machine.actions.get(action_name)
-                .ok_or(MachineError::MissingAction(action_name.clone()))?;
-            action.execute(&mut machine.context)?;
-        }
-
-        Ok(())
-    }
+    /// Parallel states with multiple active regions
+    Parallel(Vec<StateValue>),
 }
 ```
 
-## Guard System
+**Design Decisions**:
+- **Recursive structure**: Supports hierarchical state machines
+- **Box for indirection**: Prevents infinite type size
+- **Hash + Eq**: Efficient storage in HashMaps
+- **Simple enum**: Easy pattern matching
+
+## Transition System Design
+
+### 1. Transition Definition
 
 ```rust
-pub trait Guard: Send + Sync {
-    fn evaluate(&self, context: &Context) -> Result<bool, MachineError>;
-    fn name(&self) -> &str;
-}
+/// Defines a state transition
+#[derive(Debug)]
+pub struct Transition<C, E> {
+    /// Event that triggers this transition
+    pub event: E,
 
-pub struct ConditionGuard {
-    name: String,
-    condition: Box<dyn Fn(&Context) -> bool + Send + Sync>,
-}
+    /// Target state identifier
+    pub target: String,
 
-impl ConditionGuard {
-    pub fn new<F>(name: String, condition: F) -> Self
-    where
-        F: Fn(&Context) -> bool + Send + Sync + 'static,
-    {
-        Self {
-            name,
-            condition: Box::new(condition),
-        }
-    }
-}
+    /// Conditions that must be met
+    pub guards: Vec<Box<dyn Guard<C, E>>>,
 
-impl Guard for ConditionGuard {
-    fn evaluate(&self, context: &Context) -> Result<bool, MachineError> {
-        Ok((self.condition)(context))
-    }
-
-    fn name(&self) -> &str {
-        &self.name
-    }
+    /// Actions to execute on transition
+    pub actions: Vec<Box<dyn Action<C, E>>>,
 }
 ```
 
-## Action System
+**Design Decisions**:
+- **Trait objects for guards/actions**: Runtime polymorphism
+- **Vec for multiple conditions/effects**: Flexible composition
+- **Box for heap allocation**: Handles varying sizes
+- **Generic bounds**: Type-safe context and event handling
+
+### 2. Transition Execution Flow
+
+```
+1. Event Received
+   ↓
+2. Find Matching Transitions
+   ↓
+3. Evaluate Guards (ALL must pass)
+   ↓
+4. Execute Exit Actions (current state)
+   ↓
+5. Execute Transition Actions
+   ↓
+6. Execute Entry Actions (target state)
+   ↓
+7. Update State
+```
+
+**Performance Characteristics**:
+- **Guard evaluation**: Short-circuiting AND logic
+- **Action execution**: Sequential, no parallelism
+- **State updates**: Atomic from external perspective
+
+## Guard System Design
+
+### 1. Guard Trait
 
 ```rust
-pub trait Action: Send + Sync {
-    fn execute(&self, context: &mut Context) -> Result<(), MachineError>;
-    fn name(&self) -> &str;
-}
-
-pub struct FunctionAction {
-    name: String,
-    action: Box<dyn Fn(&mut Context) -> Result<(), MachineError> + Send + Sync>,
-}
-
-impl FunctionAction {
-    pub fn new<F>(name: String, action: F) -> Self
-    where
-        F: Fn(&mut Context) -> Result<(), MachineError> + Send + Sync + 'static,
-    {
-        Self {
-            name,
-            action: Box::new(action),
-        }
-    }
-}
-
-impl Action for FunctionAction {
-    fn execute(&self, context: &mut Context) -> Result<(), MachineError> {
-        (self.action)(context)
-    }
-
-    fn name(&self) -> &str {
-        &self.name
-    }
+/// Condition for state transitions
+pub trait Guard<C, E>: Send + Sync + std::fmt::Debug {
+    /// Evaluate the guard condition
+    fn check(&self, context: &C, event: &E) -> bool;
 }
 ```
 
-## Type Definitions
+**Design Decisions**:
+- **Simple boolean interface**: Easy to compose
+- **Immutable context access**: Prevents side effects
+- **Event access**: Allows event-based conditions
+- **Send + Sync**: Thread-safe evaluation
+
+### 2. Guard Composition
 
 ```rust
-#[derive(Debug, Clone)]
-pub enum StateType {
-    Atomic,
-    Compound,
-    Parallel,
-    History,
-    Final,
-}
+/// Composite guard implementations
+pub enum CompositeGuard<C, E> {
+    /// All guards must pass
+    And(Vec<Box<dyn Guard<C, E>>>),
 
-#[derive(Debug, Clone)]
+    /// At least one guard must pass
+    Or(Vec<Box<dyn Guard<C, E>>>),
+
+    /// Negate guard result
+    Not(Box<dyn Guard<C, E>>),
+
+    /// Custom logic function
+    Function(Box<dyn Fn(&C, &E) -> bool + Send + Sync>),
+}
+```
+
+**Design Decisions**:
+- **Boolean algebra**: Familiar logical operators
+- **Recursive composition**: Build complex conditions
+- **Function guards**: Maximum flexibility
+- **Box for polymorphism**: Varying guard implementations
+
+## Action System Design
+
+### 1. Action Trait
+
+```rust
+/// Side effect for state transitions
+pub trait Action<C, E>: Send + Sync + std::fmt::Debug {
+    /// Execute the action
+    fn execute(&self, context: &mut C, event: &E);
+}
+```
+
+**Design Decisions**:
+- **Mutable context**: Allows state modifications
+- **Event access**: Context-aware actions
+- **Send + Sync**: Thread-safe execution
+- **No return value**: Fire-and-forget semantics
+
+### 2. Action Composition
+
+```rust
+/// Composite action implementations
+pub enum CompositeAction<C, E> {
+    /// Execute actions in sequence
+    Sequence(Vec<Box<dyn Action<C, E>>>),
+
+    /// Execute actions in parallel (if supported)
+    Parallel(Vec<Box<dyn Action<C, E>>>),
+
+    /// Conditional action execution
+    Conditional {
+        condition: Box<dyn Fn(&C, &E) -> bool + Send + Sync>,
+        action: Box<dyn Action<C, E>>,
+    },
+
+    /// Custom action function
+    Function(Box<dyn Fn(&mut C, &E) + Send + Sync>),
+}
+```
+
+**Design Decisions**:
+- **Sequential by default**: Predictable execution order
+- **Conditional actions**: Context-aware execution
+- **Function actions**: Maximum flexibility
+- **Composition patterns**: Build complex behaviors
+
+## Error Handling Design
+
+### 1. Error Types
+
+```rust
+/// State machine errors
+#[derive(Debug, thiserror::Error)]
 pub enum MachineError {
-    InvalidState(String),
-    InvalidTransition,
-    GuardFailed(String),
-    MissingGuard(String),
-    MissingAction(String),
-    ContextError(String),
-}
+    #[error("Invalid state: {state}")]
+    InvalidState { state: String },
 
+    #[error("Invalid transition from {from} on event {event}")]
+    InvalidTransition { from: String, event: String },
+
+    #[error("Guard evaluation failed: {reason}")]
+    GuardFailed { reason: String },
+
+    #[error("Action execution failed: {reason}")]
+    ActionFailed { reason: String },
+}
+```
+
+**Design Decisions**:
+- **Descriptive messages**: Clear error communication
+- **Structured data**: Programmatic error handling
+- **thiserror integration**: Automatic Display/Debug
+- **Comprehensive coverage**: All failure modes
+
+### 2. Result Types
+
+```rust
+/// State machine results
 pub type MachineResult<T> = Result<T, MachineError>;
 
-#[derive(Clone, Debug, Default)]
-pub struct Context {
-    data: HashMap<String, Value>,
-}
-
-impl Context {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn set(&mut self, key: String, value: Value) {
-        self.data.insert(key, value);
-    }
-
-    pub fn get(&self, key: &str) -> Option<&Value> {
-        self.data.get(key)
-    }
-}
+/// Transition result (may fail)
+pub type TransitionResult<T> = Result<T, TransitionError>;
 ```
+
+**Design Decisions**:
+- **Type aliases**: Consistent error handling
+- **Generic results**: Flexible error propagation
+- **Specific error types**: Domain-specific failures
+
+## Performance Characteristics
+
+### Time Complexity
+
+| Operation | Complexity | Notes |
+|-----------|------------|-------|
+| State Lookup | O(1) | HashMap access |
+| Transition Search | O(n) | Linear scan of transitions |
+| Guard Evaluation | O(g) | g = number of guards |
+| Action Execution | O(a) | a = number of actions |
+| State Update | O(1) | Simple assignment |
+
+### Space Complexity
+
+| Component | Space | Notes |
+|-----------|-------|-------|
+| Machine Definition | O(s + t) | s = states, t = transitions |
+| Runtime State | O(1) | Fixed size per instance |
+| Guards/Actions | O(g + a) | Heap allocated trait objects |
+| Context | O(c) | User-defined context size |
+
+### Optimization Opportunities
+
+1. **Transition Caching**: Cache transition lookups by (state, event) pairs
+2. **Guard Short-Circuiting**: Stop evaluation on first false guard
+3. **Action Batching**: Group actions for better cache performance
+4. **State Interning**: Share common state representations
 
 ## Testing Strategy
 
-```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
+### 1. Unit Tests
+- **State creation and validation**
+- **Transition logic correctness**
+- **Guard evaluation accuracy**
+- **Action execution verification**
 
-    #[test]
-    fn machine_creation_works() {
-        let machine = Machine::new("traffic_light".to_string());
-        assert_eq!(machine.id, "traffic_light");
-    }
+### 2. Property Tests
+- **Transition determinism**: Same input → same output
+- **State validity**: Machine never enters invalid states
+- **Guard consistency**: Guards don't contradict each other
+- **Action idempotency**: Repeated actions are safe
 
-    #[test]
-    fn state_transitions_work() {
-        let mut machine = Machine::new("counter".to_string());
-        let idle_state = StateNode::new("idle".to_string(), StateType::Atomic);
-        machine.add_state(idle_state);
+### 3. Integration Tests
+- **End-to-end workflows**: Complete state machine execution
+- **Error handling**: Proper failure propagation
+- **Performance**: Realistic usage patterns
 
-        assert!(machine.can_transition_to("idle"));
-    }
+## Future Enhancements
 
-    #[test]
-    fn guards_prevent_invalid_transitions() {
-        let machine = Machine::new("guarded".to_string());
-        let guard = ConditionGuard::new("test_guard".to_string(), |_| false);
+### Advanced Features
+1. **Hierarchical States**: Full SCXML support
+2. **Parallel Regions**: Concurrent state execution
+3. **History States**: State restoration capabilities
+4. **Deferred Events**: Event queuing and timing
 
-        // Should fail when guard returns false
-        assert!(machine.transition("invalid_event").is_err());
-    }
-}
-```
+### Performance Improvements
+1. **JIT Compilation**: Runtime optimization of state machines
+2. **Memory Pool**: Reduce allocations in hot paths
+3. **SIMD Guards**: Vectorized condition evaluation
+4. **Async Transitions**: Non-blocking state changes
 
-## Performance Considerations
+### Developer Experience
+1. **Visual Debugging**: State machine visualization
+2. **Hot Reloading**: Runtime state machine updates
+3. **IntelliSense**: IDE support for state definitions
+4. **Code Generation**: Automatic state machine code from diagrams
 
-- **State Lookup:** HashMap for O(1) state access
-- **Transition Caching:** Cache validated transitions
-- **Action Batching:** Execute multiple actions efficiently
-- **Memory Management:** Clean up old history entries
+---
 
-## Future Extensions
-
-- [ ] Parallel states
-- [ ] History states (shallow/deep)
-- [ ] State machine composition
-- [ ] Visual debugging
-- [ ] Performance profiling
+*Machine core design document created September 20, 2025 - Foundation for reliable state management*

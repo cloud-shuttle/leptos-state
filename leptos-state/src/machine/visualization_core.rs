@@ -5,7 +5,7 @@ use super::*;
 
 /// State machine visualizer
 #[derive(Debug)]
-pub struct MachineVisualizer<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> {
+pub struct MachineVisualizer<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> {
     /// Visualization configuration
     pub config: VisualizationConfig,
     /// Theme configuration

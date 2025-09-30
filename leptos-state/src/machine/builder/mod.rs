@@ -11,7 +11,7 @@ use std::collections::HashMap;
 /// Fluent builder for creating state machines
 pub struct MachineBuilderImpl<S, E, C>
 where
-    S: Clone + Send + Sync + 'static,
+    S: Clone + Send + Sync + std::fmt::Debug + 'static,
     E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static + std::hash::Hash + Eq,
     C: Clone + PartialEq + Send + Sync + std::fmt::Debug + 'static,
 {
@@ -23,7 +23,7 @@ where
 
 impl<S, E, C> MachineBuilder<C, E, S> for crate::machine::MachineBuilderImpl<S, E, C>
 where
-    S: Clone + Send + Sync + 'static,
+    S: Clone + Send + Sync + std::fmt::Debug + 'static,
     E: Clone + Send + Sync + std::fmt::Debug + 'static + std::hash::Hash + Eq,
     C: Clone + PartialEq + Send + Sync + std::fmt::Debug + Default + 'static,
 {
