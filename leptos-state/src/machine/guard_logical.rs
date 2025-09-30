@@ -36,7 +36,7 @@ impl<C, E> AndGuard<C, E> {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for AndGuard<C, E> {
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> GuardEvaluator<C, E> for AndGuard<C, E> {
     fn check(&self, context: &C, event: &E) -> bool {
         self.guards.iter().all(|guard| guard.check(context, event))
     }
@@ -87,7 +87,7 @@ impl<C, E> OrGuard<C, E> {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for OrGuard<C, E> {
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> GuardEvaluator<C, E> for OrGuard<C, E> {
     fn check(&self, context: &C, event: &E) -> bool {
         self.guards.iter().any(|guard| guard.check(context, event))
     }
@@ -127,7 +127,7 @@ impl<C, E> NotGuard<C, E> {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for NotGuard<C, E> {
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> GuardEvaluator<C, E> for NotGuard<C, E> {
     fn check(&self, context: &C, event: &E) -> bool {
         !self.guard.check(context, event)
     }
@@ -178,7 +178,7 @@ impl<C, E> XorGuard<C, E> {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for XorGuard<C, E> {
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> GuardEvaluator<C, E> for XorGuard<C, E> {
     fn check(&self, context: &C, event: &E) -> bool {
         self.guards
             .iter()
@@ -237,7 +237,7 @@ impl<C, E> MajorityGuard<C, E> {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for MajorityGuard<C, E> {
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> GuardEvaluator<C, E> for MajorityGuard<C, E> {
     fn check(&self, context: &C, event: &E) -> bool {
         let passing_count = self
             .guards

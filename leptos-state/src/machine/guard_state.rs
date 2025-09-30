@@ -26,7 +26,7 @@ impl<C, E> EventTypeGuard<C, E> {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for EventTypeGuard<C, E>
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> GuardEvaluator<C, E> for EventTypeGuard<C, E>
 where
     E: std::fmt::Debug,
 {
@@ -76,7 +76,7 @@ impl<C, E> StateGuard<C, E> {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for StateGuard<C, E> {
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> GuardEvaluator<C, E> for StateGuard<C, E> {
     fn check(&self, context: &C, _event: &E) -> bool {
         let current_state = (self.state_getter)(context);
         current_state == self.expected_state
@@ -144,7 +144,7 @@ impl<C, E> StateTransitionGuard<C, E> {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for StateTransitionGuard<C, E> {
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> GuardEvaluator<C, E> for StateTransitionGuard<C, E> {
     fn check(&self, context: &C, event: &E) -> bool {
         let current_state = (self.current_state_getter)(context);
         let target_state = (self.target_state_getter)(context, event);
@@ -219,7 +219,7 @@ where
     }
 }
 
-impl<C, E, F> GuardEvaluator<C, E> for EventDataGuard<C, E, F>
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F> GuardEvaluator<C, E> for EventDataGuard<C, E, F>
 where
     F: Fn(&E) -> String + Clone + 'static,
 {
@@ -272,7 +272,7 @@ where
     }
 }
 
-impl<C, E, F> GuardEvaluator<C, E> for ContextStateGuard<C, E, F>
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F> GuardEvaluator<C, E> for ContextStateGuard<C, E, F>
 where
     F: Fn(&C, &E) -> bool + Clone + 'static,
 {

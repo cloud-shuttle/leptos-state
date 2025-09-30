@@ -209,7 +209,6 @@ pub mod composition {
         }
     }
 
-    /// Create a conditional selector
     // TODO: Re-enable conditional selector after fixing Clone bounds for trait objects
     // pub fn conditional<T, S1, S2, F>(
     //     condition: F,

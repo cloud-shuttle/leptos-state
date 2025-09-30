@@ -42,7 +42,7 @@ where
     }
 }
 
-impl<C, E, F> GuardEvaluator<C, E> for FunctionGuard<C, E, F>
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F> GuardEvaluator<C, E> for FunctionGuard<C, E, F>
 where
     F: Fn(&C, &E) -> bool + Clone + 'static,
 {
@@ -72,7 +72,7 @@ impl AlwaysGuard {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for AlwaysGuard {
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> GuardEvaluator<C, E> for AlwaysGuard {
     fn check(&self, _context: &C, _event: &E) -> bool {
         true
     }
@@ -102,7 +102,7 @@ impl NeverGuard {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for NeverGuard {
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> GuardEvaluator<C, E> for NeverGuard {
     fn check(&self, _context: &C, _event: &E) -> bool {
         false
     }
@@ -142,7 +142,7 @@ pub trait GuardBatchEvaluator<C, E> {
     }
 }
 
-impl<C, E> GuardBatchEvaluator<C, E> for Vec<Box<dyn GuardEvaluator<C, E>>> {
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> GuardBatchEvaluator<C, E> for Vec<Box<dyn GuardEvaluator<C, E>>> {
     fn evaluate_batch(&self, context: &C, event: &E) -> Vec<(String, bool)> {
         self.iter()
             .map(|guard| (guard.description(), guard.check(context, event)))

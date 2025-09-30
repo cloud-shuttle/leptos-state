@@ -44,6 +44,10 @@ impl<C, E, T, F> GuardEvaluator<C, E> for FieldEqualityGuard<C, E, T, F>
 where
     F: Fn(&C) -> &T + Clone + 'static,
     T: PartialEq + Clone + 'static,
+    C: std::fmt::Debug,
+    E: std::fmt::Debug + PartialEq,
+    C: std::fmt::Debug,
+    E: std::fmt::Debug + PartialEq,
 {
     fn check(&self, context: &C, _event: &E) -> bool {
         let field_value = (self.field_extractor)(context);
