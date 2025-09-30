@@ -42,7 +42,7 @@ pub mod history_machine;
 pub mod history_tracker;
 pub mod integration;
 pub mod integration_adapters;
-pub mod integration_config;
+// Integration config is now in integration::config
 pub mod integration_core;
 // Integration events are now in integration::events
 pub mod integration_ext;
@@ -205,7 +205,7 @@ pub use integration_adapters::{
     DatabaseAdapter, FileFormat, FileSystemAdapter, HttpApiAdapter, MessageQueueAdapter,
     WebSocketAdapter,
 };
-pub use integration_config::{
+pub use integration::config::{
     ConnectionConfig, Credentials, EventPattern,
     EventRoutingConfig as IntegrationEventRoutingConfig, EventTransformation,
     IntegrationConfig as IntegrationConfigCore, PoolConfig, RetryConfig, RoutingRule,
