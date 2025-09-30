@@ -1,6 +1,8 @@
 //! Persistence functionality for state machines
 
 pub mod storage;
+pub mod serialization;
 
-// Re-export storage items for convenience
+// Re-export items for convenience
 pub use storage::*;
+pub use serialization::*;

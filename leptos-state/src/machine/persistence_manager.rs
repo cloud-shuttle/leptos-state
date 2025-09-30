@@ -1,7 +1,8 @@
 //! Persistence manager implementation
 
-use super::persistence_core::PersistenceError;
-use super::storage::{MachineStorage, StorageFactory};
+use super::persistence_core::{BackupConfig, PersistenceError, PersistenceConfig, StorageType};
+use crate::machine::persistence::storage::{MachineStorage, StorageFactory, StorageInfo};
+use crate::machine::{Machine, SerializedMachine, MachineMetadata};
 
 /// Persistence manager for state machines
 pub struct MachinePersistence<C: Send + Sync + 'static, E: Send + Sync + 'static> {

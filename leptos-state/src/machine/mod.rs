@@ -72,7 +72,7 @@ pub mod persistence_core;
 pub mod persistence_ext;
 pub mod persistence_manager;
 pub mod persistence_metadata;
-pub mod persistence_serialization;
+// Serialization is now in persistence::serialization
 // Storage backends are now in persistence::storage
 pub mod property_testing;
 pub mod state_builder;
@@ -254,7 +254,7 @@ pub use persistence_manager::{
 pub use persistence_metadata::{
     MachineMetadata, MachineStats, MetadataBuilder, SchemaInfo, ValidationRule, ValidationType,
 };
-pub use persistence_serialization::{
+pub use persistence::serialization::{
     ComplexityMetrics, SerializedMachine, SerializedState, SerializedTransition, StateType,
 };
 pub use persistence::storage::{

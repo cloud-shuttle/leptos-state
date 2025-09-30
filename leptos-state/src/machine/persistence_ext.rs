@@ -20,7 +20,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
         self,
         config: PersistenceConfig,
     ) -> Result<PersistentMachine<C, E>, PersistenceError> {
-        let storage = super::storage::StorageFactory::new().create_storage(&config.storage_type, super::storage::StorageConfig::new())?;
+        let storage = crate::machine::persistence::storage::StorageFactory::new().create_storage(&config.storage_type, crate::machine::persistence::storage::StorageConfig::new())?;
         let persistence_manager = MachinePersistence::new(storage, config);
         Ok(PersistentMachine::new(self, persistence_manager))
     }
@@ -282,7 +282,7 @@ pub mod persistence_builder {
                 .machine
                 .ok_or_else(|| PersistenceError::ConfigError("No machine provided".to_string()))?;
 
-            let storage = persistence_storage::StorageFactory::create_storage_with_config(
+            let storage = crate::machine::persistence::storage::StorageFactory::new().create_storage(
                 &self.config.storage_type,
                 &self.config.custom_config,
             )?;
