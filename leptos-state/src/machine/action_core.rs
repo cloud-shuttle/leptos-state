@@ -35,7 +35,7 @@ where
     }
 }
 
-impl<C: Send + Sync + 'static, E: Send + Sync + 'static, F> Action<C, E> for FunctionAction<C, E, F>
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static, F> Action<C, E> for FunctionAction<C, E, F>
 where
     F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
 {
@@ -93,7 +93,7 @@ where
     }
 }
 
-impl<C: Send + Sync + 'static, E: Send + Sync + 'static, T: Send + Sync, F> Action<C, E>
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static, T: Send + Sync, F> Action<C, E>
     for AssignAction<C, E, T, F>
 where
     F: Fn(&mut C, &E) -> T + Clone + Send + Sync + 'static,
@@ -179,7 +179,7 @@ impl LogAction {
     }
 }
 
-impl<C, E> Action<C, E> for LogAction
+impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> Action<C, E> for LogAction
 where
     C: std::fmt::Debug,
     E: std::fmt::Debug,
@@ -257,7 +257,7 @@ where
     }
 }
 
-impl<C: Send + Sync + 'static, E: Send + Sync + 'static, F> Action<C, E> for PureAction<F>
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static, F> Action<C, E> for PureAction<F>
 where
     F: Fn() + Clone + Send + Sync + 'static,
 {
