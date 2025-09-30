@@ -12,8 +12,8 @@ use std::collections::HashMap;
 pub struct MachineBuilderImpl<S, E, C>
 where
     S: Clone + Send + Sync + 'static,
-    E: Clone + Send + Sync + 'static + std::hash::Hash + Eq,
-    C: Clone + PartialEq + Send + Sync + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static + std::hash::Hash + Eq,
+    C: Clone + PartialEq + Send + Sync + std::fmt::Debug + 'static,
 {
     states: HashMap<String, StateNode<S, E, C>>,
     initial_state: Option<String>,
@@ -91,8 +91,8 @@ where
 pub fn create_machine_builder<S, E, C>() -> MachineBuilderImpl<S, E, C>
 where
     S: Clone + Send + Sync + 'static,
-    E: Clone + Send + Sync + 'static + std::hash::Hash + Eq,
-    C: Clone + PartialEq + Send + Sync + Default + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static + std::hash::Hash + Eq,
+    C: Clone + PartialEq + Send + Sync + std::fmt::Debug + Default + 'static,
 {
     MachineBuilderImpl::new()
 }

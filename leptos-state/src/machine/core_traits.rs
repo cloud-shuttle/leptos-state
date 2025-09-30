@@ -13,7 +13,7 @@ pub trait StateMachine: Sized + 'static {
 }
 
 /// Main builder trait for constructing state machines
-pub trait MachineBuilder<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static, S: Clone + Send + Sync + 'static> {
+pub trait MachineBuilder<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static, S: Clone + Send + Sync + 'static> {
     fn new() -> Self;
     fn state<Name: Into<String>>(self, name: Name) -> Self;
     fn initial<Name: Into<String>>(self, state: Name) -> Self;

@@ -35,7 +35,7 @@ pub struct Transition<
 #[derive(Debug)]
 pub struct Machine<
     C: Send + Sync + Clone + std::fmt::Debug + 'static,
-    E: Send + Clone + std::fmt::Debug + 'static,
+    E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     S: Clone + std::fmt::Debug,
 > {
     pub states: HashMap<String, StateNode<C, E, C>>,

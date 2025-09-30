@@ -4,7 +4,7 @@ use super::*;
 
 /// Real-time state monitor
 #[derive(Debug)]
-pub struct StateMonitor<C: Send + Sync + std::fmt::Debug, E: std::fmt::Debug> {
+pub struct StateMonitor<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> {
     /// Monitored machine
     pub machine: Option<Machine<C, E, C>>,
     /// Current state information
@@ -21,7 +21,21 @@ pub struct StateMonitor<C: Send + Sync + std::fmt::Debug, E: std::fmt::Debug> {
     pub stats: MonitoringStats,
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateMonitor<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> Clone for StateMonitor<C, E> {
+    fn clone(&self) -> Self {
+        Self {
+            machine: self.machine.clone(),
+            current_state: self.current_state.clone(),
+            state_change_listeners: Vec::new(), // Can't clone trait objects
+            error_listeners: Vec::new(), // Can't clone trait objects
+            performance_listeners: Vec::new(), // Can't clone trait objects
+            enabled: self.enabled,
+            stats: self.stats,
+        }
+    }
+}
+
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> StateMonitor<C, E> {
     /// Create a new state monitor
     pub fn new() -> Self {
         Self {
@@ -188,7 +202,7 @@ impl MonitoringStats {
 
 /// Real-time state information
 #[derive(Debug, Clone)]
-pub struct StateInfo<C: Send + Sync, E> {
+pub struct StateInfo<C: Send + Sync + std::fmt::Debug, E: std::fmt::Debug + PartialEq> {
     /// State name
     pub name: String,
     /// Entry timestamp
@@ -219,7 +233,7 @@ pub enum StateStatus {
     NeverEntered,
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateInfo<C, E> {
+impl<C: Send + Sync + std::fmt::Debug + Clone + 'static, E: std::fmt::Debug + PartialEq + Clone + Send + Sync + 'static> StateInfo<C, E> {
     /// Create a new state info for a state that was just entered
     pub fn entered(name: String, context: Option<C>) -> Self {
         Self {
@@ -300,7 +314,7 @@ pub struct HealthChecker<C: Send + Sync, E> {
     pub last_check: Option<std::time::Instant>,
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> HealthChecker<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> HealthChecker<C, E> {
     /// Create a new health checker
     pub fn new() -> Self {
         Self {
@@ -374,7 +388,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> HealthC
 }
 
 /// Health check trait
-pub trait HealthCheck<C: Send + Sync, E> {
+pub trait HealthCheck<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> {
     /// Perform a health check
     fn perform_check(
         &self,

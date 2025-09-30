@@ -38,7 +38,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> ChildSt
     /// Add a function-based entry action
     pub fn on_entry_fn<F>(mut self, func: F) -> Self
     where
-        F: Fn(&mut C, &E) + Send + Sync + 'static,
+        F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
     {
         self.entry_actions
             .push(Box::new(actions::FunctionAction::new(func)));
@@ -48,7 +48,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> ChildSt
     /// Add a function-based exit action
     pub fn on_exit_fn<F>(mut self, func: F) -> Self
     where
-        F: Fn(&mut C, &E) + Send + Sync + 'static,
+        F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
     {
         self.exit_actions
             .push(Box::new(actions::FunctionAction::new(func)));
@@ -80,7 +80,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> ChildSt
     /// Add a pure entry action (no context modification)
     pub fn on_entry_pure<F>(mut self, func: F) -> Self
     where
-        F: Fn() + Send + Sync + 'static,
+        F: Fn() + Clone + Send + Sync + 'static,
     {
         self.entry_actions
             .push(Box::new(actions::PureAction::new(func)));
@@ -90,7 +90,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> ChildSt
     /// Add a pure exit action (no context modification)
     pub fn on_exit_pure<F>(mut self, func: F) -> Self
     where
-        F: Fn() + Send + Sync + 'static,
+        F: Fn() + Clone + Send + Sync + 'static,
     {
         self.exit_actions
             .push(Box::new(actions::PureAction::new(func)));

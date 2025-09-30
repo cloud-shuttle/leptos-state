@@ -164,7 +164,7 @@ pub struct TransitionCache<C: Send + Sync + Clone + 'static, E> {
     created_at: Instant,
 }
 
-impl<C: Send + Sync + Clone + 'static, E> TransitionCache<C, E> {
+impl<C: Send + Sync + Clone + 'static, E: Clone> TransitionCache<C, E> {
     /// Create a new transition cache
     pub fn new(max_size: usize, ttl: Duration) -> Self {
         Self {

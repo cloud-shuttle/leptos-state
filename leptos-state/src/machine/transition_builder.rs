@@ -38,7 +38,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Transit
     pub fn guard_field_equals<T, F>(mut self, field_extractor: F, expected_value: T) -> Self
     where
         F: Fn(&C) -> T + Clone + Send + Sync + 'static,
-        T: PartialEq + Send + Sync + 'static,
+        T: PartialEq + Clone + Send + Sync + 'static,
     {
         self.guards.push(Box::new(guards::FieldEqualityGuard::new(
             field_extractor,

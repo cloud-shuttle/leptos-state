@@ -194,10 +194,7 @@ impl Default for VisualizationStats {
 
 impl VisualizationStats {
     /// Update statistics with new data
-    pub fn update<C: Send + Sync, E>(&mut self, visualizer: &MachineVisualizer<C, E>)
-    where
-        E: Clone,
-    {
+    pub fn update<C: Clone + Send + Sync, E: Clone>(&mut self, visualizer: &MachineVisualizer<C, E>) {
         self.total_events = visualizer.event_history.len();
         self.total_transitions = visualizer.state_history.len();
         self.total_errors = visualizer.error_log.len();
@@ -274,7 +271,7 @@ impl VisualizationStats {
 }
 
 /// Breakpoint system for debugging
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Breakpoint<C: Send + Sync, E> {
     /// Breakpoint ID
     pub id: String,
@@ -286,6 +283,18 @@ pub struct Breakpoint<C: Send + Sync, E> {
     pub hit_count: usize,
     /// Condition for the breakpoint
     pub condition: Option<Box<dyn Fn(&TransitionEvent<C, E>) -> bool + Send + Sync>>,
+}
+
+impl<C: Send + Sync, E> Clone for Breakpoint<C, E> {
+    fn clone(&self) -> Self {
+        Self {
+            id: self.id.clone(),
+            breakpoint_type: self.breakpoint_type.clone(),
+            enabled: self.enabled,
+            hit_count: self.hit_count,
+            condition: None, // Can't clone trait objects
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -304,6 +313,23 @@ pub enum BreakpointType<C, E> {
     GuardFailure,
     /// Custom breakpoint
     Custom(Box<dyn Fn(&TransitionEvent<C, E>) -> bool + Send + Sync>),
+}
+
+impl<C, E> Clone for BreakpointType<C, E> {
+    fn clone(&self) -> Self {
+        match self {
+            Self::StateEntry(s) => Self::StateEntry(s.clone()),
+            Self::StateExit(s) => Self::StateExit(s.clone()),
+            Self::Transition { from, to } => Self::Transition {
+                from: from.clone(),
+                to: to.clone(),
+            },
+            Self::Event(s) => Self::Event(s.clone()),
+            Self::Error(e) => Self::Error(*e),
+            Self::GuardFailure => Self::GuardFailure,
+            Self::Custom(_) => Self::GuardFailure, // Can't clone trait objects, fallback
+        }
+    }
 }
 
 impl<C: Send + Sync, E> Breakpoint<C, E> {
