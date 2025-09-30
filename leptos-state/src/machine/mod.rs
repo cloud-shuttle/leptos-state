@@ -70,7 +70,7 @@ pub mod integration_testing;
 pub mod performance_tracking;
 pub mod persistence_core;
 // Persistence extensions are now in persistence::ext
-pub mod persistence_manager;
+// Persistence manager is now in persistence::manager
 // Persistence metadata is now in persistence::metadata
 // Serialization is now in persistence::serialization
 // Storage backends are now in persistence::storage
@@ -251,7 +251,7 @@ pub use persistence::ext::{
     migration as migrations, monitoring, factories as persistence_builder, MachinePersistenceExt, PersistenceInfo,
     PersistentMachine,
 };
-pub use persistence_manager::{
+pub use persistence::manager::{
     BackupEntry, BackupManager, MachineInfo, MachinePersistence, PersistenceStats,
 };
 pub use persistence::metadata::{
