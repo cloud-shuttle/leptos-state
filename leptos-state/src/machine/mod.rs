@@ -43,7 +43,7 @@ pub mod history_tracker;
 pub mod integration;
 pub mod integration_adapters;
 // Integration config is now in integration::config
-pub mod integration_core;
+// Integration core is now in integration::core
 // Integration events are now in integration::events
 pub mod integration_ext;
 // Integration metrics are now in integration::metrics
@@ -200,7 +200,7 @@ pub use history_core::{
 };
 pub use history_machine::{HistoryMachineBuilder, MachineHistoryExt};
 pub use history_tracker::{HistoryIterator, HistorySnapshot};
-pub use integration_core::{IntegrationAdapter, IntegrationManager};
+pub use integration::core::{IntegrationAdapter, IntegrationManager};
 pub use integration_adapters::{
     DatabaseAdapter, FileFormat, FileSystemAdapter, HttpApiAdapter, MessageQueueAdapter,
     WebSocketAdapter,
@@ -210,7 +210,7 @@ pub use integration::config::{
     EventRoutingConfig as IntegrationEventRoutingConfig, EventTransformation,
     IntegrationConfig as IntegrationConfigCore, PoolConfig, RetryConfig, RoutingRule,
 };
-pub use integration_core::{AdapterType, HealthStatus, IntegrationAdapterTrait};
+pub use integration::core::{AdapterType, HealthStatus, IntegrationAdapterTrait};
 pub use integration::events::{
     ErrorAction, ErrorHandlingStrategy as IntegrationErrorHandlingStrategy, EventBatch,
     EventFilter, EventPriority, IntegrationError, IntegrationErrorType, IntegrationEvent,
