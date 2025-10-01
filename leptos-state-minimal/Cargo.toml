@@ -24,6 +24,9 @@ default = []
 serde = ["dep:serde", "dep:serde_json"]
 web = ["dep:web-sys"]
 devtools = ["web", "serde"]
+performance = ["serde"]
+testing = ["serde"]
+visualization = ["serde"]
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"

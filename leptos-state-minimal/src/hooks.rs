@@ -1,5 +1,9 @@
 //! Leptos hooks for state management
 
+#[cfg(feature = "serde")]
+use crate::SerializableState;
+#[cfg(feature = "serde")]
+use crate::StoreError;
 use crate::{State, Event, Store, StoreActions, Machine, MachineResult};
 use leptos::prelude::*;
 use std::rc::Rc;

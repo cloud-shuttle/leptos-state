@@ -14,6 +14,8 @@ pub struct Store<S: State> {
     middlewares: crate::middleware::MiddlewareStack<S>,
     #[cfg(all(feature = "web", feature = "devtools"))]
     devtools: Option<crate::devtools::DevToolsIntegration>,
+    #[cfg(feature = "performance")]
+    performance_monitor: Option<crate::performance::PerformanceMonitor>,
 }
 
 impl<S: State> Store<S> {
@@ -25,6 +27,8 @@ impl<S: State> Store<S> {
             middlewares: crate::middleware::MiddlewareStack::new(),
             #[cfg(all(feature = "web", feature = "devtools"))]
             devtools: None,
+            #[cfg(feature = "performance")]
+            performance_monitor: None,
         }
     }
 
@@ -217,6 +221,52 @@ impl<S: State> Store<S> {
         self.devtools.as_ref()
     }
 
+    /// Enable performance monitoring for this store
+    ///
+    /// Requires the performance feature to be enabled.
+    /// This allows tracking performance metrics for store operations.
+    #[cfg(feature = "performance")]
+    pub fn with_performance_monitoring(mut self, monitor: crate::performance::PerformanceMonitor) -> Self {
+        self.performance_monitor = Some(monitor);
+        self
+    }
+
+    /// Check if performance monitoring is enabled
+    #[cfg(feature = "performance")]
+    pub fn has_performance_monitoring(&self) -> bool {
+        self.performance_monitor.is_some()
+    }
+
+    /// Get the performance monitor (if enabled)
+    #[cfg(feature = "performance")]
+    pub fn performance_monitor(&self) -> Option<&crate::performance::PerformanceMonitor> {
+        self.performance_monitor.as_ref()
+    }
+
+    /// Get performance metrics for this store
+    #[cfg(feature = "performance")]
+    pub fn get_performance_metrics(&self) -> Option<crate::performance::PerformanceMetrics> {
+        self.performance_monitor.as_ref().map(|pm| pm.get_metrics())
+    }
+
+    /// Get performance bottlenecks for this store
+    #[cfg(feature = "performance")]
+    pub fn get_performance_bottlenecks(&self) -> Vec<(String, crate::performance::DurationStats)> {
+        self.performance_monitor
+            .as_ref()
+            .map(|pm| pm.get_bottlenecks())
+            .unwrap_or_default()
+    }
+
+    /// Get performance recommendations for this store
+    #[cfg(feature = "performance")]
+    pub fn get_performance_recommendations(&self) -> Vec<String> {
+        self.performance_monitor
+            .as_ref()
+            .map(|pm| pm.get_recommendations())
+            .unwrap_or_default()
+    }
+
     /// Serialize the current state to JSON string
     ///
     /// Requires the serde feature and SerializableState bound.
@@ -292,6 +342,8 @@ impl<S: State> Clone for Store<S> {
             middlewares: self.middlewares.clone(),
             #[cfg(all(feature = "web", feature = "devtools"))]
             devtools: None, // Don't clone DevTools integration
+            #[cfg(feature = "performance")]
+            performance_monitor: self.performance_monitor.clone(), // Clone performance monitor
         }
     }
 }

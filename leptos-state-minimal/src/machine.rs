@@ -27,6 +27,8 @@ pub struct Machine<S: State, E: Event> {
     middlewares: crate::middleware::MiddlewareStack<S, E>,
     #[cfg(all(feature = "web", feature = "devtools"))]
     devtools: Option<crate::devtools::DevToolsIntegration>,
+    #[cfg(feature = "performance")]
+    performance_monitor: Option<crate::performance::PerformanceMonitor>,
 }
 
 impl<S: State, E: Event> Machine<S, E> {
@@ -39,6 +41,8 @@ impl<S: State, E: Event> Machine<S, E> {
             middlewares: crate::middleware::MiddlewareStack::new(),
             #[cfg(all(feature = "web", feature = "devtools"))]
             devtools: None,
+            #[cfg(feature = "performance")]
+            performance_monitor: None,
         }
     }
 
@@ -344,6 +348,52 @@ impl<S: State, E: Event> Machine<S, E> {
     #[cfg(all(feature = "web", feature = "devtools"))]
     pub fn devtools(&self) -> Option<&crate::devtools::DevToolsIntegration> {
         self.devtools.as_ref()
+    }
+
+    /// Enable performance monitoring for this machine
+    ///
+    /// Requires the performance feature to be enabled.
+    /// This allows tracking performance metrics for machine operations.
+    #[cfg(feature = "performance")]
+    pub fn with_performance_monitoring(mut self, monitor: crate::performance::PerformanceMonitor) -> Self {
+        self.performance_monitor = Some(monitor);
+        self
+    }
+
+    /// Check if performance monitoring is enabled
+    #[cfg(feature = "performance")]
+    pub fn has_performance_monitoring(&self) -> bool {
+        self.performance_monitor.is_some()
+    }
+
+    /// Get the performance monitor (if enabled)
+    #[cfg(feature = "performance")]
+    pub fn performance_monitor(&self) -> Option<&crate::performance::PerformanceMonitor> {
+        self.performance_monitor.as_ref()
+    }
+
+    /// Get performance metrics for this machine
+    #[cfg(feature = "performance")]
+    pub fn get_performance_metrics(&self) -> Option<crate::performance::PerformanceMetrics> {
+        self.performance_monitor.as_ref().map(|pm| pm.get_metrics())
+    }
+
+    /// Get performance bottlenecks for this machine
+    #[cfg(feature = "performance")]
+    pub fn get_performance_bottlenecks(&self) -> Vec<(String, crate::performance::DurationStats)> {
+        self.performance_monitor
+            .as_ref()
+            .map(|pm| pm.get_bottlenecks())
+            .unwrap_or_default()
+    }
+
+    /// Get performance recommendations for this machine
+    #[cfg(feature = "performance")]
+    pub fn get_performance_recommendations(&self) -> Vec<String> {
+        self.performance_monitor
+            .as_ref()
+            .map(|pm| pm.get_recommendations())
+            .unwrap_or_default()
     }
 
     /// Serialize the current machine state to JSON string

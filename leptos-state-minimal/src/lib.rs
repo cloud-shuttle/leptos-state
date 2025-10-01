@@ -11,6 +11,12 @@ pub mod persistence;
 pub mod middleware;
 #[cfg(all(feature = "web", feature = "devtools"))]
 pub mod devtools;
+#[cfg(feature = "performance")]
+pub mod performance;
+#[cfg(feature = "testing")]
+pub mod testing;
+#[cfg(feature = "visualization")]
+pub mod visualization;
 
 pub use error::{MachineError, MachineResult, StoreError, StoreResult};
 pub use store::{Store, StoreActions};
@@ -19,6 +25,12 @@ pub use hooks::{use_store, use_machine};
 pub use middleware::{Middleware, MiddlewareContext, MiddlewareError, MiddlewarePriority, Operation};
 #[cfg(all(feature = "web", feature = "devtools"))]
 pub use devtools::{DevToolsIntegration, StateInspector, TimeTravelDebugger};
+#[cfg(feature = "performance")]
+pub use performance::PerformanceMonitor;
+#[cfg(feature = "testing")]
+pub use testing::{PropertyTestSuite, StateMachineTester, TestStore, TestMachine};
+#[cfg(feature = "visualization")]
+pub use visualization::{Visualizable, StateMachineVisualizer};
 
 // Re-export leptos for convenience
 pub use leptos;
