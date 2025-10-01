@@ -177,7 +177,7 @@ mod tests {
     use super::*;
     use leptos::*;
 
-    #[derive(Clone, Default)]
+    #[derive(Clone, Default, Debug, Eq, PartialEq)]
     struct TestState {
         count: i32,
     }

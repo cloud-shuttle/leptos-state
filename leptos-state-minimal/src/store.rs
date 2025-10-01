@@ -157,7 +157,7 @@ impl<S: State> Clone for StoreActions<S> {
 mod tests {
     use super::*;
 
-    #[derive(Clone, PartialEq, Debug)]
+    #[derive(Clone, Default, Debug, Eq, PartialEq)]
     struct TestState {
         count: i32,
     }

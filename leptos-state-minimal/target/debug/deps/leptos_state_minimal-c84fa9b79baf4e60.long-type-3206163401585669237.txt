@@ -1,0 +1,1 @@
+std::option::Option<Vec<Box<(dyn for<'a, 'b> Fn(&'a mut S, &'b E) -> ActionResult + Send + std::marker::Sync + 'static)>>>

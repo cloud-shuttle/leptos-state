@@ -3,6 +3,19 @@
 use crate::{State, Event, MachineError, MachineResult};
 use std::collections::HashMap;
 
+/// Result of executing an action during a transition
+#[derive(Clone, Debug, PartialEq)]
+pub enum ActionResult {
+    /// Continue with the transition normally
+    Continue,
+    /// Cancel the transition and stay in current state
+    Cancel,
+    /// Redirect to a different state instead
+    Redirect(String),
+    /// Error condition that prevents the transition
+    Error(String),
+}
+
 /// A state machine that manages state transitions
 ///
 /// The machine is generic over state and event types, requiring only
@@ -35,35 +48,136 @@ impl<S: State, E: Event> Machine<S, E> {
     pub fn send(&mut self, event: E) -> MachineResult<()> {
         let current_state_name = self.current_state.clone();
 
-        let current_state = self.states.get(&current_state_name)
-            .ok_or_else(|| MachineError::InvalidState { state: current_state_name.clone() })?;
+        // Find the transition first (without borrowing the state)
+        let target_state = if let Some(current_state) = self.states.get(&current_state_name) {
+            if let Some(transition) = current_state.transitions.get(event.event_type()) {
+                Some(transition.target.clone())
+            } else {
+                None
+            }
+        } else {
+            return Err(MachineError::InvalidState { state: current_state_name });
+        };
 
-        // Find the transition for this event
-        if let Some(transition) = current_state.transitions.get(event.event_type()) {
-            let target_state = transition.target.clone();
+        let target_state = target_state.ok_or_else(|| MachineError::InvalidTransition {
+            from: current_state_name.clone(),
+            to: format!("no transition for event {:?}", event.event_type()),
+        })?;
 
-            // Execute exit actions for current state
+        // Execute exit actions
+        if let Some(current_state) = self.states.get(&current_state_name) {
             if let Some(exit_actions) = &current_state.exit_actions {
                 for action in exit_actions {
-                    action(&mut self.context, &event);
+                    // For backward compatibility, ignore the ActionResult from old actions
+                    let _ = action(&mut self.context, &event);
+                }
+            }
+        }
+
+        // Execute transition actions
+        if let Some(current_state) = self.states.get(&current_state_name) {
+            if let Some(transition) = current_state.transitions.get(event.event_type()) {
+                if let Some(transition_actions) = &transition.actions {
+                    for action in transition_actions {
+                        // For backward compatibility, ignore the ActionResult from old actions
+                        let _ = action(&mut self.context, &event);
+                    }
+                }
+            }
+        }
+
+        // Update to new state
+        self.current_state = target_state.clone();
+
+        // Execute entry actions for new state
+        if let Some(new_state) = self.states.get(&target_state) {
+            if let Some(entry_actions) = &new_state.entry_actions {
+                for action in entry_actions {
+                    // For backward compatibility, ignore the ActionResult from old actions
+                    let _ = action(&mut self.context, &event);
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Send an event with enhanced action handling
+    ///
+    /// This method supports ActionResult-returning actions that can:
+    /// - Continue: Normal transition
+    /// - Cancel: Abort the transition
+    /// - Redirect: Redirect to a different state
+    /// - Error: Error condition
+    pub fn send_with_actions(&mut self, event: E) -> MachineResult<()> {
+        let current_state_name = self.current_state.clone();
+
+        // Get current state node
+        let current_node = self.states.get(&current_state_name)
+            .ok_or_else(|| MachineError::InvalidState {
+                state: current_state_name.clone()
+            })?;
+
+        // Find transition
+        if let Some(transition) = current_node.transitions.get(event.event_type()) {
+            let target_state = transition.target.clone();
+
+            // Execute exit actions
+            if let Some(current_state) = self.states.get(&current_state_name) {
+                if let Some(exit_actions) = &current_state.exit_actions {
+                    for action in exit_actions {
+                        let _ = action(&mut self.context, &event);
+                    }
                 }
             }
 
             // Execute transition actions
-            if let Some(transition_actions) = &transition.actions {
-                for action in transition_actions {
-                    action(&mut self.context, &event);
+            if let Some(actions) = &transition.actions {
+                for action in actions {
+                    match action(&mut self.context, &event) {
+                        ActionResult::Continue => continue,
+                        ActionResult::Cancel => {
+                            return Err(MachineError::ActionCancelled {
+                                state: current_state_name,
+                                event: event.event_type().to_string(),
+                            });
+                        }
+                        ActionResult::Redirect(new_target) => {
+                            if let Some(target_node) = self.states.get(&new_target) {
+                                self.current_state = new_target.clone();
+                                // Execute entry actions for redirected state
+                                if let Some(entry_actions) = &target_node.entry_actions {
+                                    for action in entry_actions {
+                                        let _ = action(&mut self.context, &event);
+                                    }
+                                }
+                                return Ok(());
+                            } else {
+                                return Err(MachineError::InvalidRedirect {
+                                    from: current_state_name,
+                                    to: new_target,
+                                });
+                            }
+                        }
+                        ActionResult::Error(message) => {
+                            return Err(MachineError::ActionError {
+                                state: current_state_name,
+                                event: event.event_type().to_string(),
+                                message,
+                            });
+                        }
+                    }
                 }
             }
 
-            // Update to new state
+            // Update current state
             self.current_state = target_state.clone();
 
-            // Execute entry actions for new state
+            // Execute entry actions for target state
             if let Some(new_state) = self.states.get(&target_state) {
                 if let Some(entry_actions) = &new_state.entry_actions {
                     for action in entry_actions {
-                        action(&mut self.context, &event);
+                        let _ = action(&mut self.context, &event);
                     }
                 }
             }
@@ -72,10 +186,26 @@ impl<S: State, E: Event> Machine<S, E> {
         } else {
             Err(MachineError::InvalidTransition {
                 from: current_state_name,
-                to: format!("no transition for event {:?}", event.event_type()),
+                to: event.event_type().to_string(),
             })
         }
     }
+
+    /// Send an event with guard condition checking
+    ///
+    /// This method checks guard conditions before allowing transitions.
+    /// Returns an error if the guard fails.
+    pub fn send_guarded(&mut self, event: E) -> MachineResult<()> {
+        if !self.can_transition(&event) {
+            return Err(MachineError::GuardFailed {
+                state: self.current_state.clone(),
+                event: event.event_type().to_string(),
+            });
+        }
+
+        self.send(event)
+    }
+
 
     /// Get the current state name
     pub fn current_state(&self) -> &str {
@@ -95,9 +225,18 @@ impl<S: State, E: Event> Machine<S, E> {
     /// Check if a transition is valid without executing it
     pub fn can_transition(&self, event: &E) -> bool {
         if let Some(current_state) = self.states.get(&self.current_state) {
-            current_state.transitions.contains_key(event.event_type())
+            if let Some(transition) = current_state.transitions.get(event.event_type()) {
+                // Check guard condition if present
+                if let Some(ref guard) = transition.guard {
+                    guard(&self.context, event)
+                } else {
+                    true  // No guard means transition is always allowed
+                }
+            } else {
+                false  // No transition defined for this event
+            }
         } else {
-            false
+            false  // Current state not found
         }
     }
 
@@ -119,10 +258,10 @@ impl<S: State, E: Event> Machine<S, E> {
 /// A node in the state machine representing a state
 pub struct StateNode<S: State, E: Event> {
     /// Actions to execute when entering this state
-    pub entry_actions: Option<Vec<Box<dyn Fn(&mut S, &E) + Send + Sync>>>,
+    pub entry_actions: Option<Vec<Box<dyn Fn(&mut S, &E) -> ActionResult + Send + Sync>>>,
 
     /// Actions to execute when exiting this state
-    pub exit_actions: Option<Vec<Box<dyn Fn(&mut S, &E) + Send + Sync>>>,
+    pub exit_actions: Option<Vec<Box<dyn Fn(&mut S, &E) -> ActionResult + Send + Sync>>>,
 
     /// Transitions from this state (keyed by event type)
     pub transitions: HashMap<String, Transition<S, E>>,
@@ -141,7 +280,7 @@ impl<S: State, E: Event> StateNode<S, E> {
     /// Add an entry action
     pub fn on_entry<F>(mut self, action: F) -> Self
     where
-        F: Fn(&mut S, &E) + Send + Sync + 'static,
+        F: Fn(&mut S, &E) -> ActionResult + Send + Sync + 'static,
     {
         self.entry_actions.get_or_insert_with(Vec::new).push(Box::new(action));
         self
@@ -150,7 +289,7 @@ impl<S: State, E: Event> StateNode<S, E> {
     /// Add an exit action
     pub fn on_exit<F>(mut self, action: F) -> Self
     where
-        F: Fn(&mut S, &E) + Send + Sync + 'static,
+        F: Fn(&mut S, &E) -> ActionResult + Send + Sync + 'static,
     {
         self.exit_actions.get_or_insert_with(Vec::new).push(Box::new(action));
         self
@@ -166,9 +305,38 @@ impl<S: State, E: Event> StateNode<S, E> {
     /// Add a transition with actions
     pub fn on_with_actions<F>(mut self, event: E, target: &str, actions: Vec<F>) -> Self
     where
-        F: Fn(&mut S, &E) + Send + Sync + 'static,
+        F: Fn(&mut S, &E) -> ActionResult + Send + Sync + 'static,
     {
         let transition = Transition::new(target).with_actions(actions);
+        self.transitions.insert(event.event_type().to_string(), transition);
+        self
+    }
+
+    /// Add a guarded transition
+    pub fn on_guarded<F>(mut self, event: E, target: &str, guard: F) -> Self
+    where
+        F: Fn(&S, &E) -> bool + Send + Sync + 'static,
+    {
+        let transition = Transition::new(target).with_guard(guard);
+        self.transitions.insert(event.event_type().to_string(), transition);
+        self
+    }
+
+    /// Add a guarded transition with actions
+    pub fn on_guarded_with_actions<F, G>(
+        mut self,
+        event: E,
+        target: &str,
+        guard: F,
+        actions: Vec<G>
+    ) -> Self
+    where
+        F: Fn(&S, &E) -> bool + Send + Sync + 'static,
+        G: Fn(&mut S, &E) -> ActionResult + Send + Sync + 'static,
+    {
+        let transition = Transition::new(target)
+            .with_guard(guard)
+            .with_actions(actions);
         self.transitions.insert(event.event_type().to_string(), transition);
         self
     }
@@ -185,8 +353,11 @@ pub struct Transition<S: State, E: Event> {
     /// Target state name
     pub target: String,
 
+    /// Guard condition that must be true for transition to occur
+    pub guard: Option<Box<dyn Fn(&S, &E) -> bool + Send + Sync>>,
+
     /// Actions to execute during transition
-    pub actions: Option<Vec<Box<dyn Fn(&mut S, &E) + Send + Sync>>>,
+    pub actions: Option<Vec<Box<dyn Fn(&mut S, &E) -> ActionResult + Send + Sync>>>,
 }
 
 impl<S: State, E: Event> Transition<S, E> {
@@ -194,16 +365,26 @@ impl<S: State, E: Event> Transition<S, E> {
     pub fn new(target: &str) -> Self {
         Self {
             target: target.to_string(),
+            guard: None,
             actions: None,
         }
+    }
+
+    /// Add a guard condition to the transition
+    pub fn with_guard<F>(mut self, guard: F) -> Self
+    where
+        F: Fn(&S, &E) -> bool + Send + Sync + 'static,
+    {
+        self.guard = Some(Box::new(guard));
+        self
     }
 
     /// Add actions to the transition
     pub fn with_actions<F>(mut self, actions: Vec<F>) -> Self
     where
-        F: Fn(&mut S, &E) + Send + Sync + 'static,
+        F: Fn(&mut S, &E) -> ActionResult + Send + Sync + 'static,
     {
-        self.actions = Some(actions.into_iter().map(|f| Box::new(f) as Box<dyn Fn(&mut S, &E) + Send + Sync>).collect());
+        self.actions = Some(actions.into_iter().map(|f| Box::new(f) as Box<dyn Fn(&mut S, &E) -> ActionResult + Send + Sync>).collect());
         self
     }
 }
@@ -212,13 +393,14 @@ impl<S: State, E: Event> Transition<S, E> {
 mod tests {
     use super::*;
 
-    #[derive(Clone, PartialEq, Debug)]
+    #[derive(Clone, Default, Debug, Eq, PartialEq)]
     struct TestContext {
         value: i32,
     }
 
-    #[derive(Clone, PartialEq, Debug)]
+    #[derive(Clone, Default, Debug, Eq, PartialEq)]
     enum TestEvent {
+        #[default]
         Increment,
         Decrement,
         Reset,
@@ -272,7 +454,7 @@ mod tests {
         // Test transition
         assert_eq!(machine.current_state(), "idle");
         machine.send(TestEvent::Increment).unwrap();
-        assert_eq!(machine.current_state(), "running");
+        assert_eq!(machine.current_state, "running");
     }
 
     #[test]
@@ -285,5 +467,179 @@ mod tests {
 
         let result = machine.send(TestEvent::Increment);
         assert!(result.is_err());
+    }
+
+    // Phase 2: Entry/Exit Actions Tests
+    #[test]
+    fn entry_actions_execute_on_state_entry() {
+        let mut machine = Machine::new("idle", TestContext { value: 0 });
+
+        let idle_state = StateNode::new()
+            .on_entry(|ctx: &mut TestContext, _| {
+                ctx.value = 42;
+                ActionResult::Continue
+            })
+            .on(TestEvent::Increment, "running");
+
+        let running_state = StateNode::new()
+            .on_entry(|ctx: &mut TestContext, _| {
+                ctx.value = 100; // This should be the final value
+                ActionResult::Continue
+            });
+
+        machine.add_state("idle", idle_state);
+        machine.add_state("running", running_state);
+
+        // Transition from idle to running - both exit and entry actions should execute
+        machine.send(TestEvent::Increment).unwrap();
+        assert_eq!(machine.context.value, 100); // Final value should be from running state entry
+    }
+
+    #[test]
+    fn exit_actions_execute_on_state_exit() {
+        let mut machine = Machine::new("idle", TestContext { value: 0 });
+
+        let idle_state = StateNode::new()
+            .on_exit(|ctx: &mut TestContext, _| {
+                ctx.value = 99;
+                ActionResult::Continue
+            })
+            .on(TestEvent::Increment, "running");
+
+        let running_state = StateNode::new();
+        machine.add_state("idle", idle_state);
+        machine.add_state("running", running_state);
+
+        machine.send(TestEvent::Increment).unwrap();
+        assert_eq!(machine.context.value, 99); // Exit action should modify the context
+    }
+
+    // Phase 2: Guard Conditions Tests
+    #[test]
+    fn guard_blocks_invalid_transition() {
+        let mut machine = Machine::new("idle", TestContext { value: 0 });
+
+        let idle_state = StateNode::new()
+            .on_guarded(TestEvent::Increment, "running", |ctx: &TestContext, _| ctx.value > 10);
+
+        machine.add_state("idle", idle_state);
+
+        // Should fail when guard condition is false
+        assert!(!machine.can_transition(&TestEvent::Increment));
+        let result = machine.send_guarded(TestEvent::Increment);
+        assert!(matches!(result, Err(MachineError::GuardFailed { .. })));
+        assert_eq!(machine.current_state, "idle"); // Still in idle
+    }
+
+    #[test]
+    fn guard_allows_valid_transition() {
+        let mut machine = Machine::new("idle", TestContext { value: 15 });
+
+        let idle_state = StateNode::new()
+            .on_guarded(TestEvent::Increment, "running", |ctx: &TestContext, _| ctx.value > 10);
+
+        let running_state = StateNode::new();
+        machine.add_state("idle", idle_state);
+        machine.add_state("running", running_state);
+
+        // Should succeed when guard condition is true
+        assert!(machine.can_transition(&TestEvent::Increment));
+        machine.send_guarded(TestEvent::Increment).unwrap();
+        assert_eq!(machine.current_state, "running");
+    }
+
+    // Phase 2: Action Results Tests
+    #[test]
+    fn action_can_cancel_transition() {
+        let mut machine = Machine::new("idle", TestContext { value: 0 });
+
+        let idle_state = StateNode::new()
+            .on_guarded_with_actions(
+                TestEvent::Increment,
+                "running",
+                |_, _| true, // Guard always passes
+                vec![|ctx: &mut TestContext, _| {
+                    ctx.value = 100;
+                    ActionResult::Cancel // Cancel the transition
+                }]
+            );
+
+        machine.add_state("idle", idle_state);
+
+        let result = machine.send_with_actions(TestEvent::Increment);
+        assert!(matches!(result, Err(MachineError::ActionCancelled { .. })));
+        assert_eq!(machine.current_state, "idle"); // Still in idle
+        assert_eq!(machine.context().value, 100); // Action executed but transition cancelled
+    }
+
+    #[test]
+    fn action_can_redirect_transition() {
+        let mut machine = Machine::new("idle", TestContext { value: 0 });
+
+        let idle_state = StateNode::new()
+            .on_guarded_with_actions(
+                TestEvent::Increment,
+                "running", // Original target
+                |_, _| true,
+                vec![|ctx: &mut TestContext, _| {
+                    ctx.value = 50;
+                    ActionResult::Redirect("error".to_string()) // Redirect to error state
+                }]
+            );
+
+        let error_state = StateNode::new();
+        machine.add_state("idle", idle_state);
+        machine.add_state("error", error_state);
+
+        machine.send_with_actions(TestEvent::Increment).unwrap();
+        assert_eq!(machine.current_state(), "error"); // Redirected to error
+        assert_eq!(machine.context().value, 50);
+    }
+
+    #[test]
+    fn action_can_return_error() {
+        let mut machine = Machine::new("idle", TestContext { value: 0 });
+
+        let idle_state = StateNode::new()
+            .on_guarded_with_actions(
+                TestEvent::Increment,
+                "running",
+                |_, _| true,
+                vec![|ctx: &mut TestContext, _| {
+                    ctx.value = 75;
+                    ActionResult::Error("Validation failed".to_string())
+                }]
+            );
+
+        machine.add_state("idle", idle_state);
+
+        let result = machine.send_with_actions(TestEvent::Increment);
+        assert!(matches!(result, Err(MachineError::ActionError { .. })));
+        assert_eq!(machine.current_state, "idle"); // Still in idle
+        assert_eq!(machine.context.value, 75); // Action executed but transition failed
+    }
+
+    #[test]
+    fn action_continue_allows_normal_transition() {
+        let mut machine = Machine::new("idle", TestContext { value: 0 });
+
+        let idle_state = StateNode::new()
+            .on_guarded_with_actions(
+                TestEvent::Increment,
+                "running",
+                |_, _| true,
+                vec![|ctx: &mut TestContext, _| {
+                    ctx.value = 25;
+                    ActionResult::Continue // Allow transition
+                }]
+            );
+
+        let running_state = StateNode::new();
+        machine.add_state("idle", idle_state);
+        machine.add_state("running", running_state);
+
+        machine.send_with_actions(TestEvent::Increment).unwrap();
+        assert_eq!(machine.current_state, "running");
+        assert_eq!(machine.context.value, 25);
     }
 }

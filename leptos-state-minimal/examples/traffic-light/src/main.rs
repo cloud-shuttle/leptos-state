@@ -1,6 +1,7 @@
 use leptos::*;
 use leptos::prelude::*;
 use leptos_state_minimal::{use_machine, Machine, StateNode};
+use leptos_state_minimal::machine::ActionResult;
 
 /// Traffic light events
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -28,10 +29,12 @@ fn create_traffic_light_machine() -> Machine<TrafficContext, TrafficEvent> {
     let red_state = StateNode::new()
         .on_entry(|ctx: &mut TrafficContext, _| {
             println!("Entering RED state, cycle: {}", ctx.cycle_count);
+            ActionResult::Continue
         })
         .on_exit(|ctx: &mut TrafficContext, _| {
             ctx.increment_cycle();
             println!("Exiting RED state");
+            ActionResult::Continue
         })
         .on(TrafficEvent::Next, "green");
 
@@ -41,9 +44,11 @@ fn create_traffic_light_machine() -> Machine<TrafficContext, TrafficEvent> {
     let green_state = StateNode::new()
         .on_entry(|ctx: &mut TrafficContext, _| {
             println!("Entering GREEN state, cycle: {}", ctx.cycle_count);
+            ActionResult::Continue
         })
-        .on_exit(|ctx: &mut TrafficContext, _| {
+        .on_exit(|_ctx: &mut TrafficContext, _| {
             println!("Exiting GREEN state");
+            ActionResult::Continue
         })
         .on(TrafficEvent::Next, "yellow");
 
@@ -53,9 +58,11 @@ fn create_traffic_light_machine() -> Machine<TrafficContext, TrafficEvent> {
     let yellow_state = StateNode::new()
         .on_entry(|ctx: &mut TrafficContext, _| {
             println!("Entering YELLOW state, cycle: {}", ctx.cycle_count);
+            ActionResult::Continue
         })
-        .on_exit(|ctx: &mut TrafficContext, _| {
+        .on_exit(|_ctx: &mut TrafficContext, _| {
             println!("Exiting YELLOW state");
+            ActionResult::Continue
         })
         .on(TrafficEvent::Next, "red");
 

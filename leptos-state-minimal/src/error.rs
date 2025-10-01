@@ -9,11 +9,23 @@ pub enum MachineError {
     #[error("Invalid transition from {from} to {to}")]
     InvalidTransition { from: String, to: String },
 
-    #[error("Guard evaluation failed: {reason}")]
-    GuardFailed { reason: String },
+    #[error("Guard condition failed for transition from {state} on event {event}")]
+    GuardFailed { state: String, event: String },
 
-    #[error("Action execution failed: {reason}")]
-    ActionFailed { reason: String },
+    #[error("Guard function panicked during evaluation")]
+    GuardPanic { state: String, event: String },
+
+    #[error("Action cancelled transition from {state} on event {event}")]
+    ActionCancelled { state: String, event: String },
+
+    #[error("Action redirected transition from {from} to {to}")]
+    InvalidRedirect { from: String, to: String },
+
+    #[error("Action failed: {message}")]
+    ActionError { state: String, event: String, message: String },
+
+    #[error("Action panicked in state {state} during {action_type}")]
+    ActionPanic { state: String, action_type: String },
 }
 
 /// Errors that can occur in stores
