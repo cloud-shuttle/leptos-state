@@ -147,7 +147,6 @@ pub fn App() -> impl IntoView {
 
 fn main() {
     console_error_panic_hook::set_once();
-    console_log::init_with_level(log::Level::Debug).unwrap();
 
     leptos::mount::mount_to_body(App);
 }
