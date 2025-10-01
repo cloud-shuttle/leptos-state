@@ -4,13 +4,14 @@ use leptos_state_minimal::{use_machine, Machine, StateNode};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Traffic light events
-#[derive(Clone)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 enum TrafficEvent {
+    #[default]
     Next,
 }
 
 /// Traffic light context
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 struct TrafficContext {
     cycle_count: i32,
 }

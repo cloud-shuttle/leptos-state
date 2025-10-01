@@ -146,6 +146,11 @@ impl<S: State, E: Event> MachineActions<S, E> {
     {
         self.machine.borrow().context().clone()
     }
+
+    /// Get all possible transitions from the current state
+    pub fn possible_transitions(&self) -> Vec<String> {
+        self.machine.borrow().possible_transitions()
+    }
 }
 
 /// Hook for using both a store and machine together

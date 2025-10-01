@@ -3,7 +3,7 @@ use leptos::prelude::*;
 use leptos_state_minimal::use_store;
 
 /// Todo item structure
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 struct TodoItem {
     id: usize,
     text: String,
@@ -11,7 +11,7 @@ struct TodoItem {
 }
 
 /// Todo app state
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 struct TodoState {
     todos: Vec<TodoItem>,
     next_id: usize,

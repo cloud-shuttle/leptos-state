@@ -3,7 +3,7 @@ use leptos::prelude::*;
 use leptos_state_minimal::use_store;
 
 /// Counter state
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 struct CounterState {
     count: i32,
     step: i32,

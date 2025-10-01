@@ -4,7 +4,7 @@ use leptos_state_minimal::use_store;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Counter state
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 struct CounterState {
     count: i32,
     step: i32,
