@@ -11,6 +11,7 @@ use std::sync::Arc;
 pub struct Store<S: State> {
     signal: RwSignal<S>,
     subscribers: Vec<Arc<dyn Fn(&S) + Send + Sync>>,
+    middlewares: crate::middleware::MiddlewareStack<S>,
 }
 
 impl<S: State> Store<S> {
@@ -19,6 +20,7 @@ impl<S: State> Store<S> {
         Self {
             signal: RwSignal::new(initial),
             subscribers: Vec::new(),
+            middlewares: crate::middleware::MiddlewareStack::new(),
         }
     }
 
@@ -89,6 +91,104 @@ impl<S: State> Store<S> {
         S: Default,
     {
         Self::new(S::default())
+    }
+
+    /// Add middleware to this store
+    pub fn with_middleware<M: crate::middleware::Middleware<S> + 'static>(
+        mut self,
+        middleware: M,
+    ) -> Self {
+        self.middlewares = self.middlewares.add(middleware);
+        self
+    }
+
+    /// Update the state using a closure with middleware processing
+    ///
+    /// Middleware will be executed in priority order before the state is updated.
+    /// If any middleware sets should_continue to false, the update is cancelled.
+    pub fn update_with_middleware<F>(&self, updater: F) -> StoreResult<()>
+    where
+        F: FnOnce(&mut S) + Send + 'static,
+    {
+        let old_state = self.signal.get_untracked();
+        let mut new_state = old_state.clone();
+
+        // Apply updater
+        updater(&mut new_state);
+
+        // Create middleware context
+        let mut ctx = crate::middleware::MiddlewareContext::<S, ()>::new(
+            crate::middleware::Operation::StoreUpdate {
+                old_state: old_state.clone(),
+                new_state: new_state.clone(),
+            }
+        );
+
+        // Process middleware
+        self.middlewares.process(&mut ctx)?;
+
+        if ctx.should_continue {
+            // Apply the final state
+            self.signal.set(new_state);
+
+            // Notify subscribers
+            let current = self.signal.get_untracked();
+            for subscriber in &self.subscribers {
+                subscriber(&current);
+            }
+
+            Ok(())
+        } else {
+            Err(crate::StoreError::UpdateFailed {
+                reason: "Middleware cancelled the update".to_string(),
+            })
+        }
+    }
+
+    /// Reset the store to default state with middleware processing
+    ///
+    /// Requires the state type to implement Default.
+    pub fn reset_with_middleware(&self) -> StoreResult<()>
+    where
+        S: Default,
+    {
+        let old_state = self.signal.get_untracked();
+        let new_state = S::default();
+
+        let mut ctx = crate::middleware::MiddlewareContext::<S, ()>::new(
+            crate::middleware::Operation::StoreReset {
+                old_state: old_state.clone(),
+                new_state: new_state.clone(),
+            }
+        );
+
+        self.middlewares.process(&mut ctx)?;
+
+        if ctx.should_continue {
+            self.signal.set(new_state);
+
+            // Notify subscribers
+            let current = self.signal.get_untracked();
+            for subscriber in &self.subscribers {
+                subscriber(&current);
+            }
+
+            Ok(())
+        } else {
+            Err(crate::StoreError::UpdateFailed {
+                reason: "Middleware cancelled the reset".to_string(),
+            })
+        }
+    }
+
+    /// Get the middleware stack for this store
+    pub fn middlewares(&self) -> &crate::middleware::MiddlewareStack<S> {
+        &self.middlewares
+    }
+
+    /// Get a mutable reference to the middleware stack
+    pub fn middlewares_mut(&mut self) -> &mut crate::middleware::MiddlewareStack<S> {
+        &mut self.middlewares
     }
 
     /// Serialize the current state to JSON string
@@ -163,6 +263,7 @@ impl<S: State> Clone for Store<S> {
         Self {
             signal: self.signal,
             subscribers: self.subscribers.clone(),
+            middlewares: self.middlewares.clone(),
         }
     }
 }

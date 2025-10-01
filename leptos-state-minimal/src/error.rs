@@ -74,3 +74,31 @@ impl From<crate::persistence::StorageError> for StoreError {
         }
     }
 }
+
+impl From<crate::middleware::MiddlewareError> for StoreError {
+    fn from(error: crate::middleware::MiddlewareError) -> Self {
+        match error {
+            crate::middleware::MiddlewareError::Cancelled => StoreError::UpdateFailed {
+                reason: "Operation cancelled by middleware".to_string(),
+            },
+            _ => StoreError::UpdateFailed {
+                reason: format!("Middleware error: {:?}", error),
+            },
+        }
+    }
+}
+
+impl From<crate::middleware::MiddlewareError> for MachineError {
+    fn from(error: crate::middleware::MiddlewareError) -> Self {
+        match error {
+            crate::middleware::MiddlewareError::Cancelled => MachineError::InvalidTransition {
+                from: "unknown".to_string(),
+                to: "cancelled by middleware".to_string(),
+            },
+            _ => MachineError::InvalidTransition {
+                from: "unknown".to_string(),
+                to: format!("middleware error: {:?}", error),
+            },
+        }
+    }
+}

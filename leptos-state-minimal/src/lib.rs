@@ -8,11 +8,13 @@ pub mod machine;
 pub mod hooks;
 #[cfg(feature = "web")]
 pub mod persistence;
+pub mod middleware;
 
 pub use error::{MachineError, MachineResult, StoreError, StoreResult};
 pub use store::{Store, StoreActions};
 pub use machine::{Machine, StateNode, Transition};
 pub use hooks::{use_store, use_machine};
+pub use middleware::{Middleware, MiddlewareContext, MiddlewareError, MiddlewarePriority, Operation};
 
 // Re-export leptos for convenience
 pub use leptos;

@@ -24,6 +24,7 @@ pub struct Machine<S: State, E: Event> {
     states: HashMap<String, StateNode<S, E>>,
     current_state: String,
     context: S,
+    middlewares: crate::middleware::MiddlewareStack<S, E>,
 }
 
 impl<S: State, E: Event> Machine<S, E> {
@@ -33,6 +34,7 @@ impl<S: State, E: Event> Machine<S, E> {
             states: HashMap::new(),
             current_state: initial_state.to_string(),
             context,
+            middlewares: crate::middleware::MiddlewareStack::new(),
         }
     }
 
@@ -252,6 +254,70 @@ impl<S: State, E: Event> Machine<S, E> {
         } else {
             Vec::new()
         }
+    }
+
+    /// Add middleware to this machine
+    pub fn with_middleware<M: crate::middleware::Middleware<S, E> + 'static>(
+        mut self,
+        middleware: M,
+    ) -> Self {
+        self.middlewares = self.middlewares.add(middleware);
+        self
+    }
+
+    /// Send an event with middleware processing
+    ///
+    /// Middleware will be executed before the transition is processed.
+    /// If any middleware sets should_continue to false, the transition is cancelled.
+    pub fn send_with_middleware(&mut self, event: E) -> MachineResult<()> {
+        // Find transition first
+        let current_state_name = self.current_state.clone();
+        let can_transition = self.states.get(&current_state_name)
+            .and_then(|node| node.transitions.get(event.event_type()))
+            .is_some();
+
+        if can_transition {
+            let transition = self.states.get(&current_state_name)
+                .and_then(|node| node.transitions.get(event.event_type()))
+                .unwrap(); // We know it exists
+
+            // Create middleware context with cloned data to avoid borrowing issues
+            let mut ctx = crate::middleware::MiddlewareContext::<S, E>::new(
+                crate::middleware::Operation::MachineTransition {
+                    current_state: current_state_name.clone(),
+                    event_type: event.event_type().to_string(),
+                    target_state: transition.target.clone(),
+                }
+            );
+
+            // Process middleware
+            self.middlewares.process(&mut ctx)?;
+
+            if ctx.should_continue {
+                // Execute the transition
+                self.send(event)
+            } else {
+                Err(MachineError::InvalidTransition {
+                    from: current_state_name,
+                    to: "cancelled by middleware".to_string(),
+                })
+            }
+        } else {
+            Err(MachineError::InvalidTransition {
+                from: current_state_name,
+                to: event.event_type().to_string(),
+            })
+        }
+    }
+
+    /// Get the middleware stack for this machine
+    pub fn middlewares(&self) -> &crate::middleware::MiddlewareStack<S, E> {
+        &self.middlewares
+    }
+
+    /// Get a mutable reference to the middleware stack
+    pub fn middlewares_mut(&mut self) -> &mut crate::middleware::MiddlewareStack<S, E> {
+        &mut self.middlewares
     }
 
     /// Serialize the current machine state to JSON string
