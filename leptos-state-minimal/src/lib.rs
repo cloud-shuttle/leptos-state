@@ -9,12 +9,16 @@ pub mod hooks;
 #[cfg(feature = "web")]
 pub mod persistence;
 pub mod middleware;
+#[cfg(all(feature = "web", feature = "devtools"))]
+pub mod devtools;
 
 pub use error::{MachineError, MachineResult, StoreError, StoreResult};
 pub use store::{Store, StoreActions};
 pub use machine::{Machine, StateNode, Transition};
 pub use hooks::{use_store, use_machine};
 pub use middleware::{Middleware, MiddlewareContext, MiddlewareError, MiddlewarePriority, Operation};
+#[cfg(all(feature = "web", feature = "devtools"))]
+pub use devtools::{DevToolsIntegration, StateInspector, TimeTravelDebugger};
 
 // Re-export leptos for convenience
 pub use leptos;

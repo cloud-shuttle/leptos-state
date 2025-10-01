@@ -25,6 +25,8 @@ pub struct Machine<S: State, E: Event> {
     current_state: String,
     context: S,
     middlewares: crate::middleware::MiddlewareStack<S, E>,
+    #[cfg(all(feature = "web", feature = "devtools"))]
+    devtools: Option<crate::devtools::DevToolsIntegration>,
 }
 
 impl<S: State, E: Event> Machine<S, E> {
@@ -35,6 +37,8 @@ impl<S: State, E: Event> Machine<S, E> {
             current_state: initial_state.to_string(),
             context,
             middlewares: crate::middleware::MiddlewareStack::new(),
+            #[cfg(all(feature = "web", feature = "devtools"))]
+            devtools: None,
         }
     }
 
@@ -318,6 +322,28 @@ impl<S: State, E: Event> Machine<S, E> {
     /// Get a mutable reference to the middleware stack
     pub fn middlewares_mut(&mut self) -> &mut crate::middleware::MiddlewareStack<S, E> {
         &mut self.middlewares
+    }
+
+    /// Enable DevTools integration for this machine
+    ///
+    /// Requires the devtools feature to be enabled.
+    /// This allows real-time state inspection and debugging in browser DevTools.
+    #[cfg(all(feature = "web", feature = "devtools"))]
+    pub fn with_devtools(mut self, name: &str) -> Result<Self, crate::devtools::DevToolsError> {
+        self.devtools = Some(crate::devtools::DevToolsIntegration::new(name.to_string())?);
+        Ok(self)
+    }
+
+    /// Check if DevTools integration is enabled
+    #[cfg(all(feature = "web", feature = "devtools"))]
+    pub fn has_devtools(&self) -> bool {
+        self.devtools.is_some()
+    }
+
+    /// Get the DevTools integration (if enabled)
+    #[cfg(all(feature = "web", feature = "devtools"))]
+    pub fn devtools(&self) -> Option<&crate::devtools::DevToolsIntegration> {
+        self.devtools.as_ref()
     }
 
     /// Serialize the current machine state to JSON string
@@ -691,8 +717,8 @@ mod tests {
             .on_guarded_with_actions(
                 TestEvent::Increment,
                 "running",
-                |_, _| true, // Guard always passes
-                vec![|ctx: &mut TestContext, _| {
+                |_ctx, _event| true, // Guard always passes
+                vec![|ctx: &mut TestContext, _event: &TestEvent| {
                     ctx.value = 100;
                     ActionResult::Cancel // Cancel the transition
                 }]
@@ -703,7 +729,7 @@ mod tests {
         let result = machine.send_with_actions(TestEvent::Increment);
         assert!(matches!(result, Err(MachineError::ActionCancelled { .. })));
         assert_eq!(machine.current_state, "idle"); // Still in idle
-        assert_eq!(machine.context().value, 100); // Action executed but transition cancelled
+        assert_eq!(machine.context.value, 100); // Action executed but transition cancelled
     }
 
     #[test]
@@ -715,7 +741,7 @@ mod tests {
                 TestEvent::Increment,
                 "running", // Original target
                 |_, _| true,
-                vec![|ctx: &mut TestContext, _| {
+                vec![|ctx: &mut TestContext, _: &TestEvent| {
                     ctx.value = 50;
                     ActionResult::Redirect("error".to_string()) // Redirect to error state
                 }]
@@ -739,7 +765,7 @@ mod tests {
                 TestEvent::Increment,
                 "running",
                 |_, _| true,
-                vec![|ctx: &mut TestContext, _| {
+                vec![|ctx: &mut TestContext, _: &TestEvent| {
                     ctx.value = 75;
                     ActionResult::Error("Validation failed".to_string())
                 }]
@@ -762,7 +788,7 @@ mod tests {
                 TestEvent::Increment,
                 "running",
                 |_, _| true,
-                vec![|ctx: &mut TestContext, _| {
+                vec![|ctx: &mut TestContext, _: &TestEvent| {
                     ctx.value = 25;
                     ActionResult::Continue // Allow transition
                 }]

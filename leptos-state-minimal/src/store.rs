@@ -12,6 +12,8 @@ pub struct Store<S: State> {
     signal: RwSignal<S>,
     subscribers: Vec<Arc<dyn Fn(&S) + Send + Sync>>,
     middlewares: crate::middleware::MiddlewareStack<S>,
+    #[cfg(all(feature = "web", feature = "devtools"))]
+    devtools: Option<crate::devtools::DevToolsIntegration>,
 }
 
 impl<S: State> Store<S> {
@@ -21,6 +23,8 @@ impl<S: State> Store<S> {
             signal: RwSignal::new(initial),
             subscribers: Vec::new(),
             middlewares: crate::middleware::MiddlewareStack::new(),
+            #[cfg(all(feature = "web", feature = "devtools"))]
+            devtools: None,
         }
     }
 
@@ -191,6 +195,28 @@ impl<S: State> Store<S> {
         &mut self.middlewares
     }
 
+    /// Enable DevTools integration for this store
+    ///
+    /// Requires the devtools feature to be enabled.
+    /// This allows real-time state inspection and debugging in browser DevTools.
+    #[cfg(all(feature = "web", feature = "devtools"))]
+    pub fn with_devtools(mut self, name: &str) -> Result<Self, crate::devtools::DevToolsError> {
+        self.devtools = Some(crate::devtools::DevToolsIntegration::new(name.to_string())?);
+        Ok(self)
+    }
+
+    /// Check if DevTools integration is enabled
+    #[cfg(all(feature = "web", feature = "devtools"))]
+    pub fn has_devtools(&self) -> bool {
+        self.devtools.is_some()
+    }
+
+    /// Get the DevTools integration (if enabled)
+    #[cfg(all(feature = "web", feature = "devtools"))]
+    pub fn devtools(&self) -> Option<&crate::devtools::DevToolsIntegration> {
+        self.devtools.as_ref()
+    }
+
     /// Serialize the current state to JSON string
     ///
     /// Requires the serde feature and SerializableState bound.
@@ -264,6 +290,8 @@ impl<S: State> Clone for Store<S> {
             signal: self.signal,
             subscribers: self.subscribers.clone(),
             middlewares: self.middlewares.clone(),
+            #[cfg(all(feature = "web", feature = "devtools"))]
+            devtools: None, // Don't clone DevTools integration
         }
     }
 }

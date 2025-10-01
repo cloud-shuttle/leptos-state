@@ -241,7 +241,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use leptos::*;
 
     #[derive(Clone, Default, Debug, Eq, PartialEq)]
     struct TestState {

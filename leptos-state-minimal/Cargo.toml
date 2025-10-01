@@ -23,6 +23,7 @@ log = { version = "0.4", optional = true }
 default = []
 serde = ["dep:serde", "dep:serde_json"]
 web = ["dep:web-sys"]
+devtools = ["web", "serde"]
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
