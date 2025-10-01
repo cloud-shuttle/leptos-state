@@ -10,7 +10,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 leptos = { version = "0.8", features = ["csr"] }
-leptos-state-minimal = { path = "../../" }
+leptos-state-minimal = { path = "../../", features = ["serde"] }
 console_error_panic_hook = "0.1"
 wasm-bindgen = "0.2"
 log = "0.4"

@@ -6,6 +6,8 @@ pub mod error;
 pub mod store;
 pub mod machine;
 pub mod hooks;
+#[cfg(feature = "web")]
+pub mod persistence;
 
 pub use error::{MachineError, MachineResult, StoreError, StoreResult};
 pub use store::{Store, StoreActions};
@@ -43,3 +45,55 @@ pub trait Event: Send + Sync + Clone + std::fmt::Debug + Default + Eq + PartialE
 
 /// Auto-implement Event for any type with the required bounds
 impl<T: Send + Sync + Clone + std::fmt::Debug + Default + Eq + PartialEq + 'static> Event for T {}
+
+/// Marker trait for serializable state types
+///
+/// This trait extends State with serde serialization capabilities.
+/// It requires all State bounds plus Serialize + DeserializeOwned.
+#[cfg(feature = "serde")]
+pub trait SerializableState: State + serde::Serialize + serde::de::DeserializeOwned {}
+
+/// Auto-implement SerializableState for any type with the required bounds
+#[cfg(feature = "serde")]
+impl<T> SerializableState for T
+where
+    T: State + serde::Serialize + serde::de::DeserializeOwned,
+{}
+
+/// Marker trait for serializable event types
+///
+/// This trait extends Event with serde serialization capabilities.
+/// It requires all Event bounds plus Serialize + DeserializeOwned.
+#[cfg(feature = "serde")]
+pub trait SerializableEvent: Event + serde::Serialize + serde::de::DeserializeOwned {}
+
+/// Auto-implement SerializableEvent for any type with the required bounds
+#[cfg(feature = "serde")]
+impl<T> SerializableEvent for T
+where
+    T: Event + serde::Serialize + serde::de::DeserializeOwned,
+{}
+
+/// Snapshot of state with metadata for persistence and export
+#[cfg(feature = "serde")]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+pub struct StateSnapshot<S> {
+    /// The actual state data
+    pub data: S,
+    /// Timestamp when snapshot was created
+    pub timestamp: std::time::SystemTime,
+    /// Version of the application that created this snapshot
+    pub version: String,
+}
+
+/// Snapshot of machine state with metadata for persistence and export
+#[cfg(feature = "serde")]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+pub struct MachineSnapshot<S> {
+    /// Current state name
+    pub current_state: String,
+    /// The context/state data
+    pub context: S,
+    /// Timestamp when snapshot was created
+    pub timestamp: std::time::SystemTime,
+}

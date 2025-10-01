@@ -4,7 +4,7 @@ use leptos_state_minimal::use_store;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Todo item structure
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 struct TodoItem {
     id: usize,
     text: String,
@@ -12,7 +12,7 @@ struct TodoItem {
 }
 
 /// Todo app state
-#[derive(Clone, Default, Debug, Eq, PartialEq)]
+#[derive(Clone, Default, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 struct TodoState {
     todos: Vec<TodoItem>,
     next_id: usize,

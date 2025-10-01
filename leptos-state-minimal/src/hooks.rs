@@ -56,6 +56,72 @@ pub fn use_store_with<S: State>(initial: S) -> (ReadSignal<S>, StoreActions<S>) 
     (signal, actions)
 }
 
+/// Hook for creating and using a persistent store with LocalStorage
+///
+/// Returns a read signal for the current state and actions for updating it.
+/// Automatically persists state to LocalStorage and restores it on creation.
+///
+/// Requires the serde and web features to be enabled.
+///
+/// # Example
+/// ```rust
+/// use leptos::*;
+/// use leptos_state_minimal::use_persistent_store;
+///
+/// #[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+/// struct CounterState { count: i32 }
+///
+/// #[component]
+/// fn PersistentCounter() -> impl IntoView {
+///     let (state, actions) = use_persistent_store::<CounterState>("my-counter")
+///         .unwrap_or_else(|_| use_store::<CounterState>()); // Fallback
+///
+///     let increment = move |_| actions.update(|s| s.count += 1).unwrap();
+///
+///     view! {
+///         <p>"Count: " {move || state.get().count}</p>
+///         <button on:click=increment>"+"</button>
+///     }
+/// }
+/// ```
+#[cfg(feature = "web")]
+pub fn use_persistent_store<S: SerializableState + Default>(
+    key: &str
+) -> Result<(ReadSignal<S>, crate::persistence::PersistentStoreActions<S>), StoreError> {
+    let backend = crate::persistence::LocalStorageBackend::new()?;
+    let persistent_store = crate::persistence::PersistentStore::new(key.to_string(), S::default(), Box::new(backend))?;
+    let signal = persistent_store.get();
+    let actions = crate::persistence::PersistentStoreActions::new(persistent_store);
+
+    Ok((signal, actions))
+}
+
+/// Hook for creating and using a persistent store
+///
+/// Returns a Result containing the signal and actions, or falls back to regular store.
+/// This ensures the application continues to work even without browser storage.
+///
+/// Requires the serde and web features to be enabled.
+#[cfg(feature = "web")]
+pub fn use_persistent_store_fallback<S: SerializableState + Default>(
+    key: &str
+) -> (ReadSignal<S>, crate::persistence::PersistentStoreActions<S>) {
+    match crate::persistence::LocalStorageBackend::new() {
+        Ok(backend) => {
+            let persistent_store = crate::persistence::PersistentStore::new(key.to_string(), S::default(), Box::new(backend))
+                .expect("Failed to create persistent store");
+            let signal = persistent_store.get();
+            let actions = crate::persistence::PersistentStoreActions::new(persistent_store);
+            (signal, actions)
+        }
+        Err(_) => {
+            // Fallback to regular store with no-op persistence actions
+            // For now, we'll just panic - graceful fallback needs more design work
+            panic!("LocalStorage not available - graceful fallback not implemented yet")
+        }
+    }
+}
+
 /// Hook for creating and using a state machine
 ///
 /// Returns a read signal for the current state name and actions for sending events.

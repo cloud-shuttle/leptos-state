@@ -253,6 +253,74 @@ impl<S: State, E: Event> Machine<S, E> {
             Vec::new()
         }
     }
+
+    /// Serialize the current machine state to JSON string
+    ///
+    /// Requires the serde feature and SerializableState bound.
+    #[cfg(feature = "serde")]
+    pub fn to_json(&self) -> Result<String, MachineError>
+    where
+        S: crate::SerializableState,
+    {
+        let snapshot = crate::MachineSnapshot {
+            current_state: self.current_state.clone(),
+            context: self.context.clone(),
+            timestamp: std::time::SystemTime::now(),
+        };
+
+        serde_json::to_string(&snapshot)
+            .map_err(|e| MachineError::SerializationError {
+                message: e.to_string(),
+            })
+    }
+
+    /// Deserialize machine state from JSON string and update the machine
+    ///
+    /// Requires the serde feature and SerializableState bound.
+    #[cfg(feature = "serde")]
+    pub fn from_json(&mut self, json: &str) -> Result<(), MachineError>
+    where
+        S: crate::SerializableState,
+    {
+        let snapshot: crate::MachineSnapshot<S> = serde_json::from_str(json)
+            .map_err(|e| MachineError::DeserializationError {
+                message: e.to_string(),
+            })?;
+
+        self.current_state = snapshot.current_state;
+        self.context = snapshot.context;
+
+        Ok(())
+    }
+
+    /// Export machine state as a snapshot with metadata
+    ///
+    /// Requires the serde feature and SerializableState bound.
+    #[cfg(feature = "serde")]
+    pub fn export_snapshot(&self) -> Result<crate::MachineSnapshot<S>, MachineError>
+    where
+        S: crate::SerializableState,
+    {
+        Ok(crate::MachineSnapshot {
+            current_state: self.current_state.clone(),
+            context: self.context.clone(),
+            timestamp: std::time::SystemTime::now(),
+        })
+    }
+
+    /// Import machine state from a snapshot
+    ///
+    /// Requires the serde feature and SerializableState bound.
+    #[cfg(feature = "serde")]
+    pub fn import_snapshot(&mut self, snapshot: crate::MachineSnapshot<S>) -> Result<(), MachineError>
+    where
+        S: crate::SerializableState,
+    {
+        self.current_state = snapshot.current_state;
+        self.context = snapshot.context;
+
+        Ok(())
+    }
 }
 
 /// A node in the state machine representing a state

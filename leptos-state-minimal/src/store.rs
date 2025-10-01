@@ -90,6 +90,72 @@ impl<S: State> Store<S> {
     {
         Self::new(S::default())
     }
+
+    /// Serialize the current state to JSON string
+    ///
+    /// Requires the serde feature and SerializableState bound.
+    #[cfg(feature = "serde")]
+    pub fn to_json(&self) -> Result<String, crate::StoreError>
+    where
+        S: crate::SerializableState,
+    {
+        let state = self.signal.get_untracked();
+        serde_json::to_string(&state)
+            .map_err(|e| crate::StoreError::SerializationError {
+                message: e.to_string(),
+            })
+    }
+
+    /// Deserialize state from JSON string and update the store
+    ///
+    /// Requires the serde feature and SerializableState bound.
+    #[cfg(feature = "serde")]
+    pub fn from_json(&self, json: &str) -> Result<(), crate::StoreError>
+    where
+        S: crate::SerializableState,
+    {
+        let state: S = serde_json::from_str(json)
+            .map_err(|e| crate::StoreError::DeserializationError {
+                message: e.to_string(),
+            })?;
+        self.set(state)
+    }
+
+    /// Export state as a snapshot with metadata
+    ///
+    /// Requires the serde feature and SerializableState bound.
+    #[cfg(feature = "serde")]
+    pub fn export_snapshot(&self) -> Result<crate::StateSnapshot<S>, crate::StoreError>
+    where
+        S: crate::SerializableState,
+    {
+        Ok(crate::StateSnapshot {
+            data: self.signal.get_untracked(),
+            timestamp: std::time::SystemTime::now(),
+            version: env!("CARGO_PKG_VERSION").to_string(),
+        })
+    }
+
+    /// Import state from a snapshot
+    ///
+    /// Validates version compatibility before importing.
+    /// Requires the serde feature and SerializableState bound.
+    #[cfg(feature = "serde")]
+    pub fn import_snapshot(&self, snapshot: crate::StateSnapshot<S>) -> Result<(), crate::StoreError>
+    where
+        S: crate::SerializableState,
+    {
+        // Version compatibility check
+        let current_version = env!("CARGO_PKG_VERSION");
+        if snapshot.version != current_version {
+            return Err(crate::StoreError::VersionMismatch {
+                expected: current_version.to_string(),
+                found: snapshot.version,
+            });
+        }
+
+        self.set(snapshot.data)
+    }
 }
 
 impl<S: State> Clone for Store<S> {

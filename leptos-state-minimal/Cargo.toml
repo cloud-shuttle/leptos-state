@@ -14,11 +14,14 @@ categories = ["wasm", "web-programming"]
 [dependencies]
 leptos = { version = "0.8" }
 serde = { version = "1.0", features = ["derive"], optional = true }
+serde_json = { version = "1.0", optional = true }
 thiserror = "2.0"
+web-sys = { version = "0.3", features = ["Storage", "Window"], optional = true }
 
 [features]
 default = []
-serde = ["dep:serde"]
+serde = ["dep:serde", "dep:serde_json"]
+web = ["dep:web-sys"]
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
