@@ -271,15 +271,15 @@ pub use persistence::storage::{
 };
 pub use property_testing::{Property, PropertyResult, PropertyTestResult, PropertyTestRunner};
 pub use test_builder::{MachineTestingExt, TestBuilder, TestSuiteResult};
-pub use test_cases::{TestCase as TestCaseTypes, TestCaseExecutor, TestCaseStep};
+pub use test_cases::{TestCase, TestCaseExecutor, TestCaseStep};
 pub use test_data_generation::{
     DataGenerationConfig, DataGenerationStrategy, DefaultTestDataGenerator,
     MachineTestDataGenerator, TestDataGenerationManager, TestDataGenerator,
 };
 pub use test_runner::MachineTestRunner as TestRunner;
 pub use test_types::{
-    DataStrategy, PerformanceMetrics as TestPerformanceMetrics, TestConfig as TestConfigTypes,
-    TestCoverage, TestResult as TestResultTypes, TestStep,
+    DataStrategy, PerformanceMetrics as TestPerformanceMetrics, TestConfig,
+    TestCoverage, TestResult, TestStep,
 };
 // pub use testing::{MachineTestRunner, TestCase, TestConfig, TestResult}; // Commented out - types not available in existing testing module
 pub use visualization_config::{

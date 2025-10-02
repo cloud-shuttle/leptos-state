@@ -1,4 +1,4 @@
-use crate::{State, Event, Store, Machine};
+use crate::{Store, Machine};
 use serde::{Deserialize, Serialize};
 
 /// Errors that can occur during testing
@@ -35,20 +35,20 @@ pub struct StateMachineTestResult {
 }
 
 /// Property test trait for state operations
-pub trait StatePropertyTest<S: State> {
+pub trait StatePropertyTest<S> where S: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static {
     fn test_property(&self, state: &S) -> Result<(), String>;
     fn name(&self) -> &'static str;
     fn description(&self) -> &'static str;
 }
 
 /// State invariant checker
-pub trait StateInvariant<S: State> {
+pub trait StateInvariant<S> where S: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static {
     fn check_invariant(&self, state: &S) -> Result<(), String>;
     fn name(&self) -> &'static str;
 }
 
 /// Test store wrapper with additional testing capabilities
-pub struct TestStore<S: State> {
+pub struct TestStore<S> where S: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static {
     store: Store<S>,
     invariants: Vec<Box<dyn StateInvariant<S>>>,
     operation_log: Vec<TestOperation<S>>,
@@ -63,7 +63,7 @@ pub struct TestOperation<S> {
 }
 
 /// Test machine wrapper with state machine testing capabilities
-pub struct TestMachine<C: State, E: Event> {
+pub struct TestMachine<C, E> where C: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static, E: Clone + std::fmt::Debug + Send + Sync + 'static {
     machine: Machine<C, E, C>,
     invariants: Vec<Box<dyn StateInvariant<C>>>,
     transition_log: Vec<TestTransition<C>>,
@@ -82,13 +82,13 @@ pub struct TestTransition<C> {
 }
 
 /// Property-based testing suite
-pub struct PropertyTestSuite<S: State + Serialize> {
+pub struct PropertyTestSuite<S> where S: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static + Serialize {
     properties: Vec<Box<dyn StatePropertyTest<S>>>,
     generators: Vec<Box<dyn Fn() -> S + Send + Sync>>,
     max_iterations: usize,
 }
 
-impl<S: State + Clone + Serialize> PropertyTestSuite<S> {
+impl<S> PropertyTestSuite<S> where S: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static + Serialize {
     /// Create a new property test suite
     pub fn new() -> Self {
         Self {
@@ -99,7 +99,7 @@ impl<S: State + Clone + Serialize> PropertyTestSuite<S> {
     }
 }
 
-impl<S: State> TestStore<S> {
+impl<S where S: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static> TestStore<S> {
     /// Create a new test store
     pub fn new(initial: S) -> Self {
         Self {
@@ -110,7 +110,7 @@ impl<S: State> TestStore<S> {
     }
 }
 
-impl<C: State, E: Event> TestMachine<C, E> {
+impl<C, E> TestMachine<C, E> where C: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static, E: Clone + std::fmt::Debug + Send + Sync + 'static {
     /// Create a new test machine
     pub fn new(initial_state: &str, context: C) -> Self {
         Self {
