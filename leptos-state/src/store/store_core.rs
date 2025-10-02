@@ -13,16 +13,8 @@ pub trait Store: Send + Sync + 'static {
     /// Set the state
     fn set(&self, state: Self::State);
 
-    /// Update the state using a function
+    /// Update the state using a boxed function
     fn update_boxed(&self, f: Box<dyn FnOnce(Self::State) -> Self::State + Send + Sync>);
-
-    /// Update the state using a function (convenience method)
-    fn update<F>(&self, f: F)
-    where
-        F: FnOnce(Self::State) -> Self::State + Send + Sync + 'static,
-    {
-        self.update_boxed(Box::new(f));
-    }
 }
 
 /// Context wrapper for store state
@@ -53,9 +45,9 @@ impl<T: Clone + PartialEq + 'static> StoreContext<T> {
     /// Update the state using a function
     pub fn update<F>(&self, f: F)
     where
-        F: FnOnce(T) -> T,
+        F: FnOnce(T) -> T + Send + Sync + 'static,
     {
-        self.store.update(f);
+        self.store.update_boxed(Box::new(f));
     }
 }
 

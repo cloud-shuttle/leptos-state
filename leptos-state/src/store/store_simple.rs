@@ -39,10 +39,7 @@ where
         *self.value.write().unwrap() = state;
     }
 
-    fn update<F>(&self, f: F)
-    where
-        F: FnOnce(Self::State) -> Self::State,
-    {
+    fn update_boxed(&self, f: Box<dyn FnOnce(Self::State) -> Self::State + Send + Sync>) {
         let current = self.get();
         let new_state = f(current);
         self.set(new_state);
@@ -75,9 +72,9 @@ macro_rules! create_store_type {
 
             pub fn update<F>(&self, f: F)
             where
-                F: FnOnce($state_type) -> $state_type,
+                F: FnOnce($state_type) -> $state_type + Send + Sync + 'static,
             {
-                self.store.update(f);
+                self.store.update_boxed(std::boxed::Box::new(f));
             }
         }
 
@@ -92,11 +89,8 @@ macro_rules! create_store_type {
                 self.store.set(state);
             }
 
-            fn update<F>(&self, f: F)
-            where
-                F: FnOnce(Self::State) -> Self::State,
-            {
-                self.store.update(f);
+            fn update_boxed(&self, f: std::boxed::Box<dyn FnOnce(Self::State) -> Self::State + Send + Sync>) {
+                self.store.update_boxed(f);
             }
         }
     };
@@ -140,15 +134,6 @@ impl<T: Clone + PartialEq + Send + Sync + 'static> Store for ReactiveStore<T> {
 
     fn set(&self, state: Self::State) {
         *self.state.write().unwrap() = state;
-    }
-
-    fn update<F>(&self, f: F)
-    where
-        F: FnOnce(Self::State) -> Self::State,
-    {
-        let current = self.state.read().unwrap().clone();
-        let new_state = f(current);
-        *self.state.write().unwrap() = new_state;
     }
 
     fn update_boxed(&self, f: Box<dyn FnOnce(Self::State) -> Self::State + Send + Sync>) {
@@ -223,13 +208,6 @@ impl<T: Clone + PartialEq + Send + Sync + 'static> Store for AsyncStore<T> {
         self.store.set(state);
     }
 
-    fn update<F>(&self, f: F)
-    where
-        F: FnOnce(Self::State) -> Self::State,
-    {
-        self.store.update(f);
-    }
-
     fn update_boxed(&self, f: Box<dyn FnOnce(Self::State) -> Self::State + Send + Sync>) {
         self.store.update_boxed(f);
     }
@@ -271,10 +249,7 @@ where
         self.store.set(state);
     }
 
-    fn update<F>(&self, f: F)
-    where
-        F: FnOnce(Self::State) -> Self::State,
-    {
+    fn update_boxed(&self, f: Box<dyn FnOnce(Self::State) -> Self::State + Send + Sync>) {
         let current = self.store.get();
         let new_state = f(current.clone());
         self.middleware.on_update(&current, &new_state);

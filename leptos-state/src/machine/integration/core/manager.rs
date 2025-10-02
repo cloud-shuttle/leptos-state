@@ -9,7 +9,7 @@ use super::health::HealthStatus;
 /// Integration manager for state machines
 pub struct IntegrationManager<
     C: Send + Sync + Clone + 'static,
-    E: Clone + Send + Sync + std::hash::Hash + Eq + 'static,
+    E: Send + Clone + 'static,
 > {
     /// Configuration
     pub config: IntegrationConfig,
@@ -27,7 +27,7 @@ pub struct IntegrationManager<
     pub task_handles: std::sync::Mutex<Vec<tokio::task::JoinHandle<()>>>,
 }
 
-impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::hash::Hash + Eq + std::fmt::Debug + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Clone + std::fmt::Debug + 'static>
     IntegrationManager<C, E>
 {
     /// Create a new integration manager

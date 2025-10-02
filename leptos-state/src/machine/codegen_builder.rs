@@ -1,12 +1,11 @@
 //! Builder pattern for code generation
 
 use super::*;
-use std::hash::Hash;
 
 /// Code generation builder for fluent configuration
 pub struct CodeGenBuilder<
-    C: Send + Sync + Clone + PartialEq + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + 'static,
+    E: Send + Clone + 'static,
 > {
     /// Configuration
     pub config: CodeGenConfig,
@@ -25,8 +24,8 @@ pub struct CodeGenBuilder<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     > CodeGenBuilder<C, E>
 {
     /// Create a new code generation builder
@@ -225,16 +224,16 @@ impl<
 
 /// Builder step for pipeline integration
 struct BuilderStep<
-    C: Send + Sync + Clone + PartialEq + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + 'static,
+    E: Send + Clone + 'static,
 > {
     builder: CodeGenBuilder<C, E>,
     _phantom: std::marker::PhantomData<(C, E)>,
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     > CodeGenStep<C, E> for BuilderStep<C, E>
 {
     fn execute(
@@ -270,32 +269,32 @@ pub mod builder {
 
     /// Start building a code generator for Rust
     pub fn rust<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >() -> CodeGenBuilder<C, E> {
         CodeGenBuilder::new().language(ProgrammingLanguage::Rust)
     }
 
     /// Start building a code generator for TypeScript
     pub fn typescript<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >() -> CodeGenBuilder<C, E> {
         CodeGenBuilder::new().language(ProgrammingLanguage::TypeScript)
     }
 
     /// Start building a code generator for Python
     pub fn python<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >() -> CodeGenBuilder<C, E> {
         CodeGenBuilder::new().language(ProgrammingLanguage::Python)
     }
 
     /// Start building with custom language
     pub fn for_language<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >(
         language: ProgrammingLanguage,
     ) -> CodeGenBuilder<C, E> {
@@ -304,8 +303,8 @@ pub mod builder {
 
     /// Create a builder from existing config
     pub fn from_config<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >(
         config: CodeGenConfig,
     ) -> CodeGenBuilder<C, E> {
@@ -321,8 +320,8 @@ pub mod builder {
 
     /// Create a builder with custom templates
     pub fn with_templates<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >(
         templates: CodeTemplates,
     ) -> CodeGenBuilder<C, E> {
@@ -331,8 +330,8 @@ pub mod builder {
 
     /// Configure indentation
     pub fn indent_spaces<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >(
         spaces: usize,
     ) -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
@@ -341,16 +340,16 @@ pub mod builder {
 
     /// Configure indentation with tabs
     pub fn indent_tabs<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >() -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
         Box::new(|builder| builder.indent_with(IndentationStyle::Tabs))
     }
 
     /// Add a comment header
     pub fn with_header<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >(
         header: String,
     ) -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
@@ -359,8 +358,8 @@ pub mod builder {
 
     /// Add a comment footer
     pub fn with_footer<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >(
         footer: String,
     ) -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
@@ -369,16 +368,16 @@ pub mod builder {
 
     /// Enable test generation
     pub fn with_tests<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >() -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
         Box::new(|builder| builder.with_tests(true))
     }
 
     /// Enable validation code generation
     pub fn with_validation<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >() -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
         Box::new(|builder| builder.with_validation(true))
     }
@@ -390,8 +389,8 @@ pub mod presets {
 
     /// Create a minimal code generator (no comments, no tests)
     pub fn minimal<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >(
         language: ProgrammingLanguage,
     ) -> CodeGenBuilder<C, E> {
@@ -405,8 +404,8 @@ pub mod presets {
 
     /// Create a comprehensive code generator (everything enabled)
     pub fn comprehensive<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >(
         language: ProgrammingLanguage,
     ) -> CodeGenBuilder<C, E> {
@@ -422,8 +421,8 @@ pub mod presets {
 
     /// Create a web-ready code generator for JavaScript/TypeScript
     pub fn web_ready<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >() -> CodeGenBuilder<C, E> {
         CodeGenBuilder::new()
             .language(ProgrammingLanguage::TypeScript)
@@ -436,8 +435,8 @@ pub mod presets {
 
     /// Create a library-ready code generator for Rust
     pub fn library_ready<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + 'static,
+        E: Send + Clone + 'static,
     >() -> CodeGenBuilder<C, E> {
         CodeGenBuilder::new()
             .language(ProgrammingLanguage::Rust)

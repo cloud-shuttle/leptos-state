@@ -1,4 +1,106 @@
-//! # Leptos State Management Library
+//! # Leptos State - Advanced State Management for Leptos
+//!
+//! Leptos State provides powerful state machines and reactive stores for Leptos applications,
+//! inspired by XState and Zustand.
+//!
+//! ## Quick Start
+//!
+//! ```rust
+//! use leptos_state::*;
+//!
+//! // Define your context and events
+//! #[derive(Clone, Debug, PartialEq)]
+//! struct AppContext {
+//!     user: Option<String>,
+//!     is_loading: bool,
+//! }
+//!
+//! #[derive(Clone, Debug, PartialEq)]
+//! enum AppEvent {
+//!     Login(String),
+//!     Logout,
+//!     SetLoading(bool),
+//! }
+//!
+//! // Create a state machine
+//! let machine = Machine::builder()
+//!     .state("idle", |s| s.on(AppEvent::Login(_), "loading"))
+//!     .state("loading", |s| s.on(AppEvent::SetLoading(false), "authenticated"))
+//!     .state("authenticated", |s| s.on(AppEvent::Logout, "idle"))
+//!     .build("idle");
+//! ```
+//!
+//! ## Understanding Trait Bounds
+//!
+//! Leptos State requires certain traits for important functionality:
+//!
+//! - **`Debug`**: Error reporting, logging, and debugging
+//! - **`PartialEq`**: State comparison and change detection
+//! - **`Clone`**: Creating state snapshots and copies
+//! - **`Send + Sync`**: Thread-safe operations in async contexts
+//!
+//! ## Usage Patterns
+//!
+//! ### Basic Usage (Most Common)
+//!
+//! For standard Rust types, just derive the required traits:
+//!
+//! ```rust
+//! #[derive(Clone, Debug, PartialEq)]
+//! struct MyContext { /* fields */ }
+//!
+//! #[derive(Clone, Debug, PartialEq)]
+//! enum MyEvent { /* variants */ }
+//! ```
+//!
+//! ### Working with Complex Types
+//!
+//! For types that can't implement traits directly, use newtype wrappers:
+//!
+//! ```rust
+//! // If you have a complex type
+//! struct ComplexData { /* fields */ }
+//!
+//! // Create a wrapper
+//! #[derive(Clone, Debug, PartialEq)]
+//! struct WrappedData(ComplexData);
+//!
+//! // Implement Deref/DerefMut for convenience
+//! impl std::ops::Deref for WrappedData {
+//!     type Target = ComplexData;
+//!     fn deref(&self) -> &ComplexData { &self.0 }
+//! }
+//!
+//! // Now use WrappedData in your state machines
+//! #[derive(Clone, Debug, PartialEq)]
+//! struct AppState {
+//!     data: WrappedData,
+//! }
+//! ```
+//!
+//! ### Why These Bounds Are Required
+//!
+//! Phase 8 analysis revealed that these bounds serve critical purposes:
+//!
+//! - **Change Detection**: `PartialEq` enables efficient reactivity
+//! - **Error Reporting**: `Debug` provides meaningful error messages
+//! - **Performance**: Bounds enable optimizations like deduplication
+//! - **Thread Safety**: `Send + Sync` ensure async compatibility
+//!
+//! ## Feature Flags
+//!
+//! - `serde` (default): Serialization support
+//! - `yaml`: YAML serialization
+//! - `debug_bounds`: Enhanced debugging features
+//! - `full`: All features enabled
+//!
+//! ## Architecture
+//!
+//! - **State Machines**: XState-inspired finite state machines with guards and actions
+//! - **Reactive Stores**: Zustand-like global state with middleware
+//! - **Performance Monitoring**: Built-in metrics and bottleneck detection
+//! - **Visualization**: DOT and Mermaid diagram generation
+//! - **Testing**: Property-based testing utilities
 
 #![allow(clippy::type_complexity)]
 #![allow(clippy::useless_format)]

@@ -1,12 +1,11 @@
 //! Extension traits for integration
 
 use super::*;
-use std::hash::Hash;
 
 /// Extension trait for adding integration to machines
 pub trait MachineIntegrationExt<
-    C: Send + Sync + Clone + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + 'static,
+    E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
 >
 {
     /// Get an integration manager for this machine
@@ -43,7 +42,7 @@ pub trait MachineIntegrationExt<
     ) -> Result<(), String>;
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Clone + std::fmt::Debug + PartialEq + 'static>
     MachineIntegrationExt<C, E> for Machine<C, E, C>
 {
     fn integration_manager(&self, config: IntegrationConfig) -> IntegrationManager<C, E> {
@@ -93,8 +92,8 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
 
 /// Integration builder for fluent configuration
 pub struct IntegrationBuilder<
-    C: Send + Sync + Clone + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + 'static,
+    E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
 > {
     /// Integration manager being built
     pub manager: IntegrationManager<C, E>,
@@ -102,7 +101,7 @@ pub struct IntegrationBuilder<
     pub config: IntegrationConfig,
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Clone + std::fmt::Debug + PartialEq + 'static>
     IntegrationBuilder<C, E>
 {
     /// Create a new integration builder
@@ -220,7 +219,7 @@ pub mod integrations {
     /// Create a WebSocket integration
     pub fn websocket<
         C: Send + Sync + Clone + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         config: ConnectionConfig,
     ) -> Box<dyn IntegrationAdapterTrait + Send + Sync> {
@@ -230,7 +229,7 @@ pub mod integrations {
     /// Create an HTTP API integration
     pub fn http_api<
         C: Send + Sync + Clone + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         config: ConnectionConfig,
     ) -> Box<dyn IntegrationAdapterTrait + Send + Sync> {
@@ -240,7 +239,7 @@ pub mod integrations {
     /// Create a database integration
     pub fn database<
         C: Send + Sync + Clone + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         config: ConnectionConfig,
     ) -> Box<dyn IntegrationAdapterTrait + Send + Sync> {
@@ -250,7 +249,7 @@ pub mod integrations {
     /// Create a message queue integration
     pub fn message_queue<
         C: Send + Sync + Clone + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         config: ConnectionConfig,
     ) -> Box<dyn IntegrationAdapterTrait + Send + Sync> {
@@ -260,7 +259,7 @@ pub mod integrations {
     /// Create a file system integration
     pub fn filesystem<
         C: Send + Sync + Clone + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         config: ConnectionConfig,
         output_dir: std::path::PathBuf,
@@ -315,8 +314,8 @@ pub mod presets {
 
     /// Create a web application integration setup
     pub fn web_application<
-        C: Send + Sync + Clone + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         machine: &Machine<C, E, C>,
         api_url: String,
@@ -332,8 +331,8 @@ pub mod presets {
 
     /// Create a microservice integration setup
     pub fn microservice<
-        C: Send + Sync + Clone + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         machine: &Machine<C, E, C>,
         message_queue_url: String,
@@ -350,8 +349,8 @@ pub mod presets {
 
     /// Create a data processing integration setup
     pub fn data_processing<
-        C: Send + Sync + Clone + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         machine: &Machine<C, E, C>,
         output_dir: std::path::PathBuf,
@@ -371,7 +370,7 @@ pub mod presets {
     /// Create a monitoring integration setup
     pub fn monitoring<
         C: Send + Sync + Clone + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         machine: &Machine<C, E, C>,
         monitoring_endpoint: String,

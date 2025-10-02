@@ -1,12 +1,11 @@
 //! Extension traits for code generation
 
 use super::*;
-use std::hash::Hash;
 
 /// Extension trait for adding code generation to machines
 pub trait MachineCodeGenExt<
-    C: Send + Sync + Clone + PartialEq,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + 'static,
+    E: Send + Clone + 'static,
 >
 {
     /// Generate code for this machine
@@ -34,8 +33,8 @@ pub trait MachineCodeGenExt<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + std::fmt::Debug + 'static,
-        E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     > MachineCodeGenExt<C, E> for Machine<C, E, C>
 {
     fn generate_code(&self, config: CodeGenConfig) -> Result<GeneratedFile, String> {
@@ -90,8 +89,8 @@ impl<
 
 /// Extension trait for state machine builders
 pub trait MachineBuilderCodeGenExt<
-    C: Send + Sync + Clone + PartialEq + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + 'static,
+    E: Send + Clone + 'static,
 >
 {
     /// Build and generate code
@@ -102,8 +101,8 @@ pub trait MachineBuilderCodeGenExt<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + std::fmt::Debug + 'static,
-        E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + 'static,
     > MachineBuilderCodeGenExt<C, E> for crate::machine::MachineBuilder<C, E>
 {
     fn build_and_generate(
@@ -122,8 +121,8 @@ pub mod codegen {
 
     /// Create a code generator for Rust
     pub fn rust<
-        C: Send + Sync + Clone + PartialEq + std::fmt::Debug + 'static,
-        E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >() -> CodeGenerator<C, E> {
         let config = CodeGenConfig {
             language: ProgrammingLanguage::Rust,
@@ -134,8 +133,8 @@ pub mod codegen {
 
     /// Create a code generator for TypeScript
     pub fn typescript<
-        C: Send + Sync + Clone + PartialEq + std::fmt::Debug + 'static,
-        E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >() -> CodeGenerator<C, E> {
         let config = CodeGenConfig {
             language: ProgrammingLanguage::TypeScript,
@@ -146,8 +145,8 @@ pub mod codegen {
 
     /// Create a code generator for Python
     pub fn python<
-        C: Send + Sync + Clone + PartialEq + std::fmt::Debug + 'static,
-        E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >() -> CodeGenerator<C, E> {
         let config = CodeGenConfig {
             language: ProgrammingLanguage::Python,
@@ -158,8 +157,8 @@ pub mod codegen {
 
     /// Create a code generator with custom config
     pub fn with_config<
-        C: Send + Sync + Clone + PartialEq + std::fmt::Debug + 'static,
-        E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         config: CodeGenConfig,
     ) -> CodeGenerator<C, E> {
@@ -168,8 +167,8 @@ pub mod codegen {
 
     /// Generate code for a machine
     pub fn generate<
-        C: Send + Sync + Clone + PartialEq + std::fmt::Debug + 'static,
-        E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         machine: &Machine<C, E, C>,
         config: CodeGenConfig,
@@ -179,8 +178,8 @@ pub mod codegen {
 
     /// Generate code in multiple languages
     pub fn generate_multi<
-        C: Send + Sync + Clone + PartialEq + std::fmt::Debug + 'static,
-        E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         machine: &Machine<C, E, C>,
         languages: Vec<ProgrammingLanguage>,
@@ -198,8 +197,8 @@ pub mod codegen {
 
     /// Generate and save code
     pub fn generate_and_save<
-        C: Send + Sync + Clone + PartialEq + std::fmt::Debug + 'static,
-        E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         machine: &Machine<C, E, C>,
         config: CodeGenConfig,
@@ -233,7 +232,7 @@ pub mod codegen {
 /// Code generation pipeline for complex workflows
 pub struct CodeGenPipeline<
     C: Send + Sync + Clone + PartialEq + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    E: Clone + Send + Sync + 'static,
 > {
     /// Pipeline steps
     pub steps: Vec<Box<dyn CodeGenStep<C, E>>>,
@@ -265,8 +264,8 @@ impl Default for PipelineConfig {
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + std::fmt::Debug + 'static,
-        E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     > CodeGenPipeline<C, E>
 {
     /// Create a new pipeline
@@ -320,8 +319,8 @@ impl<
 
 /// Code generation step trait
 pub trait CodeGenStep<
-    C: Send + Sync + Clone + PartialEq + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + 'static,
+    E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
 >
 {
     /// Execute this step

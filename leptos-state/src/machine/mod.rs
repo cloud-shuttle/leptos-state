@@ -52,6 +52,9 @@ pub mod machine_builder;
 pub mod machine_state_impl;
 pub mod optimized_machine;
 pub mod performance;
+pub mod performance_monitor;
+pub mod testing;
+pub mod testing_advanced;
 pub mod performance_builder;
 pub mod performance_config;
 pub mod performance_metrics;
@@ -83,7 +86,6 @@ pub mod test_data_generation;
 pub mod test_macros;
 pub mod test_runner;
 pub mod test_types;
-pub mod testing;
 pub mod traits;
 pub mod transition_builder;
 pub mod types;
@@ -226,6 +228,9 @@ pub use optimized_machine::{
     MachinePerformanceExt, OptimizationLevel, OptimizedMachine as PerfOptimizedMachine,
 };
 pub use performance::{OptimizedMachine, PerformanceProfiler};
+pub use performance_monitor::PerformanceMonitor;
+// pub use testing::{PropertyTestSuite, StateMachineTester, TestStore, TestMachine, TestingError}; // Commented out - types not available in existing testing module
+pub use testing_advanced::{PropertyTestSuite as AdvancedPropertyTestSuite, TestStore as AdvancedTestStore, TestMachine as AdvancedTestMachine, TestingError as AdvancedTestingError};
 pub use performance_builder::{PerformanceBuilder, PerformanceOptimizationExt, PerformancePresets};
 pub use performance_config::{
     OptimizationParameters, OptimizationStrategy, PerformanceConfig as PerformanceConfigCore,
@@ -276,7 +281,7 @@ pub use test_types::{
     DataStrategy, PerformanceMetrics as TestPerformanceMetrics, TestConfig as TestConfigTypes,
     TestCoverage, TestResult as TestResultTypes, TestStep,
 };
-pub use testing::{MachineTestRunner, TestCase, TestConfig, TestResult};
+// pub use testing::{MachineTestRunner, TestCase, TestConfig, TestResult}; // Commented out - types not available in existing testing module
 pub use visualization_config::{
     ExportFormat, LayoutDirection, RenderingOptions, VisualizationConfig, VisualizationTheme,
 };
@@ -302,4 +307,4 @@ pub use visualization_ext::{
 //     StateInfo as MonitorStateInfo, StateMonitor, StateStatus,
 // };
 // #[cfg(feature = "serialization")]
-// pub use visualization::{MachineVisualizer, VisualizationConfig, VisualizedMachine};
+pub use visualization::{VisualizationError, LayoutHint, VisualizationMetadata, Visualizable, StateMachineVisualizer, VisualizationFormat, generate_simple_dot_graph, generate_simple_mermaid_diagram, export_visualization};

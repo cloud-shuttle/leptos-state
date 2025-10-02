@@ -38,7 +38,7 @@ pub trait MachineState {
 #[derive(Debug)]
 pub struct StateNode<C, E, S>
 where
-    C: Clone + std::fmt::Debug + Default + 'static,
+    C: Clone + std::fmt::Debug + 'static,
     E: Send + Clone + std::fmt::Debug + 'static,
     S: Clone + std::fmt::Debug,
 {
@@ -55,7 +55,7 @@ where
 #[derive(Debug)]
 pub struct Transition<C, E>
 where
-    C: Clone + std::fmt::Debug + Default + 'static,
+    C: Clone + std::fmt::Debug + 'static,
     E: Send + Clone + std::fmt::Debug + 'static,
 {
     pub event: E,
@@ -67,8 +67,8 @@ where
 /// Complete machine implementation
 #[derive(Debug, Clone)]
 pub struct Machine<
-    C: Send + Sync + Clone + std::fmt::Debug + Default + 'static,
-    E: Send + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + 'static,
+    E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
     S: Clone + std::fmt::Debug,
 > {
     pub states: HashMap<String, StateNode<C, E, C>>,
@@ -77,7 +77,7 @@ pub struct Machine<
 }
 
 // Manual Clone implementation for Transition since trait objects can't be cloned
-impl<C: Clone + Default, E: Clone + Send> Clone for Transition<C, E> {
+impl<C: Clone, E: Clone + Send> Clone for Transition<C, E> {
     fn clone(&self) -> Self {
         Self {
             event: self.event.clone(),
@@ -89,7 +89,7 @@ impl<C: Clone + Default, E: Clone + Send> Clone for Transition<C, E> {
 }
 
 // Manual Clone implementation for StateNode since Action trait objects can't be cloned
-impl<C: Clone + Default, E: Clone + Send> Clone for StateNode<C, E, C> {
+impl<C: Clone, E: Clone + Send> Clone for StateNode<C, E, C> {
     fn clone(&self) -> Self {
         Self {
             id: self.id.clone(),
@@ -104,7 +104,7 @@ impl<C: Clone + Default, E: Clone + Send> Clone for StateNode<C, E, C> {
 }
 
 
-impl<C: Send + Sync + Clone + std::fmt::Debug + Default + 'static, E: Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash> Machine<C, E, C> {
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + std::fmt::Debug + PartialEq + 'static> Machine<C, E, C> {
     /// Get all state IDs in the machine
     pub fn get_states(&self) -> Vec<String> {
         self.states.keys().cloned().collect()
