@@ -186,6 +186,10 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Sync + Clone 
 
         // Add initial state
         let initial_state = machine.initial_state();
+        let initial_state_name = match initial_state.value() {
+            crate::machine::states::StateValue::Simple(name) => name.clone(),
+            _ => machine.initial_state_id().to_string(),
+        };
         output.push_str(&format!(
             "  \"{}\" [fillcolor=\"{}\", shape=circle, label=\"\"];\n",
             "start", self.theme.initial_state_color
@@ -193,7 +197,7 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Sync + Clone 
 
         // Add states
         for state_name in machine.get_states() {
-            let color = if state_name == initial_state {
+            let color = if state_name == initial_state_name {
                 &self.theme.initial_state_color
             } else {
                 &self.theme.state_color

@@ -114,6 +114,7 @@ impl std::fmt::Display for SchemaInfo {
 
 /// Validation rule for schema
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ValidationRule {
     /// Rule name
     pub name: String,
