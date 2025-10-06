@@ -5,8 +5,8 @@ use std::hash::Hash;
 
 /// Performance builder for fluent configuration
 pub struct PerformanceBuilder<
-    C: Send + Sync + Clone + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 > {
     /// Machine to optimize
     machine: Machine<C, E, C>,
@@ -14,7 +14,7 @@ pub struct PerformanceBuilder<
     config: PerformanceConfig,
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static>
     PerformanceBuilder<C, E>
 {
     /// Create a new performance builder
@@ -187,15 +187,15 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
 
 /// Extension trait for fluent performance optimization
 pub trait PerformanceOptimizationExt<
-    C: Send + Sync + Clone + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 >
 {
     /// Start building performance optimizations
     fn optimize_performance(self) -> PerformanceBuilder<C, E>;
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static>
     PerformanceOptimizationExt<C, E> for Machine<C, E, C>
 {
     fn optimize_performance(self) -> PerformanceBuilder<C, E> {
@@ -210,11 +210,14 @@ impl PerformancePresets {
     /// Configuration for high-performance scenarios
     pub fn high_performance() -> PerformanceConfig {
         PerformanceConfig {
+            enable_metrics: true,
+            enable_profiling: false,
+            metrics_interval_ms: 5000, // 5 seconds
+            max_samples: 10000,
             enable_caching: true,
             max_cache_size: 100 * 1024 * 1024,              // 100MB
             cache_ttl: std::time::Duration::from_secs(600), // 10 minutes
             enable_lazy_evaluation: false,                  // Disable for speed
-            enable_profiling: false,
             profile_sample_rate: 0.01, // Minimal profiling
             enable_memory_tracking: true,
             max_memory_usage: 500 * 1024 * 1024, // 500MB
@@ -227,11 +230,14 @@ impl PerformancePresets {
     /// Configuration for memory-constrained environments
     pub fn memory_efficient() -> PerformanceConfig {
         PerformanceConfig {
+            enable_metrics: true,
+            enable_profiling: false,
+            metrics_interval_ms: 10000, // 10 seconds
+            max_samples: 1000,
             enable_caching: true,
             max_cache_size: 10 * 1024 * 1024,              // 10MB
             cache_ttl: std::time::Duration::from_secs(60), // 1 minute
             enable_lazy_evaluation: true,
-            enable_profiling: false,
             profile_sample_rate: 0.0,
             enable_memory_tracking: true,
             max_memory_usage: 50 * 1024 * 1024, // 50MB

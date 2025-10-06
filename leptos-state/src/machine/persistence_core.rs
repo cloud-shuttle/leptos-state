@@ -350,6 +350,12 @@ impl PersistenceStrategy {
 pub enum PersistenceError {
     /// Storage backend error
     StorageError(String),
+    /// Storage unavailable error
+    StorageUnavailable(String),
+    /// I/O error
+    IoError(String),
+    /// Not found error
+    NotFound(String),
     /// Serialization error
     SerializationError(String),
     /// Deserialization error
@@ -370,6 +376,9 @@ impl std::fmt::Display for PersistenceError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             PersistenceError::StorageError(msg) => write!(f, "Storage error: {}", msg),
+            PersistenceError::StorageUnavailable(msg) => write!(f, "Storage unavailable: {}", msg),
+            PersistenceError::IoError(msg) => write!(f, "I/O error: {}", msg),
+            PersistenceError::NotFound(msg) => write!(f, "Not found: {}", msg),
             PersistenceError::SerializationError(msg) => write!(f, "Serialization error: {}", msg),
             PersistenceError::DeserializationError(msg) => {
                 write!(f, "Deserialization error: {}", msg)
@@ -403,6 +412,9 @@ impl PersistenceError {
             PersistenceError::VersionError { .. } => false,
             PersistenceError::BackupError(_) => true,
             PersistenceError::RestoreError(_) => true,
+            PersistenceError::StorageUnavailable(_) => false,
+            PersistenceError::IoError(_) => true,
+            PersistenceError::NotFound(_) => false,
         }
     }
 
@@ -417,6 +429,9 @@ impl PersistenceError {
             PersistenceError::VersionError { .. } => "version",
             PersistenceError::BackupError(_) => "backup",
             PersistenceError::RestoreError(_) => "restore",
+            PersistenceError::StorageUnavailable(_) => "storage",
+            PersistenceError::IoError(_) => "io",
+            PersistenceError::NotFound(_) => "not_found",
         }
     }
 }

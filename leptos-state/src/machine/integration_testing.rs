@@ -44,8 +44,8 @@ pub struct IntegrationTestResult {
 
 /// Integration test runner
 pub struct IntegrationTestRunner<
-    C: Send + Sync + Clone + PartialEq + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 > {
     /// Machine being tested
     pub machine: Machine<C, E, C>,
@@ -56,8 +56,8 @@ pub struct IntegrationTestRunner<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     > IntegrationTestRunner<C, E>
 {
     /// Create a new integration test runner
@@ -83,7 +83,10 @@ impl<
     }
 
     /// Run a single scenario
-    pub fn run_scenario(&self, scenario: &IntegrationScenario<C, E>) -> IntegrationTestResult {
+    pub fn run_scenario(&self, scenario: &IntegrationScenario<C, E>) -> IntegrationTestResult
+    where
+        E: Eq + std::hash::Hash,
+    {
         let start_time = std::time::Instant::now();
         let mut current_state = self.machine.initial_state();
         let mut current_context = scenario.initial_context.clone();
@@ -124,8 +127,16 @@ impl<
             performance: PerformanceMetrics {
                 avg_transition_time: execution_time / transitions_executed.max(1) as u32,
                 max_transition_time: execution_time,
+                min_transition_time: execution_time,
+                total_transitions: transitions_executed as usize,
+                cache_hit_rate: 0.0,
                 memory_usage: 0,
+                peak_memory_usage: 0,
                 allocations: 0,
+                deallocations: 0,
+                cpu_time: execution_time,
+                io_time: std::time::Duration::ZERO,
+                concurrent_operations: 0,
             },
         }
     }

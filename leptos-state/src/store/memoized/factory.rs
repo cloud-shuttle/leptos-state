@@ -63,55 +63,57 @@ impl SelectorFactory {
         crate::store::memoized::lazy::LazySelector::with_trigger(selector, trigger)
     }
 
-    /// Create a selector that gets a field by name
-    pub fn field<T: Store, O>(field_name: &str) -> crate::store::memoized::basic::MemoizedSelector<T, Option<O>>
-    where
-        O: Clone + PartialEq + 'static,
-        T::State: serde_json::value::Index,
-    {
-        Self::memoized(move |state: &T::State| {
-            state.get(field_name)
-                .and_then(|v| serde_json::from_value(v.clone()).ok())
-        })
-    }
+    // TODO: Re-enable JSON-based selectors when JSON stores are properly supported
+    // /// Create a selector that gets a field by name
+    // pub fn field<T: Store, O>(field_name: &str) -> crate::store::memoized::basic::MemoizedSelector<T, Option<O>>
+    // where
+    //     O: Clone + PartialEq + 'static,
+    //     T::State: serde_json::value::Index,
+    // {
+    //     Self::memoized(move |state: &T::State| {
+    //         Some(&state[field_name])
+    //             .and_then(|v| serde_json::from_value(v.clone()).ok())
+    //     })
+    // }
 
-    /// Create a selector that checks if a field exists
-    pub fn field_exists<T: Store>(field_name: &str) -> crate::store::memoized::basic::MemoizedSelector<T, bool>
-    where
-        T::State: serde_json::value::Index,
-    {
-        Self::memoized(move |state: &T::State| {
-            state.get(field_name).is_some()
-        })
-    }
+    // /// Create a selector that checks if a field exists
+    // pub fn field_exists<T: Store>(field_name: &str) -> crate::store::memoized::basic::MemoizedSelector<T, bool>
+    // where
+    //     T::State: serde_json::value::Index,
+    // {
+    //     Self::memoized(move |state: &T::State| {
+    //         state.get_field(field_name).is_some()
+    //     })
+    // }
 
-    /// Create a selector that gets array length
-    pub fn array_length<T: Store>(array_path: &str) -> crate::store::memoized::basic::MemoizedSelector<T, Option<usize>>
-    where
-        T::State: serde_json::value::Index,
-    {
-        Self::memoized(move |state: &T::State| {
-            state.get(array_path)
-                .and_then(|v| v.as_array())
-                .map(|arr| arr.len())
-        })
-    }
+    // /// Create a selector that gets array length
+    // pub fn array_length<T: Store>(array_path: &str) -> crate::store::memoized::basic::MemoizedSelector<T, Option<usize>>
+    // where
+    //     T::State: serde_json::value::Index,
+    // {
+    //     Self::memoized(move |state: &T::State| {
+    //         state.get_field(array_path)
+    //             .and_then(|v| v.as_array())
+    //             .map(|arr| arr.len())
+    //     })
+    // }
 
-    /// Create a selector that sums numeric values in an array
-    pub fn array_sum<T: Store>(array_path: &str) -> crate::store::memoized::basic::MemoizedSelector<T, Option<f64>>
-    where
-        T::State: serde_json::value::Index,
-    {
-        Self::memoized(move |state: &T::State| {
-            state.get(array_path)
-                .and_then(|v| v.as_array())
-                .map(|arr| {
-                    arr.iter()
-                        .filter_map(|v| v.as_f64())
-                        .sum()
-                })
-        })
-    }
+    // TODO: Re-enable when JSON stores are properly supported
+    // /// Create a selector that sums numeric values in an array
+    // pub fn array_sum<T: Store>(array_path: &str) -> crate::store::memoized::basic::MemoizedSelector<T, Option<f64>>
+    // where
+    //     T::State: serde_json::value::Index,
+    // {
+    //     Self::memoized(move |state: &T::State| {
+    //         state.get(array_path)
+    //             .and_then(|v| v.as_array())
+    //             .map(|arr| {
+    //                 arr.iter()
+    //                     .filter_map(|v| v.as_f64())
+    //                     .sum()
+    //             })
+    //     })
+    // }
 
     /// Create a selector that counts items matching a predicate
     pub fn count_matching<T: Store, F>(
@@ -163,25 +165,26 @@ impl SelectorFactory {
         })
     }
 
-    /// Create a selector that gets nested object properties
-    pub fn nested<T: Store, O>(
-        path: Vec<String>,
-    ) -> crate::store::memoized::basic::MemoizedSelector<T, Option<O>>
-    where
-        O: Clone + PartialEq + 'static,
-        T::State: serde_json::value::Index,
-    {
-        Self::memoized(move |state: &T::State| {
-            let mut current = state;
-            for key in &path {
-                match current.get(key) {
-                    Some(next) => current = next,
-                    None => return None,
-                }
-            }
-            serde_json::from_value(current.clone()).ok()
-        })
-    }
+    // TODO: Re-enable when JSON stores are properly supported
+    // /// Create a selector that gets nested object properties
+    // pub fn nested<T: Store, O>(
+    //     path: Vec<String>,
+    // ) -> crate::store::memoized::basic::MemoizedSelector<T, Option<O>>
+    // where
+    //     O: Clone + PartialEq + 'static,
+    //     T::State: serde_json::value::Index,
+    // {
+    //     Self::memoized(move |state: &T::State| {
+    //         let mut current = state;
+    //         for key in &path {
+    //             match current.get(key) {
+    //                 Some(next) => current = next,
+    //                 None => return None,
+    //             }
+    //         }
+    //         serde_json::from_value(current.clone()).ok()
+    //     })
+    // }
 
     /// Create a selector that transforms values
     pub fn transform<T: Store, A, B, F>(
@@ -222,7 +225,7 @@ impl SelectorFactory {
     ) -> crate::store::memoized::basic::MemoizedSelector<T, Option<O>>
     where
         F: Fn(&T::State) -> O + Send + Sync + 'static,
-        O: Clone + PartialEq + 'static,
+        O: Clone + PartialEq + Send + 'static,
     {
         let last_update = std::sync::Mutex::new(std::time::Instant::now());
         let cached_result = std::sync::Mutex::new(None);
@@ -249,7 +252,7 @@ impl SelectorFactory {
     ) -> crate::store::memoized::basic::MemoizedSelector<T, Option<O>>
     where
         F: Fn(&T::State) -> O + Send + Sync + 'static,
-        O: Clone + PartialEq + 'static,
+        O: Clone + PartialEq + Send + 'static,
     {
         let last_update = std::sync::Mutex::new(std::time::Instant::now());
         let cached_result = std::sync::Mutex::new(None);
@@ -276,7 +279,7 @@ impl SelectorFactory {
     ) -> crate::store::memoized::basic::MemoizedSelector<T, O>
     where
         F: Fn(&T::State) -> Option<O> + Send + Sync + 'static,
-        O: Clone + PartialEq + 'static,
+        O: Clone + PartialEq + Send + 'static,
     {
         Self::memoized(move |state: &T::State| {
             selector(state).unwrap_or_else(|| default_value.clone())
@@ -332,71 +335,9 @@ impl SelectorFactory {
     }
 }
 
-/// Selector presets for common use cases
-pub mod presets {
-    use super::*;
 
-    /// Create a user authentication status selector
-    pub fn auth_status<T: Store>() -> crate::store::memoized::basic::MemoizedSelector<T, bool>
-    where
-        T::State: serde_json::value::Index,
-    {
-        SelectorFactory::field_exists("user")
-    }
-
-    /// Create a user permissions selector
-    pub fn user_permissions<T: Store>() -> crate::store::memoized::basic::MemoizedSelector<T, Option<Vec<String>>>
-    where
-        T::State: serde_json::value::Index,
-    {
-        SelectorFactory::field("user.permissions")
-    }
-
-    /// Create a loading state selector
-    pub fn is_loading<T: Store>() -> crate::store::memoized::basic::MemoizedSelector<T, bool>
-    where
-        T::State: serde_json::value::Index,
-    {
-        SelectorFactory::field_exists("loading")
-    }
-
-    /// Create an error state selector
-    pub fn has_errors<T: Store>() -> crate::store::memoized::basic::MemoizedSelector<T, bool>
-    where
-        T::State: serde_json::value::Index,
-    {
-        SelectorFactory::field_exists("errors")
-    }
-
-    /// Create a data length selector
-    pub fn data_length<T: Store>() -> crate::store::memoized::basic::MemoizedSelector<T, Option<usize>>
-    where
-        T::State: serde_json::value::Index,
-    {
-        SelectorFactory::array_length("data")
-    }
-
-    /// Create a search results count selector
-    pub fn search_results_count<T: Store>() -> crate::store::memoized::basic::MemoizedSelector<T, Option<usize>>
-    where
-        T::State: serde_json::value::Index,
-    {
-        SelectorFactory::array_length("searchResults")
-    }
-
-    /// Create a cart total selector
-    pub fn cart_total<T: Store>() -> crate::store::memoized::basic::MemoizedSelector<T, Option<f64>>
-    where
-        T::State: serde_json::value::Index,
-    {
-        SelectorFactory::array_sum("cart.items.price")
-    }
-
-    /// Create a notification count selector
-    pub fn notification_count<T: Store>() -> crate::store::memoized::basic::MemoizedSelector<T, Option<usize>>
-    where
-        T::State: serde_json::value::Index,
-    {
-        SelectorFactory::array_length("notifications")
-    }
-}
+// TODO: Re-enable selector presets when JSON-based stores are properly supported
+// /// Selector presets for common use cases
+// pub mod presets {
+//     use super::*;
+// }

@@ -1,4 +1,3 @@
-use crate::machine::core_errors::{MachineError, MachineResult};
 use crate::machine::core_machine::Machine;
 use crate::machine::core_state::StateNode;
 use crate::machine::core_traits::MachineBuilder;
@@ -15,7 +14,7 @@ where
     E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static + std::hash::Hash + Eq,
     C: Clone + PartialEq + Send + Sync + std::fmt::Debug + 'static,
 {
-    states: HashMap<String, StateNode<S, E, C>>,
+    states: HashMap<String, StateNode<C, E, C>>,
     initial_state: Option<String>,
     current_state: Option<String>,
     _phantom: std::marker::PhantomData<C>,
@@ -63,7 +62,10 @@ where
         self
     }
 
-    fn build_with_context(self, context: C) -> crate::StateResult<Machine<C, E, S>> {
+    fn build_with_context(self, context: C) -> crate::StateResult<Machine<C, E, C>>
+    where
+        C: Clone + std::fmt::Debug,
+    {
         let initial_state = self.initial_state.ok_or(crate::StateError::StateNotFound(
             "No initial state set".to_string(),
         ))?;
@@ -75,7 +77,11 @@ where
             )));
         }
 
-        let mut machine = Machine::new("built_machine".to_string(), context);
+        let mut machine = Machine::<C, E, C> {
+            states: HashMap::new(),
+            initial: initial_state.clone(),
+            _phantom: std::marker::PhantomData,
+        };
 
         for (_, state) in self.states {
             machine.add_state(state);

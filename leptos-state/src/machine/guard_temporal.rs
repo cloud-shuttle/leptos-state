@@ -14,6 +14,19 @@ pub struct TimeGuard<C, E> {
     pub start_time: std::sync::Mutex<Option<u64>>,
     /// Description of the guard
     pub description: String,
+    /// Phantom data for unused type parameters
+    _phantom: std::marker::PhantomData<(C, E)>,
+}
+
+impl<C, E> std::fmt::Debug for TimeGuard<C, E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TimeGuard")
+            .field("min_time_ms", &self.min_time_ms)
+            .field("max_time_ms", &self.max_time_ms)
+            .field("start_time", &self.start_time)
+            .field("description", &self.description)
+            .finish()
+    }
 }
 
 impl<C, E> TimeGuard<C, E> {
@@ -30,6 +43,7 @@ impl<C, E> TimeGuard<C, E> {
             }),
             start_time: std::sync::Mutex::new(None),
             description: "Time Guard".to_string(),
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -60,7 +74,7 @@ impl<C, E> TimeGuard<C, E> {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for TimeGuard<C, E> {
+impl<C: Send + Sync, E: Send + Sync> GuardEvaluator<C, E> for TimeGuard<C, E> {
     fn check(&self, _context: &C, _event: &E) -> bool {
         let current_time = (self.time_source)();
         let mut start_time = self.start_time.lock().unwrap();
@@ -123,6 +137,20 @@ pub struct CounterGuard<C, E> {
     pub time_source: Box<dyn Fn() -> u64 + Send + Sync>,
     /// Description of the guard
     pub description: String,
+    /// Phantom data for unused type parameters
+    _phantom: std::marker::PhantomData<(C, E)>,
+}
+
+impl<C, E> std::fmt::Debug for CounterGuard<C, E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CounterGuard")
+            .field("max_count", &self.max_count)
+            .field("current_count", &self.current_count)
+            .field("reset_interval", &self.reset_interval)
+            .field("last_reset", &self.last_reset)
+            .field("description", &self.description)
+            .finish()
+    }
 }
 
 impl<C, E> CounterGuard<C, E> {
@@ -140,6 +168,7 @@ impl<C, E> CounterGuard<C, E> {
                     .as_millis() as u64
             }),
             description: "Counter Guard".to_string(),
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -176,7 +205,7 @@ impl<C, E> CounterGuard<C, E> {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for CounterGuard<C, E> {
+impl<C: Send + Sync, E: Send + Sync> GuardEvaluator<C, E> for CounterGuard<C, E> {
     fn check(&self, _context: &C, _event: &E) -> bool {
         // Check if we need to reset
         if let Some(interval) = self.reset_interval {
@@ -236,6 +265,19 @@ pub struct RateLimitGuard<C, E> {
     pub time_source: Box<dyn Fn() -> u64 + Send + Sync>,
     /// Description of the guard
     pub description: String,
+    /// Phantom data for unused type parameters
+    _phantom: std::marker::PhantomData<(C, E)>,
+}
+
+impl<C, E> std::fmt::Debug for RateLimitGuard<C, E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RateLimitGuard")
+            .field("max_per_window", &self.max_per_window)
+            .field("window_ms", &self.window_ms)
+            .field("timestamps", &self.timestamps)
+            .field("description", &self.description)
+            .finish()
+    }
 }
 
 impl<C, E> RateLimitGuard<C, E> {
@@ -252,6 +294,7 @@ impl<C, E> RateLimitGuard<C, E> {
                     .as_millis() as u64
             }),
             description: "Rate Limit Guard".to_string(),
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -271,7 +314,7 @@ impl<C, E> RateLimitGuard<C, E> {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for RateLimitGuard<C, E> {
+impl<C: Send + Sync, E: Send + Sync> GuardEvaluator<C, E> for RateLimitGuard<C, E> {
     fn check(&self, _context: &C, _event: &E) -> bool {
         let current_time = (self.time_source)();
         let mut timestamps = self.timestamps.lock().unwrap();
@@ -317,6 +360,18 @@ pub struct CooldownGuard<C, E> {
     pub time_source: Box<dyn Fn() -> u64 + Send + Sync>,
     /// Description of the guard
     pub description: String,
+    /// Phantom data for unused type parameters
+    _phantom: std::marker::PhantomData<(C, E)>,
+}
+
+impl<C, E> std::fmt::Debug for CooldownGuard<C, E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CooldownGuard")
+            .field("cooldown_ms", &self.cooldown_ms)
+            .field("last_activation", &self.last_activation)
+            .field("description", &self.description)
+            .finish()
+    }
 }
 
 impl<C, E> CooldownGuard<C, E> {
@@ -332,6 +387,7 @@ impl<C, E> CooldownGuard<C, E> {
                     .as_millis() as u64
             }),
             description: "Cooldown Guard".to_string(),
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -351,7 +407,7 @@ impl<C, E> CooldownGuard<C, E> {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for CooldownGuard<C, E> {
+impl<C: Send + Sync, E: Send + Sync> GuardEvaluator<C, E> for CooldownGuard<C, E> {
     fn check(&self, _context: &C, _event: &E) -> bool {
         let current_time = (self.time_source)();
         let mut last_activation = self.last_activation.lock().unwrap();

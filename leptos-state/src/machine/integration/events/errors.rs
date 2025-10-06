@@ -173,7 +173,7 @@ impl Default for ErrorAction {
 }
 
 /// Integration error
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone)]
 pub struct IntegrationError {
     /// Error message
     pub message: String,

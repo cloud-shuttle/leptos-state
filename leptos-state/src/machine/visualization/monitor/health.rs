@@ -3,7 +3,7 @@
 use crate::machine::{Machine, MachineStateImpl};
 
 /// Health checker for state machines
-pub struct HealthChecker<C: Send + Sync, E> {
+pub struct HealthChecker<C: Send + Sync + Clone + std::fmt::Debug, E: Send + Sync + Clone + std::fmt::Debug + PartialEq> {
     /// Machine being checked
     machine: Option<Machine<C, E, C>>,
     /// Last health check time
@@ -20,7 +20,7 @@ pub struct HealthChecker<C: Send + Sync, E> {
     max_history: usize,
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> HealthChecker<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static> HealthChecker<C, E> {
     /// Create a new health checker
     pub fn new() -> Self {
         Self {
@@ -85,7 +85,10 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 
     /// Perform actual machine health check
-    fn perform_machine_check(&self, machine: &Machine<C, E, C>) -> HealthCheckResult {
+    fn perform_machine_check(&self, machine: &Machine<C, E, C>) -> HealthCheckResult
+    where
+        E: Eq + std::hash::Hash,
+    {
         let start_time = std::time::Instant::now();
 
         // Try to get initial state
@@ -217,13 +220,13 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 }
 
-impl<C: Send + Sync, E> Default for HealthChecker<C, E> {
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static> Default for HealthChecker<C, E> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> std::fmt::Debug for HealthChecker<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static> std::fmt::Debug for HealthChecker<C, E> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("HealthChecker")
             .field("last_check", &self.last_check)
@@ -234,7 +237,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> std::fmt::Display for HealthChecker<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static> std::fmt::Display for HealthChecker<C, E> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -262,7 +265,7 @@ pub trait HealthCheck<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clo
     }
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> HealthCheck<C, E> for HealthChecker<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static> HealthCheck<C, E> for HealthChecker<C, E> {
     fn check_health(&self) -> HealthCheckResult {
         // This is a read-only check, so we need to clone or use a different approach
         // For simplicity, we'll return the last result

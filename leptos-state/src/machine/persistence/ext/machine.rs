@@ -5,7 +5,7 @@ use crate::machine::{Machine, MachinePersistence};
 use crate::StateResult;
 
 /// A state machine with persistence capabilities
-pub struct PersistentMachine<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> {
+pub struct PersistentMachine<C: crate::machine::core::traits::CloneableStateMachineType, E: crate::machine::core::traits::CloneableStateMachineType + PartialEq> {
     /// The underlying machine
     machine: Machine<C, E, C>,
     /// Persistence manager
@@ -14,7 +14,7 @@ pub struct PersistentMachine<C: Clone + Send + Sync + std::fmt::Debug + 'static,
     auto_save_enabled: bool,
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> PersistentMachine<C, E> {
+impl<C: crate::machine::core::traits::CloneableStateMachineType, E: crate::machine::core::traits::CloneableStateMachineType + PartialEq> PersistentMachine<C, E> {
     /// Create a new persistent machine
     pub fn new(machine: Machine<C, E, C>, persistence: MachinePersistence<C, E>) -> Self {
         Self {
@@ -42,7 +42,11 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 
     /// Transition to a new state
-    pub async fn transition(&mut self, event: E) -> StateResult<crate::machine::MachineStateImpl<C>> {
+    pub async fn transition(&mut self, event: E) -> StateResult<crate::machine::MachineStateImpl<C>>
+    where
+        C: Default + serde::Serialize + 'static,
+        E: Eq + std::hash::Hash + serde::Serialize + 'static,
+    {
         let result = self.machine.transition(&self.current_state(), event);
 
         if self.auto_save_enabled {
@@ -56,16 +60,25 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 
     /// Save the current state manually
-    pub async fn save(&self) -> Result<(), PersistenceError> {
+    pub async fn save(&self) -> Result<(), PersistenceError>
+    where
+        E: Eq + std::hash::Hash,
+        C: serde::Serialize + 'static,
+        E: serde::Serialize + 'static,
+    {
         self.persistence.save_machine_state(&self.machine, &self.current_state()).await
     }
 
     /// Load a saved state
-    pub async fn load(&mut self) -> Result<(), PersistenceError> {
-        if let Some((machine, state)) = self.persistence.load_machine_state().await? {
-            self.machine = machine;
-            // Note: The loaded state would need to be integrated with the current state
-        }
+    pub async fn load(&mut self) -> Result<(), PersistenceError>
+    where
+        E: Eq + std::hash::Hash,
+        C: for<'de> serde::Deserialize<'de> + Default + Clone + 'static,
+        E: for<'de> serde::Deserialize<'de> + Clone + 'static,
+    {
+        let (machine, state) = self.persistence.load_machine_state(&self.machine.id()).await?;
+        self.machine = machine;
+        // Note: The loaded state would need to be integrated with the current state
         Ok(())
     }
 
@@ -95,12 +108,12 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 
     /// Get machine statistics
-    pub async fn statistics(&self) -> Result<super::monitoring::PersistenceStats, PersistenceError> {
+    pub async fn statistics(&self) -> Result<super::super::manager::stats::PersistenceStats, PersistenceError> {
         self.persistence.get_statistics().await
     }
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Clone for PersistentMachine<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> Clone for PersistentMachine<C, E> {
     fn clone(&self) -> Self {
         // Note: This creates a new persistence manager, so statistics and state will not be shared
         Self {

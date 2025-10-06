@@ -196,9 +196,9 @@ impl BackupManager {
     async fn store_local_backup(&self, entry: &BackupEntry, base_path: &PathBuf) -> Result<(), PersistenceError> {
         let backup_path = base_path.join(format!("{}.backup", entry.id));
         tokio::fs::create_dir_all(base_path).await
-            .map_err(|e| PersistenceError::IoError(e))?;
+            .map_err(|e| PersistenceError::IoError(e.to_string()))?;
         tokio::fs::write(&backup_path, &entry.data).await
-            .map_err(|e| PersistenceError::IoError(e))?;
+            .map_err(|e| PersistenceError::IoError(e.to_string()))?;
         Ok(())
     }
 
@@ -206,14 +206,14 @@ impl BackupManager {
     async fn restore_local_backup(&self, entry: &BackupEntry, base_path: &PathBuf) -> Result<Vec<u8>, PersistenceError> {
         let backup_path = base_path.join(format!("{}.backup", entry.id));
         tokio::fs::read(&backup_path).await
-            .map_err(|e| PersistenceError::IoError(e))
+            .map_err(|e| PersistenceError::IoError(e.to_string()))
     }
 
     /// Delete backup from local storage
     async fn delete_local_backup(&self, entry: &BackupEntry, base_path: &PathBuf) -> Result<(), PersistenceError> {
         let backup_path = base_path.join(format!("{}.backup", entry.id));
         tokio::fs::remove_file(&backup_path).await
-            .map_err(|e| PersistenceError::IoError(e))
+            .map_err(|e| PersistenceError::IoError(e.to_string()))
     }
 
     /// Get backup count

@@ -3,7 +3,8 @@
 use crate::machine::{Machine, MachineStateImpl};
 
 /// Real-time state information
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct StateInfo<C: Send + Sync + std::fmt::Debug, E: std::fmt::Debug + PartialEq> {
     /// Machine ID
     pub machine_id: String,
@@ -13,6 +14,8 @@ pub struct StateInfo<C: Send + Sync + std::fmt::Debug, E: std::fmt::Debug + Part
     pub status: StateStatus,
     /// Creation time
     pub created_at: std::time::SystemTime,
+    /// Phantom data for unused type parameter
+    _phantom: std::marker::PhantomData<E>,
     /// Last updated time
     pub last_updated: std::time::SystemTime,
     /// Transition count
@@ -25,7 +28,10 @@ pub struct StateInfo<C: Send + Sync + std::fmt::Debug, E: std::fmt::Debug + Part
 
 impl<C: Send + Sync + std::fmt::Debug + Clone + 'static, E: std::fmt::Debug + PartialEq + Clone + Send + Sync + 'static> StateInfo<C, E> {
     /// Create new state info from a machine
-    pub fn from_machine(machine: &Machine<C, E, C>) -> Self {
+    pub fn from_machine(machine: &Machine<C, E, C>) -> Self
+    where
+        E: Eq + std::hash::Hash,
+    {
         let now = std::time::SystemTime::now();
         Self {
             machine_id: machine.id().to_string(),
@@ -36,6 +42,7 @@ impl<C: Send + Sync + std::fmt::Debug + Clone + 'static, E: std::fmt::Debug + Pa
             transition_count: 0,
             error_count: 0,
             metadata: std::collections::HashMap::new(),
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -115,7 +122,11 @@ impl<C: Send + Sync + std::fmt::Debug + Clone + 'static, E: std::fmt::Debug + Pa
     }
 
     /// Export to JSON
-    pub fn to_json(&self) -> Result<String, serde_json::Error> {
+    pub fn to_json(&self) -> Result<String, serde_json::Error>
+    where
+        C: serde::Serialize,
+        E: serde::Serialize,
+    {
         serde_json::to_string_pretty(self)
     }
 }

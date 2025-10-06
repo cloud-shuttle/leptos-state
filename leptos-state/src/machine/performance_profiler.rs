@@ -226,7 +226,7 @@ impl PerformanceProfiler {
                     0.2,
                     0.3,
                 )
-                .with_time(Duration::from_hours(4)),
+                .with_time(Duration::from_secs(14400)),
             );
         }
 
@@ -239,7 +239,7 @@ impl PerformanceProfiler {
                     0.3,
                     0.4,
                 )
-                .with_time(Duration::from_hours(8)),
+                .with_time(Duration::from_secs(28800)),
             );
         }
 

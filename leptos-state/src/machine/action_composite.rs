@@ -14,6 +14,20 @@ pub struct ConditionalAction<C, E, F> {
     pub description: String,
 }
 
+impl<C, E, F> std::fmt::Debug for ConditionalAction<C, E, F>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ConditionalAction")
+            .field("action", &self.action)
+            .field("else_action", &self.else_action)
+            .field("description", &self.description)
+            .finish()
+    }
+}
+
 impl<C, E, F> ConditionalAction<C, E, F>
 where
     F: Fn(&C, &E) -> bool + 'static,
@@ -82,6 +96,20 @@ pub struct SequentialAction<C, E> {
     pub description: String,
 }
 
+impl<C, E> std::fmt::Debug for SequentialAction<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SequentialAction")
+            .field("actions", &self.actions)
+            .field("continue_on_error", &self.continue_on_error)
+            .field("description", &self.description)
+            .finish()
+    }
+}
+
 impl<C, E> SequentialAction<C, E> {
     /// Create a new sequential action
     pub fn new(actions: Vec<Box<dyn Action<C, E>>>) -> Self {
@@ -144,6 +172,20 @@ pub struct ParallelAction<C, E> {
     pub max_concurrent: usize,
     /// Description of the parallel action
     pub description: String,
+}
+
+impl<C, E> std::fmt::Debug for ParallelAction<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ParallelAction")
+            .field("actions", &self.actions)
+            .field("max_concurrent", &self.max_concurrent)
+            .field("description", &self.description)
+            .finish()
+    }
 }
 
 impl<C, E> ParallelAction<C, E> {
@@ -211,6 +253,20 @@ pub struct CompositeAction<C, E> {
     pub logic: CompositeLogic,
     /// Description of the composite action
     pub description: String,
+}
+
+impl<C, E> std::fmt::Debug for CompositeAction<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CompositeAction")
+            .field("actions", &self.actions)
+            .field("logic", &self.logic)
+            .field("description", &self.description)
+            .finish()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

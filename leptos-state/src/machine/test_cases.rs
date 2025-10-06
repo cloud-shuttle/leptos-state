@@ -128,7 +128,10 @@ impl<
     }
 
     /// Execute a test case
-    pub fn execute_test_case(&self, test_case: &TestCase<C, E>) -> TestResult {
+    pub fn execute_test_case(&self, test_case: &TestCase<C, E>) -> TestResult
+    where
+        E: Eq + std::hash::Hash,
+    {
         let start_time = std::time::Instant::now();
         let mut current_state = self.machine.initial_state();
         let mut current_context = test_case.initial_context.clone();
@@ -190,8 +193,16 @@ impl<
             performance: PerformanceMetrics {
                 avg_transition_time: execution_time / transitions_executed.max(1) as u32,
                 max_transition_time: execution_time,
+                min_transition_time: execution_time,
+                total_transitions: transitions_executed as usize,
+                cache_hit_rate: 0.0,
                 memory_usage: 0,
+                peak_memory_usage: 0,
                 allocations: 0,
+                deallocations: 0,
+                cpu_time: execution_time,
+                io_time: std::time::Duration::ZERO,
+                concurrent_operations: 0,
             },
         }
     }

@@ -49,7 +49,7 @@ pub trait StateInvariant<S> where S: Clone + std::fmt::Debug + PartialEq + Send 
 
 /// Test store wrapper with additional testing capabilities
 pub struct TestStore<S> where S: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static {
-    store: Store<S>,
+    store: crate::store::SimpleStore<S>,
     invariants: Vec<Box<dyn StateInvariant<S>>>,
     operation_log: Vec<TestOperation<S>>,
 }
@@ -63,7 +63,7 @@ pub struct TestOperation<S> {
 }
 
 /// Test machine wrapper with state machine testing capabilities
-pub struct TestMachine<C, E> where C: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static, E: Clone + std::fmt::Debug + Send + Sync + 'static {
+pub struct TestMachine<C, E> where C: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static, E: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static {
     machine: Machine<C, E, C>,
     invariants: Vec<Box<dyn StateInvariant<C>>>,
     transition_log: Vec<TestTransition<C>>,
@@ -99,18 +99,18 @@ impl<S> PropertyTestSuite<S> where S: Clone + std::fmt::Debug + PartialEq + Send
     }
 }
 
-impl<S where S: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static> TestStore<S> {
+impl<S> TestStore<S> where S: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static {
     /// Create a new test store
     pub fn new(initial: S) -> Self {
         Self {
-            store: Store::new(initial),
+            store: crate::store::SimpleStore::new(initial),
             invariants: Vec::new(),
             operation_log: Vec::new(),
         }
     }
 }
 
-impl<C, E> TestMachine<C, E> where C: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static, E: Clone + std::fmt::Debug + Send + Sync + 'static {
+impl<C, E> TestMachine<C, E> where C: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static, E: Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static {
     /// Create a new test machine
     pub fn new(initial_state: &str, context: C) -> Self {
         Self {

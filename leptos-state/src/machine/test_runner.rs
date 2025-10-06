@@ -73,7 +73,10 @@ impl<
     }
 
     /// Run unit tests
-    pub fn run_unit_tests(&mut self) -> Option<Vec<TestResult>> {
+    pub fn run_unit_tests(&mut self) -> Option<Vec<TestResult>>
+    where
+        C: Default,
+    {
         let mut results = Vec::new();
         let start_time = Instant::now();
 
@@ -101,7 +104,11 @@ impl<
     }
 
     /// Test basic state transitions
-    fn test_basic_transitions(&mut self) -> Option<TestResult> {
+    fn test_basic_transitions(&mut self) -> Option<TestResult>
+    where
+        C: Default,
+        E: Eq + std::hash::Hash,
+    {
         let start_time = Instant::now();
         let mut transitions_executed = 0;
         let mut final_state = String::new();
@@ -133,14 +140,25 @@ impl<
             performance: PerformanceMetrics {
                 avg_transition_time: execution_time / transitions_executed.max(1) as u32,
                 max_transition_time: execution_time,
+                min_transition_time: execution_time,
+                total_transitions: transitions_executed as usize,
+                cache_hit_rate: 0.0,
                 memory_usage: 0,
+                peak_memory_usage: 0,
                 allocations: 0,
+                deallocations: 0,
+                cpu_time: execution_time,
+                io_time: std::time::Duration::ZERO,
+                concurrent_operations: 0,
             },
         })
     }
 
     /// Test guard conditions
-    fn test_guard_conditions(&mut self) -> Option<TestResult> {
+    fn test_guard_conditions(&mut self) -> Option<TestResult>
+    where
+        C: Default,
+    {
         let start_time = Instant::now();
         let mut transitions_executed = 0;
         let mut final_state = String::new();
@@ -169,8 +187,16 @@ impl<
             performance: PerformanceMetrics {
                 avg_transition_time: execution_time / transitions_executed.max(1) as u32,
                 max_transition_time: execution_time,
+                min_transition_time: execution_time,
+                total_transitions: transitions_executed as usize,
+                cache_hit_rate: 0.0,
                 memory_usage: 0,
+                peak_memory_usage: 0,
                 allocations: 0,
+                deallocations: 0,
+                cpu_time: execution_time,
+                io_time: std::time::Duration::ZERO,
+                concurrent_operations: 0,
             },
         })
     }
@@ -204,8 +230,16 @@ impl<
             performance: PerformanceMetrics {
                 avg_transition_time: execution_time / transitions_executed.max(1) as u32,
                 max_transition_time: execution_time,
+                min_transition_time: execution_time,
+                total_transitions: transitions_executed as usize,
+                cache_hit_rate: 0.0,
                 memory_usage: 0,
+                peak_memory_usage: 0,
                 allocations: 0,
+                deallocations: 0,
+                cpu_time: execution_time,
+                io_time: std::time::Duration::ZERO,
+                concurrent_operations: 0,
             },
         })
     }
@@ -239,8 +273,16 @@ impl<
             performance: PerformanceMetrics {
                 avg_transition_time: execution_time / transitions_executed.max(1) as u32,
                 max_transition_time: execution_time,
+                min_transition_time: execution_time,
+                total_transitions: transitions_executed as usize,
+                cache_hit_rate: 0.0,
                 memory_usage: 0,
+                peak_memory_usage: 0,
                 allocations: 0,
+                deallocations: 0,
+                cpu_time: execution_time,
+                io_time: std::time::Duration::ZERO,
+                concurrent_operations: 0,
             },
         })
     }

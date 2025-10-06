@@ -6,8 +6,8 @@ use std::time::Duration;
 
 /// Test builder for fluent test creation
 pub struct TestBuilder<
-    C: Send + Sync + Clone + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 > {
     /// Machine being tested
     pub machine: Machine<C, E, C>,
@@ -22,8 +22,8 @@ pub struct TestBuilder<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     > TestBuilder<C, E>
 {
     /// Create a new test builder
@@ -63,7 +63,7 @@ impl<
 
     /// Build and run all tests
     pub fn build_and_run(self) -> TestSuiteResult {
-        let mut runner = MachineTestRunner::new(self.machine, self.config);
+        let mut runner = TestRunner::new(self.machine, self.config);
         let mut results = Vec::new();
 
         // Run unit tests
@@ -101,8 +101,16 @@ impl<
                         performance: PerformanceMetrics {
                             avg_transition_time: Duration::from_nanos(0),
                             max_transition_time: Duration::from_nanos(0),
+                            min_transition_time: Duration::from_nanos(0),
+                            total_transitions: 0,
+                            cache_hit_rate: 0.0,
                             memory_usage: 0,
+                            peak_memory_usage: 0,
                             allocations: 0,
+                            deallocations: 0,
+                            cpu_time: Duration::from_nanos(0),
+                            io_time: Duration::from_nanos(0),
+                            concurrent_operations: 0,
                         },
                     });
                 }
@@ -191,8 +199,8 @@ impl TestSuiteResult {
 
 /// Extension trait for adding testing to machines
 pub trait MachineTestingExt<
-    C: Send + Sync + Clone + PartialEq + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 >
 {
     /// Create a test builder for this machine
@@ -200,8 +208,8 @@ pub trait MachineTestingExt<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     > MachineTestingExt<C, E> for Machine<C, E, C>
 {
     fn test(&self) -> TestBuilder<C, E> {

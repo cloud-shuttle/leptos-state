@@ -141,7 +141,7 @@ where
 /// Create a simple callback that uses a single context value
 pub fn use_context_callback_simple<T, F>(f: F) -> Callback<()>
 where
-    T: Clone + Send + Sync + Default + 'static,
+    T: crate::machine::core::traits::CloneableStateMachineType + Default,
     F: Fn(&T) + Send + Sync + 'static,
 {
     // Use the current Leptos API directly
@@ -152,8 +152,8 @@ where
 /// Create a simple callback that uses multiple context values
 pub fn use_contexts_callback_simple<T1, T2, F>(f: F) -> Callback<()>
 where
-    T1: Clone + Send + Sync + Default + 'static,
-    T2: Clone + Send + Sync + Default + 'static,
+    T1: crate::machine::core::traits::CloneableStateMachineType + Default,
+    T2: crate::machine::core::traits::CloneableStateMachineType + Default,
     F: Fn(&T1, &T2) + Send + Sync + 'static,
 {
     // Use the current Leptos API directly

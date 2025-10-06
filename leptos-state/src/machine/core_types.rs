@@ -1,14 +1,15 @@
 use super::*;
 use crate::machine::states::StateValue;
+use crate::machine::core::core::MachineState;
 use crate::StateResult;
 use std::collections::HashMap;
 
 /// State node in the machine definition
 #[derive(Debug)]
 pub struct StateNode<
-    C: Clone + std::fmt::Debug + Default + 'static,
-    E: Send + Clone + std::fmt::Debug + 'static,
-    S: Clone + std::fmt::Debug,
+    C: crate::machine::core::traits::CloneableStateMachineType,
+    E: crate::machine::core::traits::CloneableStateMachineType + PartialEq,
+    S: crate::machine::core::traits::CloneableStateMachineType,
 > {
     pub id: String,
     pub transitions: Vec<Transition<C, E>>,
@@ -22,8 +23,8 @@ pub struct StateNode<
 /// Transition definition
 #[derive(Debug)]
 pub struct Transition<
-    C: Clone + std::fmt::Debug + Default + 'static,
-    E: Send + Clone + std::fmt::Debug + 'static,
+    C: crate::machine::core::traits::CloneableStateMachineType,
+    E: crate::machine::core::traits::CloneableStateMachineType + PartialEq,
 > {
     pub event: E,
     pub target: String,
@@ -34,55 +35,25 @@ pub struct Transition<
 /// Complete machine implementation
 #[derive(Debug)]
 pub struct Machine<
-    C: Send + Sync + Clone + std::fmt::Debug + Default + 'static,
-    E: Send + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
-    S: Clone + std::fmt::Debug,
+    C: crate::machine::core::traits::CloneableStateMachineType,
+    E: crate::machine::core::traits::EquatableStateMachineType,
+    S: crate::machine::core::traits::CloneableStateMachineType,
 > {
     pub states: HashMap<String, StateNode<C, E, C>>,
     pub initial: String,
     pub _phantom: std::marker::PhantomData<S>,
 }
 
-// Manual Clone implementation for Transition since trait objects can't be cloned
-impl<C: Clone + Default, E: Clone + Send> Clone for Transition<C, E> {
-    fn clone(&self) -> Self {
-        Self {
-            event: self.event.clone(),
-            target: self.target.clone(),
-            guards: Vec::new(), // Can't clone trait objects, so we create empty vectors
-            actions: Vec::new(),
-        }
-    }
-}
+// Note: Transition does not implement Clone because it contains trait objects (guards/actions) that can't be cloned
 
-// Manual Clone implementation for StateNode since Action trait objects can't be cloned
-impl<C: Clone + Default, E: Clone + Send> Clone for StateNode<C, E, C> {
-    fn clone(&self) -> Self {
-        Self {
-            id: self.id.clone(),
-            transitions: self.transitions.clone(),
-            entry_actions: Vec::new(), // Can't clone trait objects, so we create empty vectors
-            exit_actions: Vec::new(),
-            child_states: self.child_states.clone(),
-            initial_child: self.initial_child.clone(),
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
+// Note: StateNode does not implement Clone because Action trait objects can't be cloned
+// If cloning is needed, create a new StateNode with the same configuration
 
-// Manual Clone implementation for Machine since trait objects can't be cloned
-impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> Clone for Machine<C, E, C> {
-    fn clone(&self) -> Self {
-        Self {
-            states: self.states.clone(),
-            initial: self.initial.clone(),
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
+// Note: Machine does not implement Clone because StateNode trait objects can't be cloned
+// If cloning is needed, rebuild the machine from its configuration
 
 
-impl<C: Send + Sync + Clone + std::fmt::Debug + Default + 'static, E: Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash> Machine<C, E, C> {
+impl<C: crate::machine::core::traits::CloneableStateMachineType, E: crate::machine::core::traits::EquatableStateMachineType> Machine<C, E, C> {
     /// Get all state IDs in the machine
     pub fn get_states(&self) -> Vec<String> {
         self.states.keys().cloned().collect()

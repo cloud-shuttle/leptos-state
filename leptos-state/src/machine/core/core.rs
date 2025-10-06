@@ -2,10 +2,32 @@
 
 use super::*;
 use crate::machine::states::StateValue;
-use crate::StateResult;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::marker::PhantomData;
+
+/// Standardized trait hierarchy for state machine types
+pub mod traits {
+    /// Level 1: Minimal requirements for any state machine type
+    pub trait StateMachineType: Send + Sync + 'static {}
+
+    impl<T: Send + Sync + 'static> StateMachineType for T {}
+
+    /// Level 2: Types that can be cloned and debugged
+    pub trait CloneableStateMachineType: StateMachineType + Clone + std::fmt::Debug {}
+
+    impl<T: StateMachineType + Clone + std::fmt::Debug> CloneableStateMachineType for T {}
+
+    /// Level 3: Types that support equality and hashing
+    pub trait EquatableStateMachineType: CloneableStateMachineType + PartialEq + Eq + std::hash::Hash {}
+
+    impl<T: CloneableStateMachineType + PartialEq + Eq + std::hash::Hash> EquatableStateMachineType for T {}
+
+    /// Level 4: Types that support serialization
+    pub trait SerializableStateMachineType: CloneableStateMachineType + serde::Serialize + for<'de> serde::Deserialize<'de> {}
+
+    impl<T: CloneableStateMachineType + serde::Serialize + for<'de> serde::Deserialize<'de>> SerializableStateMachineType for T {}
+}
 
 // Re-export builders for convenience
 pub use builders::*;
@@ -65,11 +87,11 @@ where
 }
 
 /// Complete machine implementation
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Machine<
-    C: Send + Sync + Clone + std::fmt::Debug + 'static,
-    E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
-    S: Clone + std::fmt::Debug,
+    C: traits::CloneableStateMachineType,
+    E: traits::CloneableStateMachineType + PartialEq,
+    S: traits::CloneableStateMachineType,
 > {
     pub states: HashMap<String, StateNode<C, E, C>>,
     pub initial: String,
@@ -77,7 +99,7 @@ pub struct Machine<
 }
 
 // Manual Clone implementation for Transition since trait objects can't be cloned
-impl<C: Clone, E: Clone + Send> Clone for Transition<C, E> {
+impl<C: Clone + std::fmt::Debug + 'static, E: Clone + Send + std::fmt::Debug + 'static> Clone for Transition<C, E> {
     fn clone(&self) -> Self {
         Self {
             event: self.event.clone(),
@@ -89,7 +111,7 @@ impl<C: Clone, E: Clone + Send> Clone for Transition<C, E> {
 }
 
 // Manual Clone implementation for StateNode since Action trait objects can't be cloned
-impl<C: Clone, E: Clone + Send> Clone for StateNode<C, E, C> {
+impl<C: Clone + std::fmt::Debug + 'static, E: Clone + Send + std::fmt::Debug + 'static> Clone for StateNode<C, E, C> {
     fn clone(&self) -> Self {
         Self {
             id: self.id.clone(),
@@ -104,7 +126,7 @@ impl<C: Clone, E: Clone + Send> Clone for StateNode<C, E, C> {
 }
 
 
-impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + std::fmt::Debug + PartialEq + 'static> Machine<C, E, C> {
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> Machine<C, E, C> {
     /// Get all state IDs in the machine
     pub fn get_states(&self) -> Vec<String> {
         self.states.keys().cloned().collect()
@@ -115,29 +137,50 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + std::fmt::De
         &self.initial
     }
 
+    /// Get a unique identifier for this machine
+    pub fn id(&self) -> String {
+        format!("machine_{}", self.initial)
+    }
+
     /// Get a reference to the states map
     pub fn states_map(&self) -> &HashMap<String, StateNode<C, E, C>> {
         &self.states
     }
 
     /// Get initial state for this machine
-    pub fn initial_state(&self) -> MachineStateImpl<C> {
+    pub fn initial_state(&self) -> MachineStateImpl<C>
+    where
+        C: Default,
+        E: Eq + std::hash::Hash,
+    {
         transitions::initial_state(self)
     }
 
     /// Create initial state with custom context
-    pub fn initial_with_context(&self, context: C) -> MachineStateImpl<C> {
+    pub fn initial_with_context(&self, context: C) -> MachineStateImpl<C>
+    where
+        C: Default,
+        E: Eq + std::hash::Hash,
+    {
         transitions::initial_with_context(self, context)
     }
 
     /// Transition from one state to another based on an event
-    pub fn transition(&self, state: &MachineStateImpl<C>, event: E) -> MachineStateImpl<C> {
+    pub fn transition(&self, state: &MachineStateImpl<C>, event: E) -> MachineStateImpl<C>
+    where
+        C: Default,
+        E: Eq + std::hash::Hash,
+    {
         transitions::transition(self, state, event)
     }
 }
 
+// Note: Machine does not implement Clone because it contains trait objects (actions) that can't be cloned
+
 /// Concrete implementation of machine state
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(bound(serialize = "C: serde::Serialize", deserialize = "C: serde::Deserialize<'de>")))]
 pub struct MachineStateImpl<C: Send + Sync> {
     pub value: StateValue,
     pub context: C,

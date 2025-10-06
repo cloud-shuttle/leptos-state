@@ -16,7 +16,7 @@ pub struct TimeTravelDebugger<C: Send + Sync + std::fmt::Debug, E: std::fmt::Deb
     pub max_snapshots: usize,
 }
 
-impl<C: Send + Sync, E> TimeTravelDebugger<C, E> {
+impl<C: Send + Sync + std::fmt::Debug, E: std::fmt::Debug> TimeTravelDebugger<C, E> {
     /// Create a new time travel debugger
     pub fn new() -> Self {
         Self {
@@ -194,7 +194,7 @@ impl Default for VisualizationStats {
 
 impl VisualizationStats {
     /// Update statistics with new data
-    pub fn update<C: Clone + Send + Sync, E: Clone>(&mut self, visualizer: &MachineVisualizer<C, E>) {
+    pub fn update<C: Clone + Send + Sync + std::fmt::Debug + PartialEq, E: Clone + Send + Sync + std::fmt::Debug + PartialEq>(&mut self, visualizer: &MachineVisualizer<C, E>) {
         self.total_events = visualizer.event_history.len();
         self.total_transitions = visualizer.state_history.len();
         self.total_errors = visualizer.error_log.len();
@@ -337,7 +337,7 @@ impl<C, E> Clone for BreakpointType<C, E> {
                 to: to.clone(),
             },
             Self::Event(s) => Self::Event(s.clone()),
-            Self::Error(e) => Self::Error(*e),
+            Self::Error(e) => Self::Error(e.clone()),
             Self::GuardFailure => Self::GuardFailure,
             Self::Custom(_) => Self::GuardFailure, // Can't clone trait objects, fallback
         }

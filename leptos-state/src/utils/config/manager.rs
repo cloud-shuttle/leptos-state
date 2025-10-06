@@ -5,7 +5,6 @@ use super::environment::Environment;
 use super::logging::LogLevel;
 
 /// Configuration manager
-#[derive(Debug)]
 pub struct ConfigManager {
     /// Current configuration
     config: Config,
@@ -52,7 +51,10 @@ impl ConfigManager {
     /// Update the configuration
     pub fn update_config(&mut self, new_config: Config) -> Result<(), String> {
         // Validate the new configuration
-        new_config.validate()?;
+        match new_config.validate() {
+            Ok(()) => {},
+            Err(errors) => return Err(errors.join("; ")),
+        }
 
         let old_config = self.config.clone();
         self.config = new_config.clone();
@@ -259,6 +261,18 @@ impl ConfigManager {
             is_valid: self.is_valid(),
             last_change: self.last_change().map(|(time, _)| *time),
         }
+    }
+}
+
+impl std::fmt::Debug for ConfigManager {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ConfigManager")
+            .field("config", &self.config)
+            .field("environment", &self.environment)
+            .field("history", &self.history)
+            .field("max_history", &self.max_history)
+            .field("listeners_count", &self.listeners.len())
+            .finish()
     }
 }
 

@@ -3,14 +3,14 @@
 use super::*;
 
 /// Builder for complex guard combinations
-pub struct GuardBuilder<C, E> {
+pub struct GuardBuilder<C: crate::machine::core::traits::CloneableStateMachineType, E: crate::machine::core::traits::EquatableStateMachineType> {
     /// Built guards
     pub guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
     /// Description of the builder
     pub description: String,
 }
 
-impl<C, E> GuardBuilder<C, E> {
+impl<C: crate::machine::core::traits::CloneableStateMachineType, E: crate::machine::core::traits::EquatableStateMachineType> GuardBuilder<C, E> {
     /// Create a new guard builder
     pub fn new() -> Self {
         Self {
@@ -28,7 +28,7 @@ impl<C, E> GuardBuilder<C, E> {
     /// Add a function guard
     pub fn function<F>(mut self, func: F) -> Self
     where
-        F: Fn(&C, &E) -> bool + Clone + 'static,
+        F: Fn(&C, &E) -> bool + Clone + Send + Sync + 'static,
     {
         self.guards.push(Box::new(FunctionGuard::new(func)));
         self
@@ -47,7 +47,7 @@ impl<C, E> GuardBuilder<C, E> {
     }
 
     /// Add a field equality guard
-    pub fn field_equals<T: Send + Sync, F: Send + Sync>(mut self, field_extractor: F, expected_value: T) -> Self
+    pub fn field_equals<T: Send + Sync + std::fmt::Debug, F: Send + Sync>(mut self, field_extractor: F, expected_value: T) -> Self
     where
         F: Fn(&C) -> &T + Clone + 'static,
         T: PartialEq + Clone + 'static,
@@ -62,8 +62,8 @@ impl<C, E> GuardBuilder<C, E> {
     /// Add a range guard
     pub fn in_range<T, F>(mut self, field_extractor: F) -> RangeGuardBuilder<C, E, T, F>
     where
-        F: Fn(&C) -> &T + Clone + 'static,
-        T: PartialOrd + Clone + 'static,
+        F: Fn(&C) -> &T + Clone + Send + Sync + 'static,
+        T: PartialOrd + Clone + std::fmt::Debug + 'static,
     {
         RangeGuardBuilder::new(self, field_extractor)
     }
@@ -78,7 +78,7 @@ impl<C, E> GuardBuilder<C, E> {
     where
         F1: Fn(&C) -> &T + Clone + 'static,
         F2: Fn(&C) -> &T + Clone + 'static,
-        T: PartialOrd + PartialEq + Clone + 'static,
+        T: PartialOrd + PartialEq + Clone + std::fmt::Debug + 'static,
     {
         self.guards.push(Box::new(ComparisonGuard::new(
             field1_extractor,
@@ -154,7 +154,7 @@ impl<C, E> GuardBuilder<C, E> {
     pub fn composite(
         mut self,
         guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
-        logic: CompositeLogic,
+        logic: crate::machine::guards::composite::CompositeLogic,
     ) -> Self {
         self.guards
             .push(Box::new(CompositeGuard::new(guards, logic)));
@@ -172,7 +172,7 @@ impl<C, E> GuardBuilder<C, E> {
     }
 
     /// Create a composite guard from all added guards
-    pub fn composite_guard(mut self, logic: CompositeLogic) -> Box<dyn GuardEvaluator<C, E>> {
+    pub fn composite_guard(mut self, logic: crate::machine::guards::composite::CompositeLogic) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(
             CompositeGuard::new(std::mem::take(&mut self.guards), logic)
                 .with_description(self.description),
@@ -186,17 +186,17 @@ impl<C, E> GuardBuilder<C, E> {
 }
 
 /// Range guard builder
-pub struct RangeGuardBuilder<C, E, T, F> {
+pub struct RangeGuardBuilder<C: crate::machine::core::traits::CloneableStateMachineType, E: crate::machine::core::traits::EquatableStateMachineType, T, F> {
     parent_builder: GuardBuilder<C, E>,
     field_extractor: F,
     min_value: Option<T>,
     max_value: Option<T>,
 }
 
-impl<C, E, T: Send + Sync, F: Send + Sync> RangeGuardBuilder<C, E, T, F>
+impl<C: crate::machine::core::traits::CloneableStateMachineType, E: crate::machine::core::traits::EquatableStateMachineType, T: Send + Sync, F: Send + Sync> RangeGuardBuilder<C, E, T, F>
 where
     F: Fn(&C) -> &T + Clone + 'static,
-    T: PartialOrd + Clone + 'static,
+    T: PartialOrd + Clone + std::fmt::Debug + 'static,
 {
     /// Create a new range guard builder
     pub fn new(parent_builder: GuardBuilder<C, E>, field_extractor: F) -> Self {
@@ -344,49 +344,79 @@ pub mod guards {
     /// Create a function guard
     pub fn function<C, E, F>(func: F) -> Box<dyn GuardEvaluator<C, E>>
     where
-        F: Fn(&C, &E) -> bool + Clone + 'static,
+        C: std::fmt::Debug,
+        E: std::fmt::Debug + PartialEq,
+        F: Fn(&C, &E) -> bool + Clone + Send + Sync + 'static,
     {
         Box::new(FunctionGuard::new(func))
     }
 
     /// Create an always guard
-    pub fn always<C, E>() -> Box<dyn GuardEvaluator<C, E>> {
+    pub fn always<C, E>() -> Box<dyn GuardEvaluator<C, E>>
+    where
+        C: std::fmt::Debug + 'static,
+        E: std::fmt::Debug + PartialEq + 'static,
+    {
         Box::new(AlwaysGuard::new())
     }
 
     /// Create a never guard
-    pub fn never<C, E>() -> Box<dyn GuardEvaluator<C, E>> {
+    pub fn never<C, E>() -> Box<dyn GuardEvaluator<C, E>>
+    where
+        C: std::fmt::Debug + 'static,
+        E: std::fmt::Debug + PartialEq + 'static,
+    {
         Box::new(NeverGuard::new())
     }
 
     /// Create an AND guard
     pub fn and<C: 'static, E: 'static>(
         guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
-    ) -> Box<dyn GuardEvaluator<C, E>> {
+    ) -> Box<dyn GuardEvaluator<C, E>>
+    where
+        C: std::fmt::Debug,
+        E: std::fmt::Debug + PartialEq,
+    {
         Box::new(AndGuard::new(guards))
     }
 
     /// Create an OR guard
     pub fn or<C: 'static, E: 'static>(
         guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
-    ) -> Box<dyn GuardEvaluator<C, E>> {
+    ) -> Box<dyn GuardEvaluator<C, E>>
+    where
+        C: std::fmt::Debug,
+        E: std::fmt::Debug + PartialEq,
+    {
         Box::new(OrGuard::new(guards))
     }
 
     /// Create a NOT guard
     pub fn not<C: 'static, E: 'static>(
         guard: Box<dyn GuardEvaluator<C, E>>,
-    ) -> Box<dyn GuardEvaluator<C, E>> {
+    ) -> Box<dyn GuardEvaluator<C, E>>
+    where
+        C: std::fmt::Debug,
+        E: std::fmt::Debug + PartialEq,
+    {
         Box::new(NotGuard::new(guard))
     }
 
     /// Create a time guard
-    pub fn after_time<C, E>(min_time_ms: u64) -> Box<dyn GuardEvaluator<C, E>> {
+    pub fn after_time<C, E>(min_time_ms: u64) -> Box<dyn GuardEvaluator<C, E>>
+    where
+        C: std::fmt::Debug,
+        E: std::fmt::Debug + PartialEq,
+    {
         Box::new(TimeGuard::new(min_time_ms))
     }
 
     /// Create a counter guard
-    pub fn max_count<C, E>(max_count: usize) -> Box<dyn GuardEvaluator<C, E>> {
+    pub fn max_count<C, E>(max_count: usize) -> Box<dyn GuardEvaluator<C, E>>
+    where
+        C: std::fmt::Debug,
+        E: std::fmt::Debug + PartialEq,
+    {
         Box::new(CounterGuard::new(max_count))
     }
 
@@ -394,7 +424,11 @@ pub mod guards {
     pub fn composite<C, E>(
         guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
         logic: CompositeLogic,
-    ) -> Box<dyn GuardEvaluator<C, E>> {
+    ) -> Box<dyn GuardEvaluator<C, E>>
+    where
+        C: std::fmt::Debug,
+        E: std::fmt::Debug + PartialEq,
+    {
         Box::new(CompositeGuard::new(guards, logic))
     }
 }

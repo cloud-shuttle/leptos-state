@@ -133,8 +133,16 @@ impl PerformanceTracker {
         PerformanceMetrics {
             avg_transition_time: self.average_transition_time(),
             max_transition_time: self.max_transition_time(),
+            min_transition_time: self.min_transition_time(),
+            total_transitions: self.transition_times.len(),
+            cache_hit_rate: 0.0, // Not tracked
             memory_usage: self.average_memory_usage(),
+            peak_memory_usage: self.max_memory_usage(),
             allocations: self.average_allocation_count(),
+            deallocations: 0, // Not tracked
+            cpu_time: std::time::Duration::ZERO, // Not tracked
+            io_time: std::time::Duration::ZERO, // Not tracked
+            concurrent_operations: 0, // Not tracked
         }
     }
 

@@ -6,9 +6,9 @@ use std::collections::HashMap;
 #[derive(Debug)]
 pub struct StateNode<S, E, C>
 where
-    S: Clone + Send + Sync + 'static,
-    E: Clone + Send + Sync + 'static + std::hash::Hash + Eq,
-    C: Clone + Send + Sync + 'static,
+    S: crate::machine::core::traits::CloneableStateMachineType,
+    E: crate::machine::core::traits::EquatableStateMachineType,
+    C: crate::machine::core::traits::CloneableStateMachineType,
 {
     pub name: String,
     pub state_type: StateType,
@@ -23,9 +23,9 @@ where
 
 impl<S, E, C> StateNode<S, E, C>
 where
-    S: Clone + Send + Sync + 'static,
-    E: Clone + Send + Sync + 'static + std::hash::Hash + Eq,
-    C: Clone + PartialEq + Send + Sync + 'static,
+    S: crate::machine::core::traits::CloneableStateMachineType,
+    E: crate::machine::core::traits::EquatableStateMachineType,
+    C: crate::machine::core::traits::CloneableStateMachineType,
 {
     pub fn new(name: String, state_type: StateType, context: C) -> Self {
         Self {

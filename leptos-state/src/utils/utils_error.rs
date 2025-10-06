@@ -237,6 +237,7 @@ impl ErrorRecoveryStrategy {
     /// Execute the recovery strategy
     pub async fn execute<T, F, Fut>(&self, operation: F) -> Result<T, StateError>
     where
+        T: Default,
         F: Fn() -> Fut,
         Fut: std::future::Future<Output = Result<T, StateError>>,
     {

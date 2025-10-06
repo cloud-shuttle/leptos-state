@@ -185,7 +185,10 @@ impl<F> Drop for RepeatingTimer<F> {
     }
 }
 
-impl<F> std::fmt::Debug for RepeatingTimer<F> {
+impl<F> std::fmt::Debug for RepeatingTimer<F>
+where
+    F: Fn() + Send + Sync + 'static,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("RepeatingTimer")
             .field("interval", &self.interval)
@@ -197,7 +200,10 @@ impl<F> std::fmt::Debug for RepeatingTimer<F> {
     }
 }
 
-impl<F> std::fmt::Display for RepeatingTimer<F> {
+impl<F> std::fmt::Display for RepeatingTimer<F>
+where
+    F: Fn() + Send + Sync + 'static,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if !self.active {
             write!(f, "RepeatingTimer(stopped, {} executions)", self.execution_count)
@@ -219,16 +225,19 @@ pub struct TimerManager<F> {
     timers: Vec<RepeatingTimer<F>>,
 }
 
-impl<F> TimerManager<F>
-where
-    F: Fn() + Send + Sync + 'static,
-{
+impl<F> TimerManager<F> {
     /// Create a new timer manager
     pub fn new() -> Self {
         Self {
             timers: Vec::new(),
         }
     }
+}
+
+impl<F> TimerManager<F>
+where
+    F: Fn() + Send + Sync + 'static,
+{
 
     /// Add a timer to the manager
     pub fn add_timer(&mut self, timer: RepeatingTimer<F>) {

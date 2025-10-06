@@ -152,7 +152,7 @@ impl CombinationStrategy {
             }
             Self::Or => {
                 // For boolean-like types
-                results.iter().find(|r| *r != O::default()).cloned().unwrap_or_default()
+                results.iter().find(|r| **r != O::default()).cloned().unwrap_or_default()
             }
             Self::Sum => {
                 // For numeric types - simplified
@@ -236,7 +236,7 @@ pub mod composition {
     }
 
     /// Create a selector that filters results
-    pub fn filter<T: Store, O: Clone>(
+    pub fn filter<T: Store, O: Clone + Send + Sync>(
         selector: impl Fn(&T::State) -> O + Send + Sync + 'static,
         predicate: impl Fn(&O) -> bool + Send + Sync + 'static,
         default_value: O,

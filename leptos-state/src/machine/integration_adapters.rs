@@ -38,14 +38,27 @@ impl HttpApiAdapter {
 
 #[async_trait::async_trait]
 impl IntegrationAdapterTrait for HttpApiAdapter {
-    async fn send_event(&self, event: IntegrationEvent) -> Result<(), IntegrationError> {
+    fn adapter_type(&self) -> super::integration::core::adapters::AdapterType {
+        super::integration::core::adapters::AdapterType::RestApi
+    }
+
+    fn name(&self) -> &str {
+        "HTTP API Adapter"
+    }
+
+    fn config(&self) -> serde_json::Value {
+        serde_json::json!({
+            "url": self.config.url,
+            "timeout_ms": self.config.timeout.as_millis(),
+            "endpoints": self.endpoints
+        })
+    }
+
+    async fn send_event(&self, event: &super::integration::events::IntegrationEvent) -> Result<(), String> {
         let endpoint = self.get_endpoint(&event.event_type).ok_or_else(|| {
-            IntegrationError::new(
-                IntegrationErrorType::ConfigurationError,
-                format!(
-                    "No endpoint configured for event type: {}",
-                    event.event_type
-                ),
+            format!(
+                "No endpoint configured for event type: {}",
+                event.event_type
             )
         })?;
 
@@ -62,46 +75,42 @@ impl IntegrationAdapterTrait for HttpApiAdapter {
             .timeout(self.config.timeout)
             .send()
             .await
-            .map_err(|e| {
-                IntegrationError::new(
-                    IntegrationErrorType::NetworkError,
-                    format!("HTTP request failed: {}", e),
-                )
-            })?;
+            .map_err(|e| format!("HTTP request failed: {}", e))?;
 
         if !response.status().is_success() {
-            return Err(IntegrationError::new(
-                IntegrationErrorType::ExternalServiceError,
-                format!("HTTP request failed with status: {}", response.status()),
-            ));
+            return Err(format!("HTTP request failed with status: {}", response.status()));
         }
 
         Ok(())
     }
 
-    async fn receive_events(&self) -> Result<Vec<IntegrationEvent>, IntegrationError> {
+    async fn receive_events(&self) -> Result<Vec<super::integration::events::IntegrationEvent>, String> {
         // HTTP adapter typically doesn't receive events
         // This could be implemented for webhook-like functionality
         Ok(Vec::new())
     }
 
-    async fn health_check(&self) -> Result<bool, IntegrationError> {
+    async fn health_check(&self) -> super::integration::core::health::HealthStatus {
+        use super::integration::core::health::HealthStatus;
+
         let test_url = format!("{}/health", self.config.url.trim_end_matches('/'));
 
-        let response = self
+        match self
             .client
             .get(&test_url)
             .timeout(std::time::Duration::from_secs(5))
             .send()
             .await
-            .map_err(|_| {
-                IntegrationError::new(
-                    IntegrationErrorType::NetworkError,
-                    "Health check failed".to_string(),
-                )
-            })?;
-
-        Ok(response.status().is_success())
+        {
+            Ok(response) => {
+                if response.status().is_success() {
+                    HealthStatus::Healthy
+                } else {
+                    HealthStatus::Unhealthy
+                }
+            }
+            Err(_) => HealthStatus::Unhealthy,
+        }
     }
 
     fn clone_adapter(&self) -> Box<dyn IntegrationAdapterTrait + Send + Sync> {
@@ -149,7 +158,22 @@ impl DatabaseAdapter {
 
 #[async_trait::async_trait]
 impl IntegrationAdapterTrait for DatabaseAdapter {
-    async fn send_event(&self, event: IntegrationEvent) -> Result<(), IntegrationError> {
+    fn adapter_type(&self) -> super::integration::core::adapters::AdapterType {
+        super::integration::core::adapters::AdapterType::Database
+    }
+
+    fn name(&self) -> &str {
+        "Database Adapter"
+    }
+
+    fn config(&self) -> serde_json::Value {
+        serde_json::json!({
+            "connection_string": self.config.connection_string,
+            "table_mappings": self.table_mappings
+        })
+    }
+
+    async fn send_event(&self, event: &super::integration::events::IntegrationEvent) -> Result<(), String> {
         // In a real implementation, this would use a database connection
         // For now, we'll simulate the operation
 
@@ -164,16 +188,16 @@ impl IntegrationAdapterTrait for DatabaseAdapter {
         Ok(())
     }
 
-    async fn receive_events(&self) -> Result<Vec<IntegrationEvent>, IntegrationError> {
+    async fn receive_events(&self) -> Result<Vec<super::integration::events::IntegrationEvent>, String> {
         // In a real implementation, this would query the database
         // For now, return empty vector
         Ok(Vec::new())
     }
 
-    async fn health_check(&self) -> Result<bool, IntegrationError> {
+    async fn health_check(&self) -> super::integration::core::health::HealthStatus {
         // In a real implementation, this would test database connectivity
-        // For now, always return true
-        Ok(true)
+        // For now, always return healthy
+        super::integration::core::health::HealthStatus::Healthy
     }
 
     fn clone_adapter(&self) -> Box<dyn IntegrationAdapterTrait + Send + Sync> {
@@ -221,7 +245,22 @@ impl MessageQueueAdapter {
 
 #[async_trait::async_trait]
 impl IntegrationAdapterTrait for MessageQueueAdapter {
-    async fn send_event(&self, event: IntegrationEvent) -> Result<(), IntegrationError> {
+    fn adapter_type(&self) -> super::integration::core::adapters::AdapterType {
+        super::integration::core::adapters::AdapterType::MessageQueue
+    }
+
+    fn name(&self) -> &str {
+        "Message Queue Adapter"
+    }
+
+    fn config(&self) -> serde_json::Value {
+        serde_json::json!({
+            "broker_url": self.config.broker_url,
+            "queue_mappings": self.queue_mappings
+        })
+    }
+
+    async fn send_event(&self, event: &super::integration::events::IntegrationEvent) -> Result<(), String> {
         // In a real implementation, this would use a message queue client
         // For now, we'll simulate the operation
 
@@ -236,16 +275,16 @@ impl IntegrationAdapterTrait for MessageQueueAdapter {
         Ok(())
     }
 
-    async fn receive_events(&self) -> Result<Vec<IntegrationEvent>, IntegrationError> {
+    async fn receive_events(&self) -> Result<Vec<super::integration::events::IntegrationEvent>, String> {
         // In a real implementation, this would consume messages from queues
         // For now, return empty vector
         Ok(Vec::new())
     }
 
-    async fn health_check(&self) -> Result<bool, IntegrationError> {
+    async fn health_check(&self) -> super::integration::core::health::HealthStatus {
         // In a real implementation, this would test message queue connectivity
-        // For now, always return true
-        Ok(true)
+        // For now, always return healthy
+        super::integration::core::health::HealthStatus::Healthy
     }
 
     fn clone_adapter(&self) -> Box<dyn IntegrationAdapterTrait + Send + Sync> {
@@ -308,25 +347,34 @@ impl FileSystemAdapter {
 
 #[async_trait::async_trait]
 impl IntegrationAdapterTrait for FileSystemAdapter {
-    async fn send_event(&self, event: IntegrationEvent) -> Result<(), IntegrationError> {
+    fn adapter_type(&self) -> super::integration::core::adapters::AdapterType {
+        super::integration::core::adapters::AdapterType::FileSystem
+    }
+
+    fn name(&self) -> &str {
+        "File System Adapter"
+    }
+
+    fn config(&self) -> serde_json::Value {
+        serde_json::json!({
+            "output_dir": self.output_dir,
+            "file_format": format!("{:?}", self.file_format)
+        })
+    }
+
+    async fn send_event(&self, event: &super::integration::events::IntegrationEvent) -> Result<(), String> {
         let file_path = self.get_file_path(&event.event_type);
 
         // Ensure output directory exists
         if let Some(parent) = file_path.parent() {
             tokio::fs::create_dir_all(parent).await.map_err(|e| {
-                IntegrationError::new(
-                    IntegrationErrorType::InternalError,
-                    format!("Failed to create directory: {}", e),
-                )
+                format!("Failed to create directory: {}", e)
             })?;
         }
 
         let content = match self.file_format {
             FileFormat::Json => serde_json::to_string_pretty(&event).map_err(|e| {
-                IntegrationError::new(
-                    IntegrationErrorType::SerializationError,
-                    format!("JSON serialization failed: {}", e),
-                )
+                format!("JSON serialization failed: {}", e)
             })?,
             FileFormat::Csv => {
                 // Simple CSV format - in a real implementation, this would be more sophisticated
@@ -347,31 +395,30 @@ impl IntegrationAdapterTrait for FileSystemAdapter {
         };
 
         tokio::fs::write(&file_path, content).await.map_err(|e| {
-            IntegrationError::new(
-                IntegrationErrorType::InternalError,
-                format!("Failed to write file: {}", e),
-            )
+            format!("Failed to write file: {}", e)
         })?;
 
         Ok(())
     }
 
-    async fn receive_events(&self) -> Result<Vec<IntegrationEvent>, IntegrationError> {
+    async fn receive_events(&self) -> Result<Vec<super::integration::events::IntegrationEvent>, String> {
         // File system adapter typically doesn't receive events
         // This could be implemented for reading from files
         Ok(Vec::new())
     }
 
-    async fn health_check(&self) -> Result<bool, IntegrationError> {
+    async fn health_check(&self) -> super::integration::core::health::HealthStatus {
+        use super::integration::core::health::HealthStatus;
+
         // Check if output directory is writable
         let test_file = self.output_dir.join("health_check.tmp");
 
         match tokio::fs::write(&test_file, b"test").await {
             Ok(_) => {
                 let _ = tokio::fs::remove_file(&test_file).await;
-                Ok(true)
+                HealthStatus::Healthy
             }
-            Err(_) => Ok(false),
+            Err(_) => HealthStatus::Unhealthy,
         }
     }
 
@@ -426,7 +473,22 @@ impl WebSocketAdapter {
 
 #[async_trait::async_trait]
 impl IntegrationAdapterTrait for WebSocketAdapter {
-    async fn send_event(&self, event: IntegrationEvent) -> Result<(), IntegrationError> {
+    fn adapter_type(&self) -> super::integration::core::adapters::AdapterType {
+        super::integration::core::adapters::AdapterType::WebSocket
+    }
+
+    fn name(&self) -> &str {
+        "WebSocket Adapter"
+    }
+
+    fn config(&self) -> serde_json::Value {
+        serde_json::json!({
+            "url": self.config.url,
+            "max_connections": self.max_connections
+        })
+    }
+
+    async fn send_event(&self, event: &super::integration::events::IntegrationEvent) -> Result<(), String> {
         // In a real implementation, this would broadcast to connected WebSocket clients
         // For now, simulate broadcasting
         let client_count = self.clients.lock().unwrap().len();
@@ -438,19 +500,26 @@ impl IntegrationAdapterTrait for WebSocketAdapter {
         Ok(())
     }
 
-    async fn receive_events(&self) -> Result<Vec<IntegrationEvent>, IntegrationError> {
+    async fn receive_events(&self) -> Result<Vec<super::integration::events::IntegrationEvent>, String> {
         // In a real implementation, this would collect events from WebSocket clients
         // For now, return empty vector
         Ok(Vec::new())
     }
 
-    async fn health_check(&self) -> Result<bool, IntegrationError> {
+    async fn health_check(&self) -> super::integration::core::health::HealthStatus {
+        use super::integration::core::health::HealthStatus;
+
         // Check if server is running
-        Ok(self
+        if self
             .server_handle
             .as_ref()
             .map(|h| !h.is_finished())
-            .unwrap_or(false))
+            .unwrap_or(false)
+        {
+            HealthStatus::Healthy
+        } else {
+            HealthStatus::Unhealthy
+        }
     }
 
     fn clone_adapter(&self) -> Box<dyn IntegrationAdapterTrait + Send + Sync> {

@@ -308,7 +308,7 @@ pub mod selectors {
         T: Store,
         F: Fn(&T::State) -> I + Clone + 'static,
         I: IntoIterator + Clone + 'static,
-        I::Item: Clone + 'static,
+        I::Item: Clone + PartialEq + 'static,
         P: Fn(&I::Item) -> bool + Clone + 'static,
     {
         struct FilterSelector<F, P>(F, P);
@@ -318,7 +318,7 @@ pub mod selectors {
             T: Store,
             F: Fn(&T::State) -> I + Clone,
             I: IntoIterator + Clone,
-            I::Item: Clone + 'static,
+            I::Item: Clone + PartialEq + 'static,
             P: Fn(&I::Item) -> bool + Clone,
         {
             type Output = Vec<I::Item>;

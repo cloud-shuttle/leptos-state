@@ -8,6 +8,14 @@ pub struct SimpleStore<T> {
     pub value: std::sync::Arc<std::sync::RwLock<T>>,
 }
 
+impl<T: std::fmt::Debug> std::fmt::Debug for SimpleStore<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SimpleStore")
+            .field("value", &self.value)
+            .finish()
+    }
+}
+
 impl<T> SimpleStore<T> {
     /// Create a new simple store with an initial value
     pub fn new(initial: T) -> Self {
@@ -25,9 +33,7 @@ impl<T> Clone for SimpleStore<T> {
     }
 }
 
-impl<T> Store for SimpleStore<T>
-where
-    T: Clone + PartialEq + Send + Sync + 'static,
+impl<T: crate::machine::core::traits::CloneableStateMachineType + PartialEq> Store for SimpleStore<T>
 {
     type State = T;
 
@@ -103,6 +109,14 @@ pub struct ReactiveStore<T: Clone + PartialEq + Send + Sync + 'static> {
     state: std::sync::Arc<std::sync::RwLock<T>>,
 }
 
+impl<T: std::fmt::Debug + Clone + PartialEq + Send + Sync + 'static> std::fmt::Debug for ReactiveStore<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ReactiveStore")
+            .field("state", &self.state)
+            .finish()
+    }
+}
+
 impl<T: Clone + PartialEq + Send + Sync + 'static> ReactiveStore<T> {
     /// Create a new reactive store
     pub fn new(initial: T) -> Self {
@@ -125,7 +139,7 @@ impl<T: Clone + PartialEq + Send + Sync + 'static> ReactiveStore<T> {
     }
 }
 
-impl<T: Clone + PartialEq + Send + Sync + 'static> Store for ReactiveStore<T> {
+impl<T: std::fmt::Debug + Clone + PartialEq + Send + Sync + 'static> Store for ReactiveStore<T> {
     type State = T;
 
     fn get(&self) -> Self::State {
@@ -151,7 +165,16 @@ pub struct AsyncStore<T: Clone + PartialEq + 'static> {
     pub pending_ops: std::sync::atomic::AtomicU32,
 }
 
-impl<T: Clone + PartialEq + 'static> Clone for AsyncStore<T> {
+impl<T: std::fmt::Debug + Clone + PartialEq + 'static> std::fmt::Debug for AsyncStore<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AsyncStore")
+            .field("store", &self.store)
+            .field("pending_ops", &self.pending_ops)
+            .finish()
+    }
+}
+
+impl<T: crate::machine::core::traits::CloneableStateMachineType + PartialEq> Clone for AsyncStore<T> {
     fn clone(&self) -> Self {
         Self {
             store: self.store.clone(),
@@ -160,7 +183,7 @@ impl<T: Clone + PartialEq + 'static> Clone for AsyncStore<T> {
     }
 }
 
-impl<T: Clone + PartialEq + 'static> AsyncStore<T> {
+impl<T: crate::machine::core::traits::CloneableStateMachineType + PartialEq> AsyncStore<T> {
     /// Create a new async store
     pub fn new(initial: T) -> Self {
         Self {
@@ -197,7 +220,7 @@ impl<T: Clone + PartialEq + 'static> AsyncStore<T> {
     }
 }
 
-impl<T: Clone + PartialEq + Send + Sync + 'static> Store for AsyncStore<T> {
+impl<T: std::fmt::Debug + Clone + PartialEq + Send + Sync + 'static> Store for AsyncStore<T> {
     type State = T;
 
     fn get(&self) -> Self::State {
@@ -221,6 +244,15 @@ pub struct MiddlewareStore<T: Clone + PartialEq + 'static, M: 'static> {
     pub middleware: M,
 }
 
+impl<T: Clone + PartialEq + std::fmt::Debug + 'static, M: 'static> std::fmt::Debug for MiddlewareStore<T, M> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MiddlewareStore")
+            .field("store", &self.store)
+            .field("middleware_type", &std::any::type_name::<M>())
+            .finish()
+    }
+}
+
 impl<T: Clone + PartialEq + 'static, M: 'static> MiddlewareStore<T, M> {
     /// Create a new middleware store
     pub fn new(initial: T, middleware: M) -> Self {
@@ -231,7 +263,7 @@ impl<T: Clone + PartialEq + 'static, M: 'static> MiddlewareStore<T, M> {
     }
 }
 
-impl<T: Clone + PartialEq + Send + Sync + 'static, M: Send + Sync + 'static> Store
+impl<T: Clone + PartialEq + Send + Sync + std::fmt::Debug + 'static, M: Send + Sync + 'static> Store
     for MiddlewareStore<T, M>
 where
     M: StoreMiddleware<T>,

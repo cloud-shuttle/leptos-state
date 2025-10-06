@@ -9,8 +9,8 @@ pub struct EventBatch {
     pub id: String,
     /// Events in the batch
     pub events: Vec<super::core::IntegrationEvent>,
-    /// Batch creation timestamp
-    pub created_at: std::time::Instant,
+    /// Batch creation timestamp (Unix timestamp)
+    pub created_at: u64,
     /// Batch priority (highest priority of contained events)
     pub priority: EventPriority,
     /// Batch metadata
@@ -25,7 +25,10 @@ impl EventBatch {
         Self {
             id: uuid::Uuid::new_v4().to_string(),
             events: Vec::new(),
-            created_at: std::time::Instant::now(),
+            created_at: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs(),
             priority: EventPriority::Normal,
             metadata: std::collections::HashMap::new(),
             sealed: false,

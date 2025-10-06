@@ -3,6 +3,8 @@
 /// Connection configuration for adapters
 #[derive(Debug, Clone, PartialEq)]
 pub struct ConnectionConfig {
+    /// Base URL for connections
+    pub url: String,
     /// Connection timeout
     pub timeout: std::time::Duration,
     /// Keep-alive interval
@@ -22,6 +24,7 @@ pub struct ConnectionConfig {
 impl Default for ConnectionConfig {
     fn default() -> Self {
         Self {
+            url: "http://localhost:8080".to_string(),
             timeout: std::time::Duration::from_secs(30),
             keep_alive: Some(std::time::Duration::from_secs(60)),
             max_idle_time: Some(std::time::Duration::from_secs(300)),

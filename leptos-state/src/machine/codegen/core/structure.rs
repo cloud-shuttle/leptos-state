@@ -1,9 +1,8 @@
 //! Code structure generation (imports, structs, constants)
 
-use crate::machine::codegen::config::CodeGenConfig;
-use crate::machine::{Machine, MachineStateImpl};
+use crate::machine::Machine;
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + std::hash::Hash + Eq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static, E: Clone + Send + Sync + std::fmt::Debug + std::hash::Hash + Eq + 'static>
     super::generator::CodeGenerator<C, E>
 {
     /// Generate imports for the target language
@@ -18,7 +17,7 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + std:
     }
 
     /// Generate machine structure
-    pub fn generate_machine_structure(&self, machine: &Machine<C, E, C>, machine_name: &str) -> Result<String, String> {
+    pub fn generate_machine_structure(&self, _machine: &Machine<C, E, C>, machine_name: &str) -> Result<String, String> {
         let mut code = String::new();
 
         match self.config.language.as_str() {
@@ -67,7 +66,7 @@ impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + std:
     }
 
     /// Generate state constants
-    pub fn generate_state_constants(&self, machine: &Machine<C, E, C>, machine_name: &str) -> Result<String, String> {
+    pub fn generate_state_constants(&self, _machine: &Machine<C, E, C>, machine_name: &str) -> Result<String, String> {
         let mut code = String::new();
 
         match self.config.language.as_str() {

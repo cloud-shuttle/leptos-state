@@ -8,6 +8,33 @@ pub struct MachineStateImpl<C: Send + Sync> {
     pub context: C,
 }
 
+// Implement Serialize/Deserialize when C implements them
+impl<C: Send + Sync + serde::Serialize> serde::Serialize for MachineStateImpl<C> {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeStruct;
+        let mut state = serializer.serialize_struct("MachineStateImpl", 2)?;
+        state.serialize_field("value", &self.value)?;
+        state.serialize_field("context", &self.context)?;
+        state.end()
+    }
+}
+
+impl<'de, C: Send + Sync + serde::Deserialize<'de>> serde::Deserialize<'de> for MachineStateImpl<C> {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(serde::Deserialize)]
+        struct MachineStateImplVisitor<C> {
+            value: StateValue,
+            context: C,
+        }
+
+        let visitor = MachineStateImplVisitor::<C>::deserialize(deserializer)?;
+        Ok(MachineStateImpl {
+            value: visitor.value,
+            context: visitor.context,
+        })
+    }
+}
+
 impl<C: Send + Sync + 'static> MachineState for MachineStateImpl<C> {
     type Context = C;
 

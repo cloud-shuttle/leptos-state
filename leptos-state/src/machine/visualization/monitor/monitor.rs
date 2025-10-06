@@ -32,7 +32,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
             error_listeners: Vec::new(), // Can't clone trait objects
             performance_listeners: Vec::new(), // Can't clone trait objects
             enabled: self.enabled,
-            stats: self.stats,
+            stats: self.stats.clone(),
         }
     }
 }
@@ -52,7 +52,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> StateMonitor<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + std::cmp::Eq + std::hash::Hash + 'static> StateMonitor<C, E> {
     /// Create a new state monitor
     pub fn new() -> Self {
         Self {
@@ -121,7 +121,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 
     /// Notify state change listeners
-    pub fn notify_state_change(&self, event: &StateChangeEvent<C, E>) {
+    pub fn notify_state_change(&mut self, event: &StateChangeEvent<C, E>) {
         if !self.enabled {
             return;
         }
@@ -133,7 +133,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 
     /// Notify error listeners
-    pub fn notify_error(&self, event: &ErrorEvent) {
+    pub fn notify_error(&mut self, event: &ErrorEvent) {
         if !self.enabled {
             return;
         }
@@ -145,7 +145,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 
     /// Notify performance listeners
-    pub fn notify_performance(&self, event: &PerformanceEvent) {
+    pub fn notify_performance(&mut self, event: &PerformanceEvent) {
         if !self.enabled {
             return;
         }
@@ -159,11 +159,11 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     /// Update current state
     pub fn update_state(&mut self, new_state: MachineStateImpl<C>) {
         if let Some(ref mut current) = self.current_state {
-            let old_state_value = current.state.value().to_string();
+            let old_state_value = current.state.value.to_string();
             current.state = new_state;
             current.last_updated = std::time::SystemTime::now();
 
-            let new_state_value = current.state.value().to_string();
+            let new_state_value = current.state.value.to_string();
             if old_state_value != new_state_value {
                 self.notify_state_change(&StateChangeEvent {
                     machine_id: current.machine_id.clone(),
@@ -220,7 +220,11 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 
     /// Export monitoring data as JSON
-    pub fn export_data(&self) -> serde_json::Value {
+    pub fn export_data(&self) -> serde_json::Value
+    where
+        C: serde::Serialize,
+        E: serde::Serialize,
+    {
         serde_json::json!({
             "enabled": self.enabled,
             "stats": self.stats,
@@ -231,7 +235,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> Default for StateMonitor<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + std::cmp::Eq + std::hash::Hash + 'static> Default for StateMonitor<C, E> {
     fn default() -> Self {
         Self::new()
     }

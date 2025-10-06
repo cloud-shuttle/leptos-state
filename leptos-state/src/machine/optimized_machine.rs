@@ -6,8 +6,8 @@ use std::hash::Hash;
 
 /// Performance-optimized state machine
 pub struct OptimizedMachine<
-    C: Send + Sync + Clone + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 > {
     /// Base machine
     base_machine: Machine<C, E, C>,
@@ -21,7 +21,7 @@ pub struct OptimizedMachine<
     optimization_level: OptimizationLevel,
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static>
     OptimizedMachine<C, E>
 {
     /// Create a new optimized machine
@@ -165,7 +165,7 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
     pub fn add_lazy_evaluator<T, F>(&mut self, name: String, evaluator: LazyEvaluator<T, F>)
     where
         T: 'static,
-        F: 'static,
+        F: Send + Sync + 'static,
     {
         self.lazy_evaluators.insert(name, Box::new(evaluator));
     }
@@ -210,15 +210,15 @@ impl OptimizationLevel {
 
 /// Extension trait for adding performance optimization to machines
 pub trait MachinePerformanceExt<
-    C: Send + Sync + Clone + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 >
 {
     /// Create an optimized version of this machine
     fn optimize(self, config: PerformanceConfig) -> OptimizedMachine<C, E>;
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static>
     MachinePerformanceExt<C, E> for Machine<C, E, C>
 {
     fn optimize(self, config: PerformanceConfig) -> OptimizedMachine<C, E> {

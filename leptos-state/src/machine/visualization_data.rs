@@ -4,24 +4,26 @@ use super::*;
 
 /// State diagram representation for export
 #[derive(Debug, Clone)]
-pub struct StateDiagram<'a, C: Send + Sync, E> {
+pub struct StateDiagram<C: Send + Sync, E> {
     /// Machine name or identifier
     pub name: String,
     /// Initial state
     pub initial_state: String,
     /// All states in the machine
-    pub states: Vec<StateInfo<'a, C, E>>,
+    pub states: Vec<StateInfo<C, E>>,
     /// All transitions
-    pub transitions: Vec<TransitionInfo<'a, C, E>>,
+    pub transitions: Vec<TransitionInfo<C, E>>,
     /// Configuration used for generation
     pub config: VisualizationConfig,
     /// Generation timestamp
     pub generated_at: std::time::Instant,
+    /// Phantom data for unused type parameters
+    _phantom: std::marker::PhantomData<(C, E)>,
 }
 
-impl<'a, C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> StateDiagram<'a, C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> StateDiagram<C, E> {
     /// Create a new state diagram from a machine
-    pub fn new(machine: &'a Machine<C, E, C>, config: &VisualizationConfig) -> Self {
+    pub fn new(machine: &Machine<C, E, C>, config: &VisualizationConfig) -> Self {
         let name = "StateMachine".to_string(); // Could be made configurable
         let initial_state = machine.initial_state();
         let states = machine
@@ -53,6 +55,7 @@ impl<'a, C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone 
             transitions,
             config: config.clone(),
             generated_at: std::time::Instant::now(),
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -62,7 +65,7 @@ impl<'a, C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone 
     }
 
     /// Get transitions from a specific state
-    pub fn transitions_from(&self, state_name: &str) -> Vec<&TransitionInfo<'a, C, E>> {
+    pub fn transitions_from(&self, state_name: &str) -> Vec<&TransitionInfo<C, E>> {
         self.transitions
             .iter()
             .filter(|t| t.from_state == state_name)
@@ -70,7 +73,7 @@ impl<'a, C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone 
     }
 
     /// Get transitions to a specific state
-    pub fn transitions_to(&self, state_name: &str) -> Vec<&TransitionInfo<'a, C, E>> {
+    pub fn transitions_to(&self, state_name: &str) -> Vec<&TransitionInfo<C, E>> {
         self.transitions
             .iter()
             .filter(|t| t.to_state == state_name)
@@ -91,7 +94,7 @@ impl<'a, C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone 
 
 /// State information for visualization
 #[derive(Debug, Clone)]
-pub struct StateInfo<'a, C: Send + Sync, E> {
+pub struct StateInfo<C: Send + Sync, E> {
     /// State name
     pub name: String,
     /// State description
@@ -106,13 +109,15 @@ pub struct StateInfo<'a, C: Send + Sync, E> {
     pub is_initial: bool,
     /// State metadata
     pub metadata: std::collections::HashMap<String, String>,
+    /// Phantom data for unused type parameters
+    _phantom: std::marker::PhantomData<(C, E)>,
 }
 
-impl<'a, C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> StateInfo<'a, C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> StateInfo<C, E> {
     /// Create state info from a state node
     pub fn new(
         state_name: &str,
-        state_node: &'a StateNode<C, E, C>,
+        state_node: &StateNode<C, E, C>,
         config: &VisualizationConfig,
     ) -> Self {
         let entry_actions = if config.show_actions {
@@ -145,6 +150,7 @@ impl<'a, C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone 
             child_states,
             is_initial: false, // Set by caller
             metadata: std::collections::HashMap::new(),
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -170,7 +176,7 @@ impl<'a, C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone 
 
 /// Transition information for visualization
 #[derive(Debug, Clone)]
-pub struct TransitionInfo<'a, C: Send + Sync, E> {
+pub struct TransitionInfo<C: Send + Sync, E> {
     /// Source state
     pub from_state: String,
     /// Target state
@@ -183,13 +189,15 @@ pub struct TransitionInfo<'a, C: Send + Sync, E> {
     pub actions: Vec<String>,
     /// Transition metadata
     pub metadata: std::collections::HashMap<String, String>,
+    /// Phantom data for unused type parameters
+    _phantom: std::marker::PhantomData<(C, E)>,
 }
 
-impl<'a, C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> TransitionInfo<'a, C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> TransitionInfo<C, E> {
     /// Create transition info from a transition
     pub fn new(
         from_state: &str,
-        transition: &'a Transition<C, E>,
+        transition: &Transition<C, E>,
         config: &VisualizationConfig,
     ) -> Self {
         let guards = if config.show_guards {
@@ -219,6 +227,7 @@ impl<'a, C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone 
             guards,
             actions,
             metadata: std::collections::HashMap::new(),
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -269,7 +278,7 @@ pub struct MachineSnapshot<C: Send + Sync, E> {
 
 impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> MachineSnapshot<C, E> {
     /// Create a new snapshot
-    pub fn new(machine: Machine<C, E, C>) -> Self {
+    pub fn new(machine: &Machine<C, E, C>) -> Self {
         // This is a simplified implementation
         // In a real implementation, we'd need to access the machine's internal state
         Self {
@@ -355,7 +364,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
 //     }
 // }
 
-impl<'a, C: Send + Sync, E> serde::Serialize for StateDiagram<'a, C, E> {
+impl<C: Send + Sync, E> serde::Serialize for StateDiagram<C, E> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -373,7 +382,7 @@ impl<'a, C: Send + Sync, E> serde::Serialize for StateDiagram<'a, C, E> {
     }
 }
 
-impl<'a, C: Send + Sync, E> serde::Serialize for StateInfo<'a, C, E> {
+impl<C: Send + Sync, E> serde::Serialize for StateInfo<C, E> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -392,7 +401,7 @@ impl<'a, C: Send + Sync, E> serde::Serialize for StateInfo<'a, C, E> {
     }
 }
 
-impl<'a, C: Send + Sync, E> serde::Serialize for TransitionInfo<'a, C, E> {
+impl<C: Send + Sync, E> serde::Serialize for TransitionInfo<C, E> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,

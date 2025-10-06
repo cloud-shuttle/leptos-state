@@ -244,7 +244,7 @@ impl OptimizationSuggestion {
             description,
             expected_improvement,
             difficulty,
-            estimated_time: Duration::from_hours(1),
+            estimated_time: Duration::from_secs(3600),
             prerequisites: Vec::new(),
         }
     }

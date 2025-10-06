@@ -5,8 +5,8 @@ use std::hash::Hash;
 
 /// Machine with history tracking capabilities
 pub struct HistoryMachine<
-    C: Send + Sync + Clone + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 > {
     /// The underlying base machine
     pub base_machine: Machine<C, E, C>,
@@ -62,7 +62,10 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 
     /// Get the initial state
-    pub fn initial_state(&self) -> MachineStateImpl<C> {
+    pub fn initial_state(&self) -> MachineStateImpl<C>
+    where
+        E: Eq + std::hash::Hash,
+    {
         let state_name = self.base_machine.initial_state();
         let context = self.base_machine.get_context().clone();
         MachineStateImpl::new(state_name, context)
@@ -79,7 +82,10 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 
     /// Transition to a new state with history tracking
-    pub fn transition(&mut self, event: E) -> Result<(), MachineError> {
+    pub fn transition(&mut self, event: E) -> Result<(), MachineError>
+    where
+        C: Default,
+    {
         if !self.config.enabled {
             return self.base_machine.transition(event);
         }
@@ -208,8 +214,8 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync 
 
 /// Extension trait for machines to add history support
 pub trait MachineHistoryExt<
-    C: Send + Sync + Clone + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 >
 {
     /// Add history support to this machine
@@ -235,8 +241,8 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync 
 
 /// Builder extension for adding history states
 pub trait HistoryMachineBuilder<
-    C: Send + Sync + Clone + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + Default + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 >
 {
     /// Add a history state to the machine being built

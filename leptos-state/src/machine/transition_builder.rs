@@ -1,7 +1,7 @@
 use super::*;
 
 /// Transition builder for fluent API
-pub struct TransitionBuilder<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
+pub struct TransitionBuilder<C: crate::machine::core::traits::CloneableStateMachineType + Default, E: crate::machine::core::traits::EquatableStateMachineType> {
     state_builder: StateBuilder<C, E>,
     event: E,
     target: String,
@@ -9,7 +9,7 @@ pub struct TransitionBuilder<C: Clone + Send + Sync + 'static, E: Clone + Send +
     actions: Vec<Box<dyn Action<C, E>>>,
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> TransitionBuilder<C, E> {
+impl<C: crate::machine::core::traits::CloneableStateMachineType + Default, E: crate::machine::core::traits::EquatableStateMachineType> TransitionBuilder<C, E> {
     pub fn new(state_builder: StateBuilder<C, E>, event: E, target: String) -> Self {
         Self {
             state_builder,
@@ -37,8 +37,8 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Transit
     /// Add a field equality guard
     pub fn guard_field_equals<T, F>(mut self, field_extractor: F, expected_value: T) -> Self
     where
-        F: Fn(&C) -> T + Clone + Send + Sync + 'static,
-        T: PartialEq + Clone + Send + Sync + 'static,
+        F: Fn(&C) -> &T + Clone + Send + Sync + 'static,
+        T: PartialEq + Clone + Send + Sync + std::fmt::Debug + 'static,
     {
         self.guards.push(Box::new(guards::FieldEqualityGuard::new(
             field_extractor,
@@ -50,11 +50,11 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Transit
     /// Add a range guard
     pub fn guard_field_range<T, F>(mut self, field_extractor: F, min: T, max: T) -> Self
     where
-        F: Fn(&C) -> T + Send + Sync + 'static,
+        F: Fn(&C) -> &T + Send + Sync + 'static,
         T: PartialOrd + Send + Sync + 'static,
     {
         self.guards
-            .push(Box::new(guards::RangeGuard::new(field_extractor, min, max)));
+            .push(Box::new(guards::RangeGuard::new(field_extractor).min(min).max(max)));
         self
     }
 

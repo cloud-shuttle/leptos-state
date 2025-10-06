@@ -14,6 +14,21 @@ pub struct FieldEqualityGuard<C, E, T, F> {
     _phantom: std::marker::PhantomData<(C, E)>,
 }
 
+impl<C, E, T, F> std::fmt::Debug for FieldEqualityGuard<C, E, T, F>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+    T: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FieldEqualityGuard")
+            .field("expected_value", &self.expected_value)
+            .field("description", &self.description)
+            .field("_phantom", &self._phantom)
+            .finish()
+    }
+}
+
 impl<C, E, T, F> FieldEqualityGuard<C, E, T, F>
 where
     F: Fn(&C) -> &T + 'static,
@@ -40,7 +55,7 @@ where
     }
 }
 
-impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static, T: Send + Sync, F: Send + Sync> GuardEvaluator<C, E> for FieldEqualityGuard<C, E, T, F>
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static, T: Send + Sync + std::fmt::Debug, F: Send + Sync> GuardEvaluator<C, E> for FieldEqualityGuard<C, E, T, F>
 where
     F: Fn(&C) -> &T + Clone + 'static,
     T: PartialEq + Clone + 'static,
@@ -78,6 +93,22 @@ pub struct RangeGuard<C, E, T, F> {
     _phantom: std::marker::PhantomData<(C, E)>,
 }
 
+impl<C, E, T, F> std::fmt::Debug for RangeGuard<C, E, T, F>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+    T: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RangeGuard")
+            .field("min_value", &self.min_value)
+            .field("max_value", &self.max_value)
+            .field("description", &self.description)
+            .field("_phantom", &self._phantom)
+            .finish()
+    }
+}
+
 impl<C, E, T, F> RangeGuard<C, E, T, F>
 where
     F: Fn(&C) -> &T + 'static,
@@ -113,7 +144,7 @@ where
     }
 }
 
-impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static, T: Send + Sync, F: Send + Sync> GuardEvaluator<C, E> for RangeGuard<C, E, T, F>
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static, T: Send + Sync + std::fmt::Debug, F: Send + Sync> GuardEvaluator<C, E> for RangeGuard<C, E, T, F>
 where
     F: Fn(&C) -> &T + Clone + 'static,
     T: PartialOrd + Clone + 'static,
@@ -172,6 +203,21 @@ pub struct ComparisonGuard<C, E, T, F1, F2> {
     _phantom: std::marker::PhantomData<(C, E, T)>,
 }
 
+impl<C, E, T, F1, F2> std::fmt::Debug for ComparisonGuard<C, E, T, F1, F2>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+    T: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ComparisonGuard")
+            .field("comparison", &self.comparison)
+            .field("description", &self.description)
+            .field("_phantom", &self._phantom)
+            .finish()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum ComparisonOp {
     /// Equal
@@ -212,7 +258,7 @@ where
     }
 }
 
-impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static, T: Send + Sync, F1: Send + Sync, F2: Send + Sync> GuardEvaluator<C, E> for ComparisonGuard<C, E, T, F1, F2>
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static, T: Send + Sync + std::fmt::Debug, F1: Send + Sync, F2: Send + Sync> GuardEvaluator<C, E> for ComparisonGuard<C, E, T, F1, F2>
 where
     F1: Fn(&C) -> &T + Clone + 'static,
     F2: Fn(&C) -> &T + Clone + 'static,
@@ -268,6 +314,20 @@ pub struct NullCheckGuard<C, E, F> {
     _phantom: std::marker::PhantomData<(C, E)>,
 }
 
+impl<C, E, F> std::fmt::Debug for NullCheckGuard<C, E, F>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("NullCheckGuard")
+            .field("check_null", &self.check_null)
+            .field("description", &self.description)
+            .field("_phantom", &self._phantom)
+            .finish()
+    }
+}
+
 impl<C, E, F, T> NullCheckGuard<C, E, F>
 where
     F: Fn(&C) -> Option<&T> + 'static,
@@ -299,7 +359,7 @@ where
     }
 }
 
-impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static, F: Send + Sync, T> GuardEvaluator<C, E> for NullCheckGuard<C, E, F>
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static, F: Send + Sync, T> GuardEvaluator<C, E> for NullCheckGuard<C, E, F>
 where
     F: Fn(&C) -> Option<&T> + Clone + 'static,
 {

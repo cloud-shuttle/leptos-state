@@ -1,9 +1,8 @@
 //! Transition and state management generation
 
-use crate::machine::codegen::config::CodeGenConfig;
-use crate::machine::{Machine, MachineStateImpl};
+use crate::machine::Machine;
 
-impl<C: Send + Sync + Clone + PartialEq + 'static, E: Clone + Send + Sync + std::hash::Hash + Eq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static, E: Clone + Send + Sync + std::fmt::Debug + std::hash::Hash + Eq + 'static>
     super::generator::CodeGenerator<C, E>
 {
     /// Generate transitions

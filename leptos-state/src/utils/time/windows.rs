@@ -253,6 +253,10 @@ impl SlidingWindow {
     }
 
     /// Get event count in current window
+    /// Get approximate event count (without cleanup)
+    pub fn len(&self) -> usize {
+        self.events.len()
+    }
     pub fn event_count(&mut self) -> usize {
         self.cleanup();
         self.events.len()

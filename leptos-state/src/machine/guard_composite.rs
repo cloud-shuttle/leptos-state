@@ -12,6 +12,20 @@ pub struct CompositeGuard<C, E> {
     pub description: String,
 }
 
+impl<C, E> std::fmt::Debug for CompositeGuard<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CompositeGuard")
+            .field("guards", &self.guards)
+            .field("logic", &self.logic)
+            .field("description", &self.description)
+            .finish()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum CompositeLogic {
     /// All guards must pass
@@ -87,7 +101,7 @@ impl<C, E> CompositeGuard<C, E> {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for CompositeGuard<C, E> {
+impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + 'static> GuardEvaluator<C, E> for CompositeGuard<C, E> {
     fn check(&self, context: &C, event: &E) -> bool {
         let results: Vec<bool> = self
             .guards
@@ -136,6 +150,20 @@ pub struct WeightedCompositeGuard<C, E> {
     pub description: String,
 }
 
+impl<C, E> std::fmt::Debug for WeightedCompositeGuard<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("WeightedCompositeGuard")
+            .field("weighted_guards", &self.weighted_guards.len()) // Don't debug the guards themselves
+            .field("min_weight", &self.min_weight)
+            .field("description", &self.description)
+            .finish()
+    }
+}
+
 impl<C, E> WeightedCompositeGuard<C, E> {
     /// Create a new weighted composite guard
     pub fn new(
@@ -161,7 +189,7 @@ impl<C, E> WeightedCompositeGuard<C, E> {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for WeightedCompositeGuard<C, E> {
+impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + 'static> GuardEvaluator<C, E> for WeightedCompositeGuard<C, E> {
     fn check(&self, context: &C, event: &E) -> bool {
         let total_weight: f64 = self
             .weighted_guards
@@ -205,6 +233,20 @@ pub struct SequentialGuard<C, E> {
     pub description: String,
 }
 
+impl<C, E> std::fmt::Debug for SequentialGuard<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SequentialGuard")
+            .field("guards", &self.guards)
+            .field("require_all", &self.require_all)
+            .field("description", &self.description)
+            .finish()
+    }
+}
+
 impl<C, E> SequentialGuard<C, E> {
     /// Create a new sequential guard that requires all guards to pass
     pub fn all(guards: Vec<Box<dyn GuardEvaluator<C, E>>>) -> Self {
@@ -231,7 +273,7 @@ impl<C, E> SequentialGuard<C, E> {
     }
 }
 
-impl<C, E> GuardEvaluator<C, E> for SequentialGuard<C, E> {
+impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + 'static> GuardEvaluator<C, E> for SequentialGuard<C, E> {
     fn check(&self, context: &C, event: &E) -> bool {
         if self.require_all {
             // All must pass
@@ -270,6 +312,21 @@ pub struct ConditionalCompositeGuard<C, E, F> {
     pub description: String,
 }
 
+impl<C, E, F> std::fmt::Debug for ConditionalCompositeGuard<C, E, F>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ConditionalCompositeGuard")
+            .field("true_guards", &self.true_guards)
+            .field("false_guards", &self.false_guards)
+            .field("logic", &self.logic)
+            .field("description", &self.description)
+            .finish()
+    }
+}
+
 impl<C, E, F> ConditionalCompositeGuard<C, E, F>
 where
     F: Fn(&C, &E) -> bool + 'static,
@@ -297,9 +354,9 @@ where
     }
 }
 
-impl<C, E, F> GuardEvaluator<C, E> for ConditionalCompositeGuard<C, E, F>
+impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + 'static, F> GuardEvaluator<C, E> for ConditionalCompositeGuard<C, E, F>
 where
-    F: Fn(&C, &E) -> bool + Clone + 'static,
+    F: Fn(&C, &E) -> bool + Clone + Send + Sync + 'static,
 {
     fn check(&self, context: &C, event: &E) -> bool {
         let guards = if (self.condition)(context, event) {

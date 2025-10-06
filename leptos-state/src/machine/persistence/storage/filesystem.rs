@@ -113,7 +113,7 @@ impl MachineStorage for FileSystemStorage {
         let file_path = self.get_file_path(key);
 
         if !file_path.exists() {
-            return Err(PersistenceError::KeyNotFound(key.to_string()));
+            return Err(PersistenceError::NotFound(key.to_string()));
         }
 
         async_fs::read(&file_path)
@@ -125,7 +125,7 @@ impl MachineStorage for FileSystemStorage {
         let file_path = self.get_file_path(key);
 
         if !file_path.exists() {
-            return Err(PersistenceError::KeyNotFound(key.to_string()));
+            return Err(PersistenceError::NotFound(key.to_string()));
         }
 
         async_fs::remove_file(&file_path)

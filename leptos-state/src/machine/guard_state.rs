@@ -8,6 +8,17 @@ pub struct EventTypeGuard<C, E> {
     pub expected_type: String,
     /// Description of the guard
     pub description: String,
+    /// Phantom data for unused type parameters
+    _phantom: std::marker::PhantomData<(C, E)>,
+}
+
+impl<C, E> std::fmt::Debug for EventTypeGuard<C, E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EventTypeGuard")
+            .field("expected_type", &self.expected_type)
+            .field("description", &self.description)
+            .finish()
+    }
 }
 
 impl<C, E> EventTypeGuard<C, E> {
@@ -16,6 +27,7 @@ impl<C, E> EventTypeGuard<C, E> {
         Self {
             expected_type: expected_type.clone(),
             description: format!("Event Type: {}", expected_type),
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -26,7 +38,7 @@ impl<C, E> EventTypeGuard<C, E> {
     }
 }
 
-impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static> GuardEvaluator<C, E> for EventTypeGuard<C, E>
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static> GuardEvaluator<C, E> for EventTypeGuard<C, E>
 where
     E: std::fmt::Debug,
 {
@@ -54,6 +66,17 @@ pub struct StateGuard<C, E> {
     pub state_getter: Box<dyn Fn(&C) -> String + Send + Sync>,
     /// Description of the guard
     pub description: String,
+    /// Phantom data for unused type parameter
+    _phantom: std::marker::PhantomData<E>,
+}
+
+impl<C, E> std::fmt::Debug for StateGuard<C, E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("StateGuard")
+            .field("expected_state", &self.expected_state)
+            .field("description", &self.description)
+            .finish()
+    }
 }
 
 impl<C, E> StateGuard<C, E> {
@@ -66,6 +89,7 @@ impl<C, E> StateGuard<C, E> {
             expected_state: expected_state.clone(),
             state_getter: Box::new(state_getter),
             description: format!("State: {}", expected_state),
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -76,7 +100,7 @@ impl<C, E> StateGuard<C, E> {
     }
 }
 
-impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static> GuardEvaluator<C, E> for StateGuard<C, E> {
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static> GuardEvaluator<C, E> for StateGuard<C, E> {
     fn check(&self, context: &C, _event: &E) -> bool {
         let current_state = (self.state_getter)(context);
         current_state == self.expected_state
@@ -107,6 +131,20 @@ pub struct StateTransitionGuard<C, E> {
     pub target_state_getter: Box<dyn Fn(&C, &E) -> String + Send + Sync>,
     /// Description of the guard
     pub description: String,
+}
+
+impl<C, E> std::fmt::Debug for StateTransitionGuard<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("StateTransitionGuard")
+            .field("from_state", &self.from_state)
+            .field("to_state", &self.to_state)
+            .field("description", &self.description)
+            .finish()
+    }
 }
 
 impl<C, E> StateTransitionGuard<C, E> {
@@ -144,7 +182,7 @@ impl<C, E> StateTransitionGuard<C, E> {
     }
 }
 
-impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static> GuardEvaluator<C, E> for StateTransitionGuard<C, E> {
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static> GuardEvaluator<C, E> for StateTransitionGuard<C, E> {
     fn check(&self, context: &C, event: &E) -> bool {
         let current_state = (self.current_state_getter)(context);
         let target_state = (self.target_state_getter)(context, event);
@@ -198,6 +236,20 @@ pub struct EventDataGuard<C, E, F> {
     _phantom: std::marker::PhantomData<(C, E)>,
 }
 
+impl<C, E, F> std::fmt::Debug for EventDataGuard<C, E, F>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EventDataGuard")
+            .field("expected_data", &self.expected_data)
+            .field("description", &self.description)
+            .field("_phantom", &self._phantom)
+            .finish()
+    }
+}
+
 impl<C, E, F> EventDataGuard<C, E, F>
 where
     F: Fn(&E) -> String + 'static,
@@ -219,7 +271,7 @@ where
     }
 }
 
-impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static, F: Send + Sync> GuardEvaluator<C, E> for EventDataGuard<C, E, F>
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static, F: Send + Sync> GuardEvaluator<C, E> for EventDataGuard<C, E, F>
 where
     F: Fn(&E) -> String + Clone + 'static,
 {
@@ -252,6 +304,19 @@ pub struct ContextStateGuard<C, E, F> {
     _phantom: std::marker::PhantomData<(C, E)>,
 }
 
+impl<C, E, F> std::fmt::Debug for ContextStateGuard<C, E, F>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ContextStateGuard")
+            .field("description", &self.description)
+            .field("_phantom", &self._phantom)
+            .finish()
+    }
+}
+
 impl<C, E, F> ContextStateGuard<C, E, F>
 where
     F: Fn(&C, &E) -> bool + 'static,
@@ -272,7 +337,7 @@ where
     }
 }
 
-impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static, F: Send + Sync> GuardEvaluator<C, E> for ContextStateGuard<C, E, F>
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static, F: Send + Sync> GuardEvaluator<C, E> for ContextStateGuard<C, E, F>
 where
     F: Fn(&C, &E) -> bool + Clone + 'static,
 {

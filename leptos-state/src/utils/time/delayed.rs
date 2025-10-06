@@ -88,7 +88,10 @@ where
     }
 }
 
-impl<F> std::fmt::Debug for DelayedAction<F> {
+impl<F> std::fmt::Debug for DelayedAction<F>
+where
+    F: FnOnce() + Send + Sync + 'static,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("DelayedAction")
             .field("duration", &self.duration)
@@ -99,7 +102,10 @@ impl<F> std::fmt::Debug for DelayedAction<F> {
     }
 }
 
-impl<F> std::fmt::Display for DelayedAction<F> {
+impl<F> std::fmt::Display for DelayedAction<F>
+where
+    F: FnOnce() + Send + Sync + 'static,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.is_cancelled() {
             write!(f, "DelayedAction(cancelled)")
@@ -117,10 +123,7 @@ pub struct DelayedActionBuilder<F> {
     action: Option<F>,
 }
 
-impl<F> DelayedActionBuilder<F>
-where
-    F: FnOnce() + Send + Sync + 'static,
-{
+impl<F> DelayedActionBuilder<F> {
     /// Create a new builder
     pub fn new() -> Self {
         Self {
@@ -128,6 +131,12 @@ where
             action: None,
         }
     }
+}
+
+impl<F> DelayedActionBuilder<F>
+where
+    F: FnOnce() + Send + Sync + 'static,
+{
 
     /// Set the delay duration
     pub fn delay(mut self, duration: std::time::Duration) -> Self {

@@ -67,13 +67,13 @@ impl MachineStorage for MemoryStorage {
         storage
             .get(key)
             .cloned()
-            .ok_or_else(|| PersistenceError::KeyNotFound(key.to_string()))
+            .ok_or_else(|| PersistenceError::NotFound(key.to_string()))
     }
 
     async fn delete(&self, key: &str) -> Result<(), PersistenceError> {
         let mut storage = self.storage.write().unwrap();
         if storage.remove(key).is_none() {
-            return Err(PersistenceError::KeyNotFound(key.to_string()));
+            return Err(PersistenceError::NotFound(key.to_string()));
         }
         Ok(())
     }

@@ -211,6 +211,8 @@ pub trait NamedFactory<T>: Factory<T> {
 pub struct FactoryRegistry<T, F: Factory<T>> {
     /// Registered factories
     pub factories: std::collections::HashMap<String, Box<F>>,
+    /// Phantom data for unused type parameter
+    _phantom: std::marker::PhantomData<T>,
 }
 
 impl<T, F: Factory<T>> FactoryRegistry<T, F> {
@@ -218,6 +220,7 @@ impl<T, F: Factory<T>> FactoryRegistry<T, F> {
     pub fn new() -> Self {
         Self {
             factories: std::collections::HashMap::new(),
+            _phantom: std::marker::PhantomData,
         }
     }
 

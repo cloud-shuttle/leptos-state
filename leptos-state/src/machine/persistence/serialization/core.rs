@@ -23,6 +23,8 @@ pub struct SerializedMachine<C, E, S> {
     pub metadata: MachineMetadata,
     /// Serialization timestamp
     pub timestamp: u64,
+    /// Phantom data for unused type parameter
+    _phantom: std::marker::PhantomData<S>,
 }
 
 impl<C, E, S> SerializedMachine<C, E, S> {
@@ -41,6 +43,7 @@ impl<C, E, S> SerializedMachine<C, E, S> {
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap_or_default()
                 .as_secs(),
+            _phantom: std::marker::PhantomData,
         }
     }
 

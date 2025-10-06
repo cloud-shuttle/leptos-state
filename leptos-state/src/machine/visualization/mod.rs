@@ -70,7 +70,7 @@ pub trait Visualizable {
 }
 
 /// State machine visualizer
-pub struct StateMachineVisualizer<'a, C: State, E: Event> {
+pub struct StateMachineVisualizer<'a, C: State + Clone + Send + Sync + std::fmt::Debug + 'static, E: Event + Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> {
     machine: &'a Machine<C, E, C>,
     metadata: VisualizationMetadata,
     include_entry_actions: bool,
@@ -78,7 +78,7 @@ pub struct StateMachineVisualizer<'a, C: State, E: Event> {
     include_guards: bool,
 }
 
-impl<'a, C: State, E: Event> StateMachineVisualizer<'a, C, E> {
+impl<'a, C: State + Clone + Send + Sync + std::fmt::Debug + 'static, E: Event + Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> StateMachineVisualizer<'a, C, E> {
     /// Create a new visualizer for a state machine
     pub fn new(machine: &'a Machine<C, E, C>) -> Self {
         Self {
@@ -228,7 +228,7 @@ impl<'a, C: State, E: Event> StateMachineVisualizer<'a, C, E> {
     }
 }
 
-impl<'a, C: State, E: Event> Visualizable for StateMachineVisualizer<'a, C, E> {
+impl<'a, C: State + Clone + Send + Sync + std::fmt::Debug + 'static, E: Event + Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> Visualizable for StateMachineVisualizer<'a, C, E> {
     fn to_dot_graph(&self) -> Result<String, VisualizationError> {
         self.to_dot()
     }
@@ -243,7 +243,7 @@ impl<'a, C: State, E: Event> Visualizable for StateMachineVisualizer<'a, C, E> {
 }
 
 /// Add visualization methods to Machine
-impl<C: State, E: Event> Machine<C, E, C> {
+impl<C: State + Clone + Send + Sync + std::fmt::Debug + 'static, E: Event + Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static> Machine<C, E, C> {
     /// Create a visualizer for this machine
     pub fn visualizer(&self) -> StateMachineVisualizer<'_, C, E> {
         StateMachineVisualizer::new(self)
@@ -332,7 +332,7 @@ pub enum VisualizationFormat {
 }
 
 /// Export visualization data
-pub fn export_visualization<C: State + Serialize, E: Event>(
+pub fn export_visualization<C: State + Serialize + Clone + std::fmt::Debug + Send + Sync + 'static, E: Event + Clone + std::fmt::Debug + PartialEq + Send + Sync + 'static>(
     machine: &Machine<C, E, C>,
     format: VisualizationFormat,
 ) -> Result<String, VisualizationError> {

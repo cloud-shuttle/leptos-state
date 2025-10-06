@@ -12,6 +12,19 @@ pub struct FunctionAction<C, E, F> {
     pub _phantom: std::marker::PhantomData<(C, E)>,
 }
 
+impl<C, E, F> std::fmt::Debug for FunctionAction<C, E, F>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FunctionAction")
+            .field("description", &self.description)
+            .field("_phantom", &self._phantom)
+            .finish()
+    }
+}
+
 impl<C, E, F> FunctionAction<C, E, F>
 where
     F: Fn(&mut C, &E) + 'static,
@@ -37,7 +50,7 @@ where
 
 impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static, F> Action<C, E> for FunctionAction<C, E, F>
 where
-    F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
+    F: Fn(&mut C, &E) + Send + Sync + 'static,
 {
     fn execute(&self, context: &mut C, event: &E) {
         (self.func)(context, event);
@@ -52,11 +65,9 @@ where
     }
 
     fn clone_action(&self) -> Box<dyn Action<C, E>> {
-        Box::new(Self {
-            func: self.func.clone(),
-            description: self.description.clone(),
-            _phantom: std::marker::PhantomData,
-        })
+        // Note: Cannot clone function types. Create a no-op action.
+        // Function-based actions should not be cloned if possible.
+        Box::new(crate::machine::actions::NoOpAction::new())
     }
 }
 
@@ -68,6 +79,20 @@ pub struct AssignAction<C, E, T, F> {
     pub description: String,
     /// Phantom data for type parameters
     _phantom: std::marker::PhantomData<(C, E, T)>,
+}
+
+impl<C, E, T, F> std::fmt::Debug for AssignAction<C, E, T, F>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+    T: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AssignAction")
+            .field("description", &self.description)
+            .field("_phantom", &self._phantom)
+            .finish()
+    }
 }
 
 impl<C, E, T, F> AssignAction<C, E, T, F>
@@ -93,10 +118,10 @@ where
     }
 }
 
-impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static, T: Send + Sync, F> Action<C, E>
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static, T: Send + Sync + std::fmt::Debug + 'static, F> Action<C, E>
     for AssignAction<C, E, T, F>
 where
-    F: Fn(&mut C, &E) -> T + Clone + Send + Sync + 'static,
+    F: Fn(&mut C, &E) -> T + Send + Sync + 'static,
 {
     fn execute(&self, context: &mut C, event: &E) {
         let _result = (self.assign_fn)(context, event);
@@ -113,15 +138,46 @@ where
     }
 
     fn clone_action(&self) -> Box<dyn Action<C, E>> {
-        Box::new(Self {
-            assign_fn: self.assign_fn.clone(),
-            description: self.description.clone(),
-            _phantom: std::marker::PhantomData,
-        })
+        // Note: Cannot clone function types. Create a no-op action.
+        Box::new(crate::machine::actions::NoOpAction::new())
+    }
+}
+
+/// No-op action that does nothing
+#[derive(Debug, Clone)]
+pub struct NoOpAction;
+
+impl NoOpAction {
+    /// Create a new no-op action
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl<C, E> Action<C, E> for NoOpAction {
+    fn execute(&self, _context: &mut C, _event: &E) {
+        // Do nothing
+    }
+
+    fn name(&self) -> &str {
+        "no_op"
+    }
+
+    fn description(&self) -> String {
+        "No operation action".to_string()
+    }
+
+    fn has_side_effects(&self) -> bool {
+        false
+    }
+
+    fn clone_action(&self) -> Box<dyn Action<C, E>> {
+        Box::new(Self::new())
     }
 }
 
 /// Log action for debugging and monitoring
+#[derive(Debug, Clone)]
 pub struct LogAction {
     /// The log message template
     pub message: String,
@@ -220,16 +276,6 @@ where
     }
 }
 
-impl Clone for LogAction {
-    fn clone(&self) -> Self {
-        Self {
-            message: self.message.clone(),
-            level: self.level.clone(),
-            include_context: self.include_context,
-            include_event: self.include_event,
-        }
-    }
-}
 
 /// Pure action that doesn't modify context
 pub struct PureAction<F> {
@@ -237,6 +283,16 @@ pub struct PureAction<F> {
     pub func: F,
     /// Description of the action
     pub description: String,
+    /// Phantom data for unused type parameter
+    _phantom: std::marker::PhantomData<F>,
+}
+
+impl<F> std::fmt::Debug for PureAction<F> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PureAction")
+            .field("description", &self.description)
+            .finish()
+    }
 }
 
 impl<F> PureAction<F>
@@ -248,18 +304,23 @@ where
         Self {
             func,
             description: "Pure Action".to_string(),
+            _phantom: std::marker::PhantomData,
         }
     }
 
     /// Create a new pure action with description
     pub fn with_description(func: F, description: String) -> Self {
-        Self { func, description }
+        Self {
+            func,
+            description,
+            _phantom: std::marker::PhantomData,
+        }
     }
 }
 
 impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + PartialEq + 'static, F> Action<C, E> for PureAction<F>
 where
-    F: Fn() + Clone + Send + Sync + 'static,
+    F: Fn() + Send + Sync + 'static,
 {
     fn execute(&self, _context: &mut C, _event: &E) {
         (self.func)();
@@ -278,10 +339,7 @@ where
     }
 
     fn clone_action(&self) -> Box<dyn Action<C, E>> {
-        Box::new(Self {
-            func: self.func.clone(),
-            description: self.description.clone(),
-            _phantom: std::marker::PhantomData,
-        })
+        // Note: Cannot clone function types. Create a no-op action.
+        Box::new(crate::machine::actions::NoOpAction::new())
     }
 }

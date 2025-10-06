@@ -13,8 +13,8 @@ pub struct IntegrationEvent {
     pub source: String,
     /// Event priority
     pub priority: EventPriority,
-    /// Event timestamp
-    pub timestamp: std::time::Instant,
+    /// Event timestamp (Unix timestamp)
+    pub timestamp: u64,
     /// Event data
     pub data: serde_json::Value,
     /// Event metadata
@@ -33,7 +33,10 @@ impl IntegrationEvent {
             event_type,
             source,
             priority: EventPriority::Normal,
-            timestamp: std::time::Instant::now(),
+            timestamp: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs(),
             data,
             metadata: std::collections::HashMap::new(),
             correlation_id: None,

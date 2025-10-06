@@ -103,7 +103,7 @@ impl std::fmt::Display for RateLimiter {
             f,
             "RateLimiter '{}' ({}/{} in {})",
             self.name,
-            self.window.events.len(), // Approximate current count
+            self.window.len(), // Approximate current count
             self.max_events,
             TimeUtils::format_duration(self.window.duration)
         )

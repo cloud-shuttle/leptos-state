@@ -2,12 +2,12 @@
 
 use crate::machine::codegen::config::{CodeGenConfig, CodeTemplates};
 use crate::machine::codegen::types::GeneratedFile;
-use crate::machine::{Machine, MachineStateImpl};
+use crate::machine::Machine;
 
 /// Code generator for state machines
 pub struct CodeGenerator<
-    C: Send + Sync + Clone + PartialEq + 'static,
-    E: Clone + Send + Sync + std::hash::Hash + Eq + 'static,
+    C: crate::machine::core::traits::CloneableStateMachineType,
+    E: crate::machine::core::traits::EquatableStateMachineType,
 > {
     /// Configuration
     pub config: CodeGenConfig,
@@ -21,9 +21,9 @@ pub struct CodeGenerator<
     _phantom: std::marker::PhantomData<(C, E)>,
 }
 
-impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + std::hash::Hash + Eq + 'static,
+    impl<
+        C: crate::machine::core::traits::CloneableStateMachineType,
+        E: crate::machine::core::traits::EquatableStateMachineType,
     > CodeGenerator<C, E>
 {
     /// Create a new code generator
@@ -144,8 +144,8 @@ impl<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + std::hash::Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + std::hash::Hash + Eq + 'static,
     > std::fmt::Debug for CodeGenerator<C, E>
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -158,8 +158,8 @@ impl<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + std::hash::Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + std::hash::Hash + Eq + 'static,
     > std::fmt::Display for CodeGenerator<C, E>
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

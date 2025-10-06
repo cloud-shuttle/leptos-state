@@ -19,6 +19,8 @@ pub struct IntegrationManager<
     pub event_queue: std::sync::Mutex<Vec<IntegrationEvent>>,
     /// Active integrations
     pub active_integrations: std::sync::Mutex<std::collections::HashSet<String>>,
+    /// Phantom data for unused type parameters
+    _phantom: std::marker::PhantomData<(C, E)>,
     /// Metrics collector
     pub metrics: IntegrationMetrics,
     /// Event filters
@@ -37,6 +39,7 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Clone + std::
             adapters: std::collections::HashMap::new(),
             event_queue: std::sync::Mutex::new(Vec::new()),
             active_integrations: std::sync::Mutex::new(std::collections::HashSet::new()),
+            _phantom: std::marker::PhantomData,
             metrics: IntegrationMetrics::new(),
             filters: Vec::new(),
             task_handles: std::sync::Mutex::new(Vec::new()),
@@ -136,10 +139,10 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Clone + std::
         for (name, adapter) in &self.adapters {
             match adapter.send_event(&event).await {
                 Ok(_) => {
-                    self.metrics.record_success(name.clone());
+                    self.metrics.record_success();
                 }
                 Err(e) => {
-                    self.metrics.record_error(name.clone(), e);
+                    self.metrics.record_error();
                 }
             }
         }
@@ -154,11 +157,11 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Clone + std::
         for (name, adapter) in &self.adapters {
             match adapter.receive_events().await {
                 Ok(mut adapter_events) => {
-                    self.metrics.record_success(name.clone());
+                    self.metrics.record_success();
                     events.append(&mut adapter_events);
                 }
                 Err(e) => {
-                    self.metrics.record_error(name.clone(), e);
+                    self.metrics.record_error();
                 }
             }
         }

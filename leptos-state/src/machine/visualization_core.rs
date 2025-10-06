@@ -5,7 +5,7 @@ use super::*;
 
 /// State machine visualizer
 #[derive(Debug)]
-pub struct MachineVisualizer<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> {
+pub struct MachineVisualizer<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static> {
     /// Visualization configuration
     pub config: VisualizationConfig,
     /// Theme configuration
@@ -26,7 +26,7 @@ pub struct MachineVisualizer<C: Clone + Send + Sync + std::fmt::Debug + 'static,
     pub enabled: bool,
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> MachineVisualizer<C, E> {
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> MachineVisualizer<C, E> {
     /// Create a new machine visualizer
     pub fn new() -> Self {
         Self {
@@ -146,7 +146,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
     /// Take a snapshot of the current machine state
     pub fn take_snapshot(&mut self) -> Result<(), String> {
         if let Some(ref machine) = self.machine {
-            let snapshot = MachineSnapshot::new(machine.clone());
+            let snapshot = MachineSnapshot::new(machine);
             self.current_snapshot = Some(snapshot);
             Ok(())
         } else {
@@ -173,7 +173,10 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
     }
 
     /// Export as GraphViz DOT format
-    fn export_dot(&self, machine: &Machine<C, E, C>) -> Result<String, String> {
+    fn export_dot(&self, machine: &Machine<C, E, C>) -> Result<String, String>
+    where
+        E: Eq + std::hash::Hash,
+    {
         let mut output = String::new();
 
         output.push_str("digraph StateMachine {\n");
@@ -236,7 +239,10 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
     }
 
     /// Export as Mermaid format
-    fn export_mermaid(&self, machine: &Machine<C, E, C>) -> Result<String, String> {
+    fn export_mermaid(&self, machine: &Machine<C, E, C>) -> Result<String, String>
+    where
+        E: Eq + std::hash::Hash,
+    {
         let mut output = String::new();
 
         output.push_str("stateDiagram-v2\n");
@@ -272,7 +278,10 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
     }
 
     /// Export as PlantUML format
-    fn export_plantuml(&self, machine: &Machine<C, E, C>) -> Result<String, String> {
+    fn export_plantuml(&self, machine: &Machine<C, E, C>) -> Result<String, String>
+    where
+        E: Eq + std::hash::Hash,
+    {
         let mut output = String::new();
 
         output.push_str("@startuml\n");

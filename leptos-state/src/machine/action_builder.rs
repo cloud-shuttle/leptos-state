@@ -20,7 +20,7 @@ impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> std::fmt::Debug for Act
     }
 }
 
-impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> ActionBuilder<C, E> {
+impl<C: std::fmt::Debug + 'static, E: std::fmt::Debug + PartialEq + 'static> ActionBuilder<C, E> {
     /// Create a new action builder
     pub fn new() -> Self {
         Self {
@@ -38,6 +38,8 @@ impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> ActionBuilder<C, E> {
     /// Add a function action
     pub fn function<F: Send + Sync>(mut self, func: F) -> Self
     where
+        C: Send + Sync,
+        E: Send + Sync,
         F: Fn(&mut C, &E) + Clone + 'static,
     {
         self.actions.push(Box::new(FunctionAction::new(func)));
@@ -45,8 +47,10 @@ impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> ActionBuilder<C, E> {
     }
 
     /// Add an assign action
-    pub fn assign<T: Send + Sync, F: Send + Sync>(mut self, assign_fn: F) -> Self
+    pub fn assign<T: Send + Sync + std::fmt::Debug + 'static, F: Send + Sync>(mut self, assign_fn: F) -> Self
     where
+        C: Send + Sync,
+        E: Send + Sync,
         F: Fn(&mut C, &E) -> T + Clone + 'static,
     {
         self.actions.push(Box::new(AssignAction::new(assign_fn)));
@@ -62,6 +66,8 @@ impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> ActionBuilder<C, E> {
     /// Add a pure action
     pub fn pure<F: Send + Sync>(mut self, func: F) -> Self
     where
+        C: Send + Sync,
+        E: Send + Sync,
         F: Fn() + Clone + 'static,
     {
         self.actions.push(Box::new(PureAction::new(func)));
@@ -71,6 +77,8 @@ impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> ActionBuilder<C, E> {
     /// Add a conditional action
     pub fn conditional<F: Send + Sync>(mut self, condition: F, action: Box<dyn Action<C, E>>) -> Self
     where
+        C: Send + Sync,
+        E: Send + Sync,
         F: Fn(&C, &E) -> bool + Clone + 'static,
     {
         self.actions
@@ -79,71 +87,115 @@ impl<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq> ActionBuilder<C, E> {
     }
 
     /// Add a sequential action
-    pub fn sequential(mut self, actions: Vec<Box<dyn Action<C, E>>>) -> Self {
+    pub fn sequential(mut self, actions: Vec<Box<dyn Action<C, E>>>) -> Self
+    where
+        C: Send + Sync,
+        E: Send + Sync,
+    {
         self.actions.push(Box::new(SequentialAction::new(actions)));
         self
     }
 
     /// Add a parallel action
-    pub fn parallel(mut self, actions: Vec<Box<dyn Action<C, E>>>) -> Self {
+    pub fn parallel(mut self, actions: Vec<Box<dyn Action<C, E>>>) -> Self
+    where
+        C: Send + Sync,
+        E: Send + Sync,
+    {
         self.actions.push(Box::new(ParallelAction::new(actions)));
         self
     }
 
     /// Add a retry action
-    pub fn retry(mut self, action: Box<dyn Action<C, E>>, max_attempts: usize) -> Self {
+    pub fn retry(mut self, action: Box<dyn Action<C, E>>, max_attempts: usize) -> Self
+    where
+        C: Send + Sync,
+        E: Send + Sync,
+    {
         self.actions
             .push(Box::new(RetryAction::new(action, max_attempts)));
         self
     }
 
     /// Add a timer action
-    pub fn timer(mut self, action: Box<dyn Action<C, E>>, timer_name: String) -> Self {
+    pub fn timer(mut self, action: Box<dyn Action<C, E>>, timer_name: String) -> Self
+    where
+        C: Send + Sync,
+        E: Send + Sync,
+    {
         self.actions
             .push(Box::new(TimerAction::new(action, timer_name)));
         self
     }
 
     /// Add a metrics action
-    pub fn metrics(mut self, action: Box<dyn Action<C, E>>, metrics_name: String) -> Self {
+    pub fn metrics(mut self, action: Box<dyn Action<C, E>>, metrics_name: String) -> Self
+    where
+        C: Send + Sync,
+        E: Send + Sync,
+    {
         self.actions
             .push(Box::new(MetricsAction::new(action, metrics_name)));
         self
     }
 
     /// Add a timeout action
-    pub fn timeout(mut self, action: Box<dyn Action<C, E>>, timeout: std::time::Duration) -> Self {
+    pub fn timeout(mut self, action: Box<dyn Action<C, E>>, timeout: std::time::Duration) -> Self
+    where
+        C: Send + Sync,
+        E: Send + Sync,
+    {
         self.actions
             .push(Box::new(TimeoutAction::new(action, timeout)));
         self
     }
 
     /// Add a circuit breaker action
-    pub fn circuit_breaker(mut self, action: Box<dyn Action<C, E>>, name: String) -> Self {
+    pub fn circuit_breaker(mut self, action: Box<dyn Action<C, E>>, name: String) -> Self
+    where
+        C: Send + Sync,
+        E: Send + Sync,
+    {
         self.actions
             .push(Box::new(CircuitBreakerAction::new(action, name)));
         self
     }
 
     /// Add a composite action
-    pub fn composite(mut self, actions: Vec<Box<dyn Action<C, E>>>, logic: CompositeLogic) -> Self {
+    pub fn composite(mut self, actions: Vec<Box<dyn Action<C, E>>>, logic: CompositeLogic) -> Self
+    where
+        C: Send + Sync,
+        E: Send + Sync,
+    {
         self.actions
             .push(Box::new(CompositeAction::new(actions, logic)));
         self
     }
 
     /// Build a sequential action from all added actions
-    pub fn build_sequential(self) -> Box<dyn Action<C, E>> {
+    pub fn build_sequential(self) -> Box<dyn Action<C, E>>
+    where
+        C: Send + Sync,
+        E: Send + Sync,
+    {
         Box::new(SequentialAction::new(self.actions).with_description(self.description))
     }
 
     /// Build a parallel action from all added actions
-    pub fn build_parallel(self) -> Box<dyn Action<C, E>> {
+    pub fn build_parallel(self) -> Box<dyn Action<C, E>>
+    where
+        C: Send + Sync,
+        E: Send + Sync,
+    {
         Box::new(ParallelAction::new(self.actions).with_description(self.description))
     }
 
     /// Build a composite action from all added actions
-    pub fn build_composite(self, logic: CompositeLogic) -> Box<dyn Action<C, E>> {
+    pub fn build_composite(self, logic: CompositeLogic) -> Box<dyn Action<C, E>>
+    where
+        C: Send + Sync,
+        E: Send + Sync,
+    {
         Box::new(CompositeAction::new(self.actions, logic).with_description(self.description))
     }
 
@@ -355,7 +407,7 @@ pub mod actions {
     use super::*;
 
     /// Create a function action
-    pub fn function<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F: Send + Sync>(func: F) -> Box<dyn Action<C, E>>
+    pub fn function<C: std::fmt::Debug + Send + Sync + 'static, E: std::fmt::Debug + PartialEq + Send + Sync + 'static, F: Send + Sync>(func: F) -> Box<dyn Action<C, E>>
     where
         F: Fn(&mut C, &E) + Clone + 'static,
     {
@@ -363,12 +415,12 @@ pub mod actions {
     }
 
     /// Create a log action
-    pub fn log<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq>(message: String) -> Box<dyn Action<C, E>> {
+    pub fn log<C: std::fmt::Debug + Send + Sync + 'static, E: std::fmt::Debug + PartialEq + Send + Sync + 'static>(message: String) -> Box<dyn Action<C, E>> {
         Box::new(LogAction::new(message))
     }
 
     /// Create a pure action
-    pub fn pure<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F: Send + Sync>(func: F) -> Box<dyn Action<C, E>>
+    pub fn pure<C: std::fmt::Debug + Send + Sync + 'static, E: std::fmt::Debug + PartialEq + Send + Sync + 'static, F: Send + Sync>(func: F) -> Box<dyn Action<C, E>>
     where
         F: Fn() + Clone + 'static,
     {
@@ -376,7 +428,7 @@ pub mod actions {
     }
 
     /// Create a conditional action
-    pub fn conditional<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq, F: Send + Sync>(
+    pub fn conditional<C: std::fmt::Debug + Send + Sync + 'static, E: std::fmt::Debug + PartialEq + Send + Sync + 'static, F: Send + Sync>(
         condition: F,
         action: Box<dyn Action<C, E>>,
     ) -> Box<dyn Action<C, E>>
@@ -387,17 +439,17 @@ pub mod actions {
     }
 
     /// Create a sequential action
-    pub fn sequential<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq>(actions: Vec<Box<dyn Action<C, E>>>) -> Box<dyn Action<C, E>> {
+    pub fn sequential<C: std::fmt::Debug + Send + Sync + 'static, E: std::fmt::Debug + PartialEq + Send + Sync + 'static>(actions: Vec<Box<dyn Action<C, E>>>) -> Box<dyn Action<C, E>> {
         Box::new(SequentialAction::new(actions))
     }
 
     /// Create a parallel action
-    pub fn parallel<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq>(actions: Vec<Box<dyn Action<C, E>>>) -> Box<dyn Action<C, E>> {
+    pub fn parallel<C: std::fmt::Debug + Send + Sync + 'static, E: std::fmt::Debug + PartialEq + Send + Sync + 'static>(actions: Vec<Box<dyn Action<C, E>>>) -> Box<dyn Action<C, E>> {
         Box::new(ParallelAction::new(actions))
     }
 
     /// Create a retry action
-    pub fn retry<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq>(
+    pub fn retry<C: std::fmt::Debug + Send + Sync + 'static, E: std::fmt::Debug + PartialEq + Send + Sync + 'static>(
         action: Box<dyn Action<C, E>>,
         max_attempts: usize,
     ) -> Box<dyn Action<C, E>> {
@@ -405,12 +457,12 @@ pub mod actions {
     }
 
     /// Create a timer action
-    pub fn timer<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq>(action: Box<dyn Action<C, E>>, timer_name: String) -> Box<dyn Action<C, E>> {
+    pub fn timer<C: std::fmt::Debug + Send + Sync + 'static, E: std::fmt::Debug + PartialEq + Send + Sync + 'static>(action: Box<dyn Action<C, E>>, timer_name: String) -> Box<dyn Action<C, E>> {
         Box::new(TimerAction::new(action, timer_name))
     }
 
     /// Create a metrics action
-    pub fn metrics<C: std::fmt::Debug, E: std::fmt::Debug + PartialEq>(
+    pub fn metrics<C: std::fmt::Debug + Send + Sync + 'static, E: std::fmt::Debug + PartialEq + Send + Sync + 'static>(
         action: Box<dyn Action<C, E>>,
         metrics_name: String,
     ) -> Box<dyn Action<C, E>> {

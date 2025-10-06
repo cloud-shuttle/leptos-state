@@ -10,9 +10,9 @@ use std::marker::PhantomData;
 /// Core Machine implementation
 pub struct Machine<S, E, C>
 where
-    S: Clone + Send + Sync + 'static,
-    E: Clone + Send + Sync + 'static + std::hash::Hash + Eq,
-    C: Clone + Send + Sync + 'static,
+    S: crate::machine::core::traits::CloneableStateMachineType,
+    E: crate::machine::core::traits::EquatableStateMachineType,
+    C: crate::machine::core::traits::CloneableStateMachineType,
 {
     pub id: String,
     pub states: HashMap<String, StateNode<S, E, C>>,
@@ -27,9 +27,9 @@ where
 
 impl<S, E, C> Machine<S, E, C>
 where
-    S: Clone + Send + Sync + 'static,
-    E: Clone + Send + Sync + 'static + std::hash::Hash + Eq,
-    C: Clone + PartialEq + Send + Sync + 'static,
+    S: crate::machine::core::traits::CloneableStateMachineType,
+    E: crate::machine::core::traits::EquatableStateMachineType,
+    C: crate::machine::core::traits::CloneableStateMachineType,
 {
     pub fn new(id: String, context: C) -> Self {
         Self {

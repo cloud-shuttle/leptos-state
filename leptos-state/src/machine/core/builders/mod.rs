@@ -8,7 +8,7 @@ use std::marker::PhantomData;
 
 /// Builder for creating state machines
 #[derive(Debug)]
-pub struct MachineBuilder<C: Send + Sync, E: Send + Sync> {
+pub struct MachineBuilder<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> {
     states: HashMap<String, StateNode<C, E, C>>,
     initial: String,
     _phantom: PhantomData<(C, E)>,
@@ -32,6 +32,9 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
         self
     }
 
+    pub(crate) fn insert_state(&mut self, id: String, state: StateNode<C, E, C>) {
+        self.states.insert(id, state);
+    }
     pub fn build(self) -> Machine<C, E, C> {
         Machine {
             states: self.states,
@@ -117,7 +120,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
 
 /// State builder for fluent API
 #[derive(Debug)]
-pub struct StateBuilder<C: Send + Sync, E: Send + Sync> {
+pub struct StateBuilder<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> {
     machine_builder: MachineBuilder<C, E>,
     state_id: String,
     state_node: StateNode<C, E, C>,
@@ -155,7 +158,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
 
     pub fn on_entry_fn<F>(mut self, action_fn: F) -> Self
     where
-        F: Fn(&mut C, &E) + Send + Sync + 'static,
+        F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
     {
         let action = FunctionAction::new(action_fn);
         self.state_node.entry_actions.push(Box::new(action));
@@ -164,7 +167,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
 
     pub fn on_exit_fn<F>(mut self, action_fn: F) -> Self
     where
-        F: Fn(&mut C, &E) + Send + Sync + 'static,
+        F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
     {
         let action = FunctionAction::new(action_fn);
         self.state_node.exit_actions.push(Box::new(action));
@@ -183,7 +186,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
 
 /// Builder for child states in hierarchical machines
 #[derive(Debug)]
-pub struct ChildStateBuilder<C: Send + Sync, E: Send + Sync> {
+pub struct ChildStateBuilder<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> {
     state_builder: StateBuilder<C, E>,
     child_id: String,
     child_node: StateNode<C, E, C>,
@@ -226,7 +229,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
 
     pub fn on_entry_fn<F>(mut self, action_fn: F) -> Self
     where
-        F: Fn(&mut C, &E) + Send + Sync + 'static,
+        F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
     {
         let action = FunctionAction::new(action_fn);
         self.child_node.entry_actions.push(Box::new(action));
@@ -235,7 +238,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
 
     pub fn on_exit_fn<F>(mut self, action_fn: F) -> Self
     where
-        F: Fn(&mut C, &E) + Send + Sync + 'static,
+        F: Fn(&mut C, &E) + Clone + Send + Sync + 'static,
     {
         let action = FunctionAction::new(action_fn);
         self.child_node.exit_actions.push(Box::new(action));
@@ -250,7 +253,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
 
 /// Transition builder for child states
 #[derive(Debug)]
-pub struct ChildTransitionBuilder<C: Send + Sync, E: Send + Sync> {
+pub struct ChildTransitionBuilder<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> {
     child_builder: ChildStateBuilder<C, E>,
     transition: Transition<C, E>,
 }
@@ -289,7 +292,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
 
 /// Transition builder for fluent API
 #[derive(Debug)]
-pub struct TransitionBuilder<C: Send + Sync, E: Send + Sync> {
+pub struct TransitionBuilder<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> {
     state_builder: StateBuilder<C, E>,
     transition: Transition<C, E>,
 }

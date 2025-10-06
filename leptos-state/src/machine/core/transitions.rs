@@ -11,7 +11,7 @@ pub fn transition<C, E>(
 ) -> MachineStateImpl<C>
 where
     C: Send + Sync + Clone + std::fmt::Debug + Default + 'static,
-    E: Send + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
+    E: Send + Sync + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
 {
     match &state.value() {
         StateValue::Simple(id) => transition_simple(machine, state, id, event),
@@ -50,7 +50,7 @@ pub fn transition_simple<C, E>(
 ) -> MachineStateImpl<C>
 where
     C: Send + Sync + Clone + std::fmt::Debug + Default + 'static,
-    E: Send + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
+    E: Send + Sync + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
 {
     if let Some(state_node) = machine.states.get(state_id) {
         // Look for a matching transition
@@ -104,7 +104,7 @@ pub fn transition_hierarchical<C, E>(
 ) -> MachineStateImpl<C>
 where
     C: Send + Sync + Clone + std::fmt::Debug + Default + 'static,
-    E: Send + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
+    E: Send + Sync + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
 {
     // First try child state transitions
     let child_state = MachineStateImpl {
@@ -133,7 +133,7 @@ where
 pub fn resolve_target_state<C, E>(machine: &Machine<C, E, C>, target: &str) -> StateValue
 where
     C: Send + Sync + Clone + std::fmt::Debug + Default + 'static,
-    E: Send + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
+    E: Send + Sync + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
 {
     if let Some(state_node) = machine.states.get(target) {
         if !state_node.child_states.is_empty() {
@@ -159,7 +159,7 @@ pub fn execute_entry_actions<C, E>(
 ) -> MachineStateImpl<C>
 where
     C: Send + Sync + Clone + std::fmt::Debug + Default + 'static,
-    E: Send + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
+    E: Send + Sync + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
 {
     if let Some(target_node) = machine.states.get(target_id) {
         for action in &target_node.entry_actions {
@@ -174,7 +174,7 @@ where
 pub fn initial_state<C, E>(machine: &Machine<C, E, C>) -> MachineStateImpl<C>
 where
     C: Send + Sync + Clone + std::fmt::Debug + Default + 'static,
-    E: Send + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
+    E: Send + Sync + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
 {
     MachineStateImpl {
         value: StateValue::Simple(machine.initial.clone()),
@@ -189,7 +189,7 @@ pub fn initial_with_context<C, E>(
 ) -> MachineStateImpl<C>
 where
     C: Send + Sync + Clone + std::fmt::Debug + Default + 'static,
-    E: Send + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
+    E: Send + Sync + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static,
 {
     MachineStateImpl {
         value: StateValue::Simple(machine.initial.clone()),

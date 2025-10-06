@@ -2,7 +2,7 @@ use super::*;
 use std::collections::HashMap;
 
 /// State builder for fluent API
-pub struct StateBuilder<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
+pub struct StateBuilder<C: crate::machine::core::traits::CloneableStateMachineType + Default, E: crate::machine::core::traits::EquatableStateMachineType> {
     pub machine_builder: MachineBuilder<C, E>,
     pub current_state: String,
     pub transitions: Vec<Transition<C, E>>,
@@ -12,7 +12,7 @@ pub struct StateBuilder<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync
     pub initial_child: Option<String>,
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBuilder<C, E> {
+impl<C: crate::machine::core::traits::CloneableStateMachineType + Default, E: crate::machine::core::traits::EquatableStateMachineType> StateBuilder<C, E> {
     pub fn new(machine_builder: MachineBuilder<C, E>, state_id: String) -> Self {
         Self {
             machine_builder,
@@ -125,8 +125,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBu
         };
 
         self.machine_builder
-            .states
-            .insert(self.current_state, state_node);
+            .insert_state(self.current_state, state_node);
 
         // Start new state
         StateBuilder::new(self.machine_builder, id.to_string())
@@ -145,7 +144,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBu
         };
 
         let mut builder = self.machine_builder;
-        builder.states.insert(self.current_state, state_node);
+        builder.insert_state(self.current_state, state_node);
         builder.initial(state_id)
     }
 
@@ -162,7 +161,7 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> StateBu
         };
 
         let mut builder = self.machine_builder;
-        builder.states.insert(self.current_state, state_node);
+        builder.insert_state(self.current_state, state_node);
         builder.build()
     }
 }

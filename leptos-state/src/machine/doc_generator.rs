@@ -9,8 +9,8 @@ use std::hash::Hash;
 
 /// Documentation generator for state machines
 pub struct DocumentationGenerator<
-    C: Send + Sync + Clone + PartialEq + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 > {
     /// Machine being documented
     pub machine: Machine<C, E, C>,
@@ -21,8 +21,8 @@ pub struct DocumentationGenerator<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     > DocumentationGenerator<C, E>
 {
     /// Create a new documentation generator

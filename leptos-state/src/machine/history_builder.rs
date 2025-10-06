@@ -5,8 +5,8 @@ use std::hash::Hash;
 
 /// Builder extension for adding history states
 pub trait HistoryMachineBuilder<
-    C: Send + Sync + Clone + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + Default + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 >
 {
     /// Add a history state to the machine being built
@@ -21,8 +21,8 @@ pub trait HistoryMachineBuilder<
 
 /// History-enabled machine builder
 pub struct HistoryMachineBuilderImpl<
-    C: Send + Sync + Clone + Eq + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + Default + Eq + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 > {
     /// The base machine builder
     pub base_builder: crate::machine::builder::MachineBuilderImpl<C, E, C>,
@@ -32,7 +32,7 @@ pub struct HistoryMachineBuilderImpl<
     pub history_states: Vec<HistoryState>,
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + Default + Eq + 'static, E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static>
     HistoryMachineBuilderImpl<C, E>
 {
     /// Create a new history-enabled machine builder
@@ -68,7 +68,7 @@ impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'sta
     }
 }
 
-impl<C: Send + Sync + Clone + 'static, E: Clone + Send + Sync + Hash + Eq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + Default + Eq + 'static, E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static>
     HistoryMachineBuilder<C, E> for HistoryMachineBuilderImpl<C, E>
 {
     fn history_state(&mut self, state: HistoryState) -> &mut Self {
@@ -92,8 +92,8 @@ pub mod history_builder {
 
     /// Create a new history machine builder
     pub fn create_history_machine<
-        C: Send + Sync + Clone + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + Default + Eq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     >() -> HistoryMachineBuilderImpl<C, E> {
         let base_builder = crate::machine::create_machine_builder();
         HistoryMachineBuilderImpl::new(base_builder)
@@ -116,8 +116,8 @@ pub mod history_builder {
 
     /// Create a history machine with common defaults
     pub fn default_history_machine<
-        C: Send + Sync + Clone + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + Default + Eq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     >(
         initial_state: &str,
     ) -> HistoryMachineBuilderImpl<C, E> {
@@ -150,8 +150,8 @@ pub mod factory {
 
     /// Create a simple history machine
     pub fn simple_history_machine<
-        C: Send + Sync + Clone + Default + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + Default + Eq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     >(
         _states: Vec<&str>,
         initial_state: &str,
@@ -175,8 +175,8 @@ pub mod factory {
 
     /// Create a history machine with persistence
     pub fn persistent_history_machine<
-        C: Send + Sync + Clone + Default + serde::Serialize + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + Default + serde::Serialize + Eq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     >(
         _states: Vec<&str>,
         initial_state: &str,
@@ -198,8 +198,8 @@ pub mod factory {
 
     /// Create a memory-efficient history machine
     pub fn memory_efficient_history_machine<
-        C: Send + Sync + Clone + Default + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + Default + Eq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     >(
         _max_history_per_state: usize,
         max_total_history: usize,
@@ -252,7 +252,7 @@ pub mod utils {
             // Remove duplicate consecutive entries
             let mut i = 1;
             while i < entries.len() {
-                if entries[i].state == entries[i - 1].state {
+                if entries[i].to_state == entries[i - 1].to_state {
                     entries.remove(i);
                 } else {
                     i += 1;
@@ -291,7 +291,7 @@ pub mod utils {
         // Sort and deduplicate entries
         for entries in merged_history.values_mut() {
             entries.sort_by(|a, b| a.timestamp.cmp(&b.timestamp));
-            entries.dedup_by(|a, b| a.timestamp == b.timestamp && a.state == b.state);
+            entries.dedup_by(|a, b| a.timestamp == b.timestamp && a.to_state == b.to_state);
         }
 
         HistorySnapshot {

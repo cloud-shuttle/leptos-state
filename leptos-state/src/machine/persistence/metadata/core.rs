@@ -1,7 +1,7 @@
 //! Core machine metadata structures and functionality
 
 /// Machine metadata for persistence
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct MachineMetadata {
     /// Machine name
     pub name: Option<String>,

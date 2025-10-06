@@ -22,13 +22,13 @@ use crate::machine::performance::{
 };
 
 /// Builder for creating state machines
-pub struct MachineBuilderImpl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
+pub struct MachineBuilderImpl<C: crate::machine::core::traits::CloneableStateMachineType + Default, E: crate::machine::core::traits::EquatableStateMachineType> {
     pub states: HashMap<String, StateNode<C, E, C>>,
     pub initial: String,
     _phantom: PhantomData<(C, E)>,
 }
 
-impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> MachineBuilderImpl<C, E> {
+impl<C: crate::machine::core::traits::CloneableStateMachineType + Default, E: crate::machine::core::traits::EquatableStateMachineType> MachineBuilderImpl<C, E> {
     pub fn new() -> Self {
         Self {
             states: HashMap::new(),
@@ -46,12 +46,12 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Machine
         self
     }
 
-    pub fn build(self) -> Machine<C, E, C> {
-        Machine {
+    pub fn build(self) -> crate::StateResult<Machine<C, E, C>> {
+        Ok(Machine {
             states: self.states,
             initial: self.initial,
             _phantom: std::marker::PhantomData,
-        }
+        })
     }
 
     /// Build a machine with persistence capabilities
@@ -253,8 +253,8 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Machine
     #[cfg(feature = "codegen")]
     pub fn build_with_code_generation(self, config: CodeGenConfig) -> CodeGenerator<C, E>
     where
-        C: Clone + std::fmt::Debug + Send + Sync,
-        E: Clone + std::fmt::Debug + Event + Send + Sync,
+        C: Clone + std::fmt::Debug + Send + Sync + PartialEq,
+        E: Clone + std::fmt::Debug + Event + Send + Sync + PartialEq,
     {
         self.build().with_code_generation(config)
     }
@@ -263,8 +263,8 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Machine
     /// Build a machine with default code generation settings
     pub fn build_codegen(self) -> CodeGenerator<C, E>
     where
-        C: Clone + std::fmt::Debug + Send + Sync,
-        E: Clone + std::fmt::Debug + Event + Send + Sync,
+        C: Clone + std::fmt::Debug + Send + Sync + PartialEq,
+        E: Clone + std::fmt::Debug + Event + Send + Sync + PartialEq,
     {
         let config = CodeGenConfig {
             enabled: true,
@@ -279,8 +279,8 @@ impl<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> Machine
 }
 
 impl<
-        C: Clone + 'static + std::fmt::Debug + Send + Sync,
-        E: Clone + 'static + std::fmt::Debug + Send + Sync,
+        C: Clone + 'static + std::fmt::Debug + Send + Sync + Default,
+        E: Clone + 'static + std::fmt::Debug + Send + Sync + std::cmp::Eq + std::hash::Hash,
     > Default for MachineBuilderImpl<C, E>
 {
     fn default() -> Self {

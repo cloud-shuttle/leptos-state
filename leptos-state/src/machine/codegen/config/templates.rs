@@ -222,7 +222,7 @@ class {machine_name}:
     pub fn statistics(&self) -> TemplateStatistics {
         let mut stats = TemplateStatistics::default();
 
-        for (language, lang_templates) in &self.templates {
+        for (_language, lang_templates) in &self.templates {
             stats.total_languages += 1;
             stats.total_templates += lang_templates.len();
 

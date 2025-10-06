@@ -259,8 +259,8 @@ pub struct DocumentationData {
 impl DocumentationData {
     /// Create new documentation data from a machine
     pub fn new<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     >(
         machine: Machine<C, E, C>,
     ) -> Self {
@@ -282,8 +282,8 @@ impl DocumentationData {
 
     /// Populate data from a machine
     fn populate_from_machine<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     >(
         &mut self,
         machine: Machine<C, E, C>,
@@ -440,5 +440,21 @@ impl<'de> serde::Deserialize<'de> for DocumentationData {
         Err(serde::de::Error::custom(
             "DocumentationData deserialization not implemented",
         ))
+    }
+}
+
+impl Default for DocumentationData {
+    fn default() -> Self {
+        Self {
+            machine_name: "StateMachine".to_string(),
+            machine_description: None,
+            states: Vec::new(),
+            transitions: Vec::new(),
+            actions: Vec::new(),
+            guards: Vec::new(),
+            initial_state: None,
+            final_states: Vec::new(),
+            metadata: HashMap::new(),
+        }
     }
 }

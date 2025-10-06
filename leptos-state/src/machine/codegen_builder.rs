@@ -3,9 +3,10 @@
 use super::*;
 
 /// Code generation builder for fluent configuration
+#[derive(Debug)]
 pub struct CodeGenBuilder<
-    C: Send + Sync + Clone + 'static,
-    E: Send + Clone + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+    E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
 > {
     /// Configuration
     pub config: CodeGenConfig,
@@ -24,8 +25,8 @@ pub struct CodeGenBuilder<
 }
 
 impl<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     > CodeGenBuilder<C, E>
 {
     /// Create a new code generation builder
@@ -180,12 +181,17 @@ impl<
 
     /// Generate code for a machine
     pub fn generate(mut self, machine: &Machine<C, E, C>) -> Result<GeneratedFile, String> {
+        // Extract hooks before moving self
+        let pre_hooks = std::mem::take(&mut self.pre_hooks);
+        let post_hooks = std::mem::take(&mut self.post_hooks);
+        let context = self.context.take();
+
         let mut generator = self.build_generator();
 
         // Run pre-generation hooks
-        if let Some(ref mut context) = self.context {
-            for hook in &self.pre_hooks {
-                hook(context);
+        if let Some(mut ctx) = context {
+            for hook in &pre_hooks {
+                hook(&mut ctx);
             }
         }
 
@@ -193,7 +199,7 @@ impl<
         let mut file = generator.generate(machine)?;
 
         // Run post-generation hooks
-        for hook in &self.post_hooks {
+        for hook in &post_hooks {
             hook(&mut file);
         }
 
@@ -224,16 +230,16 @@ impl<
 
 /// Builder step for pipeline integration
 struct BuilderStep<
-    C: Send + Sync + Clone + 'static,
-    E: Send + Clone + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+    E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
 > {
     builder: CodeGenBuilder<C, E>,
     _phantom: std::marker::PhantomData<(C, E)>,
 }
 
 impl<
-        C: Send + Sync + Clone + std::fmt::Debug + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     > CodeGenStep<C, E> for BuilderStep<C, E>
 {
     fn execute(
@@ -242,12 +248,13 @@ impl<
         _config: &PipelineConfig,
     ) -> Result<GeneratedFile, String> {
         // Create a copy of the builder for this execution
+        // Note: Hooks cannot be cloned since they contain function types
         let mut builder = CodeGenBuilder {
             config: self.builder.config.clone(),
             templates: self.builder.templates.clone(),
             options: self.builder.options.clone(),
-            pre_hooks: self.builder.pre_hooks.clone(),
-            post_hooks: self.builder.post_hooks.clone(),
+            pre_hooks: Vec::new(), // Cannot clone function hooks
+            post_hooks: Vec::new(), // Cannot clone function hooks
             context: self.builder.context.clone(),
         };
 
@@ -269,32 +276,32 @@ pub mod builder {
 
     /// Start building a code generator for Rust
     pub fn rust<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >() -> CodeGenBuilder<C, E> {
         CodeGenBuilder::new().language(ProgrammingLanguage::Rust)
     }
 
     /// Start building a code generator for TypeScript
     pub fn typescript<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >() -> CodeGenBuilder<C, E> {
         CodeGenBuilder::new().language(ProgrammingLanguage::TypeScript)
     }
 
     /// Start building a code generator for Python
     pub fn python<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >() -> CodeGenBuilder<C, E> {
         CodeGenBuilder::new().language(ProgrammingLanguage::Python)
     }
 
     /// Start building with custom language
     pub fn for_language<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >(
         language: ProgrammingLanguage,
     ) -> CodeGenBuilder<C, E> {
@@ -303,8 +310,8 @@ pub mod builder {
 
     /// Create a builder from existing config
     pub fn from_config<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >(
         config: CodeGenConfig,
     ) -> CodeGenBuilder<C, E> {
@@ -320,8 +327,8 @@ pub mod builder {
 
     /// Create a builder with custom templates
     pub fn with_templates<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >(
         templates: CodeTemplates,
     ) -> CodeGenBuilder<C, E> {
@@ -330,8 +337,8 @@ pub mod builder {
 
     /// Configure indentation
     pub fn indent_spaces<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >(
         spaces: usize,
     ) -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
@@ -340,16 +347,16 @@ pub mod builder {
 
     /// Configure indentation with tabs
     pub fn indent_tabs<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >() -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
         Box::new(|builder| builder.indent_with(IndentationStyle::Tabs))
     }
 
     /// Add a comment header
     pub fn with_header<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >(
         header: String,
     ) -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
@@ -358,8 +365,8 @@ pub mod builder {
 
     /// Add a comment footer
     pub fn with_footer<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >(
         footer: String,
     ) -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
@@ -368,16 +375,16 @@ pub mod builder {
 
     /// Enable test generation
     pub fn with_tests<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >() -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
         Box::new(|builder| builder.with_tests(true))
     }
 
     /// Enable validation code generation
     pub fn with_validation<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >() -> Box<dyn FnOnce(CodeGenBuilder<C, E>) -> CodeGenBuilder<C, E>> {
         Box::new(|builder| builder.with_validation(true))
     }
@@ -389,8 +396,8 @@ pub mod presets {
 
     /// Create a minimal code generator (no comments, no tests)
     pub fn minimal<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >(
         language: ProgrammingLanguage,
     ) -> CodeGenBuilder<C, E> {
@@ -404,8 +411,8 @@ pub mod presets {
 
     /// Create a comprehensive code generator (everything enabled)
     pub fn comprehensive<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >(
         language: ProgrammingLanguage,
     ) -> CodeGenBuilder<C, E> {
@@ -421,8 +428,8 @@ pub mod presets {
 
     /// Create a web-ready code generator for JavaScript/TypeScript
     pub fn web_ready<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >() -> CodeGenBuilder<C, E> {
         CodeGenBuilder::new()
             .language(ProgrammingLanguage::TypeScript)
@@ -435,8 +442,8 @@ pub mod presets {
 
     /// Create a library-ready code generator for Rust
     pub fn library_ready<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + std::hash::Hash + std::cmp::Eq + 'static,
     >() -> CodeGenBuilder<C, E> {
         CodeGenBuilder::new()
             .language(ProgrammingLanguage::Rust)

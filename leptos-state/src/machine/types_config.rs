@@ -67,6 +67,16 @@ pub struct PerformanceConfig {
     pub enable_profiling: bool,
     pub metrics_interval_ms: u64,
     pub max_samples: usize,
+    pub optimization_strategy: crate::machine::performance_config::OptimizationStrategy,
+    pub worker_threads: usize,
+    pub profile_sample_rate: f64,
+    pub max_memory_usage: u64,
+    pub max_cache_size: usize,
+    pub enable_parallel_processing: bool,
+    pub enable_memory_tracking: bool,
+    pub enable_lazy_evaluation: bool,
+    pub enable_caching: bool,
+    pub cache_ttl: std::time::Duration,
 }
 
 impl Default for PerformanceConfig {
@@ -76,6 +86,16 @@ impl Default for PerformanceConfig {
             enable_profiling: false,
             metrics_interval_ms: 1000,
             max_samples: 1000,
+            optimization_strategy: crate::machine::performance_config::OptimizationStrategy::Balanced,
+            worker_threads: num_cpus::get(),
+            profile_sample_rate: 0.1,
+            max_memory_usage: 500 * 1024 * 1024, // 500MB
+            max_cache_size: 100 * 1024 * 1024, // 100MB
+            enable_parallel_processing: false,
+            enable_memory_tracking: true,
+            enable_lazy_evaluation: false,
+            enable_caching: true,
+            cache_ttl: std::time::Duration::from_secs(3600), // 1 hour
         }
     }
 }

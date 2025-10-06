@@ -3,7 +3,7 @@
 use super::*;
 
 /// Core trait for defining stores
-pub trait Store: Send + Sync + 'static {
+pub trait Store: Send + Sync + std::fmt::Debug + 'static {
     /// The state type this store manages
     type State: Clone + PartialEq + Send + Sync + 'static;
 
@@ -19,12 +19,12 @@ pub trait Store: Send + Sync + 'static {
 
 /// Context wrapper for store state
 #[derive(Clone, Debug)]
-pub struct StoreContext<T: Clone + PartialEq + 'static> {
+pub struct StoreContext<T: Clone + PartialEq + Send + Sync + 'static> {
     /// The store instance
     pub store: std::rc::Rc<dyn Store<State = T>>,
 }
 
-impl<T: Clone + PartialEq + 'static> StoreContext<T> {
+impl<T: Clone + PartialEq + Send + Sync + 'static> StoreContext<T> {
     /// Create a new store context
     pub fn new(store: impl Store<State = T> + 'static) -> Self {
         Self {
@@ -52,7 +52,7 @@ impl<T: Clone + PartialEq + 'static> StoreContext<T> {
 }
 
 /// Create a store with the given state type and initial value
-pub fn create_store<T: Clone + PartialEq + 'static>(initial: T) -> StoreContext<T> {
+pub fn create_store<T: Clone + PartialEq + Send + Sync + std::fmt::Debug + 'static>(initial: T) -> StoreContext<T> {
     StoreContext::new(SimpleStore::new(initial))
 }
 

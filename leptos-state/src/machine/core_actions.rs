@@ -1,5 +1,5 @@
 /// Action trait for state changes
-pub trait Action<C, E>: Send + Sync {
+pub trait Action<C, E>: Send + Sync + std::fmt::Debug {
     fn execute(&self, context: &mut C, event: &E);
     fn name(&self) -> &str;
     fn description(&self) -> String {

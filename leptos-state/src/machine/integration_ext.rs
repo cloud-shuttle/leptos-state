@@ -5,7 +5,7 @@ use super::*;
 /// Extension trait for adding integration to machines
 pub trait MachineIntegrationExt<
     C: Send + Sync + Clone + std::fmt::Debug + 'static,
-    E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+    E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
 >
 {
     /// Get an integration manager for this machine
@@ -42,7 +42,7 @@ pub trait MachineIntegrationExt<
     ) -> Result<(), String>;
 }
 
-impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Clone + std::fmt::Debug + PartialEq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static>
     MachineIntegrationExt<C, E> for Machine<C, E, C>
 {
     fn integration_manager(&self, config: IntegrationConfig) -> IntegrationManager<C, E> {
@@ -93,7 +93,7 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Clone + std::
 /// Integration builder for fluent configuration
 pub struct IntegrationBuilder<
     C: Send + Sync + Clone + std::fmt::Debug + 'static,
-    E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+    E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
 > {
     /// Integration manager being built
     pub manager: IntegrationManager<C, E>,
@@ -101,7 +101,7 @@ pub struct IntegrationBuilder<
     pub config: IntegrationConfig,
 }
 
-impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Clone + std::fmt::Debug + PartialEq + 'static>
+impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static>
     IntegrationBuilder<C, E>
 {
     /// Create a new integration builder
@@ -219,7 +219,7 @@ pub mod integrations {
     /// Create a WebSocket integration
     pub fn websocket<
         C: Send + Sync + Clone + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         config: ConnectionConfig,
     ) -> Box<dyn IntegrationAdapterTrait + Send + Sync> {
@@ -229,7 +229,7 @@ pub mod integrations {
     /// Create an HTTP API integration
     pub fn http_api<
         C: Send + Sync + Clone + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         config: ConnectionConfig,
     ) -> Box<dyn IntegrationAdapterTrait + Send + Sync> {
@@ -239,7 +239,7 @@ pub mod integrations {
     /// Create a database integration
     pub fn database<
         C: Send + Sync + Clone + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         config: ConnectionConfig,
     ) -> Box<dyn IntegrationAdapterTrait + Send + Sync> {
@@ -249,7 +249,7 @@ pub mod integrations {
     /// Create a message queue integration
     pub fn message_queue<
         C: Send + Sync + Clone + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         config: ConnectionConfig,
     ) -> Box<dyn IntegrationAdapterTrait + Send + Sync> {
@@ -259,7 +259,7 @@ pub mod integrations {
     /// Create a file system integration
     pub fn filesystem<
         C: Send + Sync + Clone + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         config: ConnectionConfig,
         output_dir: std::path::PathBuf,
@@ -293,18 +293,18 @@ pub mod integrations {
     }
 
     /// Create a basic HTTP connection config
-    pub fn http_connection(url: String) -> ConnectionConfig {
-        ConnectionConfig::new(url)
+    pub fn http_connection(_url: String) -> ConnectionConfig {
+        ConnectionConfig::new()
     }
 
     /// Create a database connection config
-    pub fn database_connection(url: String) -> ConnectionConfig {
-        ConnectionConfig::new(url)
+    pub fn database_connection(_url: String) -> ConnectionConfig {
+        ConnectionConfig::new()
     }
 
     /// Create a message queue connection config
-    pub fn message_queue_connection(url: String) -> ConnectionConfig {
-        ConnectionConfig::new(url)
+    pub fn message_queue_connection(_url: String) -> ConnectionConfig {
+        ConnectionConfig::new()
     }
 }
 
@@ -315,7 +315,7 @@ pub mod presets {
     /// Create a web application integration setup
     pub fn web_application<
         C: Send + Sync + Clone + std::fmt::Debug + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         machine: &Machine<C, E, C>,
         api_url: String,
@@ -324,15 +324,15 @@ pub mod presets {
         IntegrationBuilder::new(machine)
             .enabled(true)
             .max_concurrent(20)
-            .with_http_api(ConnectionConfig::new(api_url))
-            .with_websocket(ConnectionConfig::new(websocket_url))
+            .with_http_api(ConnectionConfig::new())
+            .with_websocket(ConnectionConfig::new())
             .with_metrics(true)
     }
 
     /// Create a microservice integration setup
     pub fn microservice<
         C: Send + Sync + Clone + std::fmt::Debug + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         machine: &Machine<C, E, C>,
         message_queue_url: String,
@@ -341,8 +341,8 @@ pub mod presets {
         IntegrationBuilder::new(machine)
             .enabled(true)
             .max_concurrent(50)
-            .with_message_queue(ConnectionConfig::new(message_queue_url))
-            .with_database(ConnectionConfig::new(database_url))
+            .with_message_queue(ConnectionConfig::new())
+            .with_database(ConnectionConfig::new())
             .with_routing(EventRoutingConfig::default())
             .with_metrics(true)
     }
@@ -350,7 +350,7 @@ pub mod presets {
     /// Create a data processing integration setup
     pub fn data_processing<
         C: Send + Sync + Clone + std::fmt::Debug + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         machine: &Machine<C, E, C>,
         output_dir: std::path::PathBuf,
@@ -360,17 +360,17 @@ pub mod presets {
             .enabled(true)
             .max_concurrent(10)
             .with_file_system(
-                ConnectionConfig::new("file://localhost".to_string()),
+                ConnectionConfig::new(),
                 output_dir,
             )
-            .with_database(ConnectionConfig::new(database_url))
+            .with_database(ConnectionConfig::new())
             .with_metrics(true)
     }
 
     /// Create a monitoring integration setup
     pub fn monitoring<
-        C: Send + Sync + Clone + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + 'static,
+        E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         machine: &Machine<C, E, C>,
         monitoring_endpoint: String,
@@ -378,7 +378,7 @@ pub mod presets {
         IntegrationBuilder::new(machine)
             .enabled(true)
             .max_concurrent(5)
-            .with_http_api(ConnectionConfig::new(monitoring_endpoint))
+            .with_http_api(ConnectionConfig::new())
             .with_metrics(true)
     }
 }

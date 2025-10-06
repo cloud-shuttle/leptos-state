@@ -21,6 +21,8 @@ pub struct CodeGenOptions {
     pub dependencies: Vec<String>,
     /// Whether to generate examples
     pub generate_examples: bool,
+    /// Whether to generate tests
+    pub generate_tests: bool,
     /// Code quality level (1-5)
     pub code_quality_level: u8,
     /// Whether to include error handling
@@ -43,6 +45,7 @@ impl Default for CodeGenOptions {
             compiler_flags: Vec::new(),
             dependencies: Vec::new(),
             generate_examples: false,
+            generate_tests: false,
             code_quality_level: 3,
             include_error_handling: true,
             generate_serialization: false,

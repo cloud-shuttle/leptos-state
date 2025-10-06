@@ -23,6 +23,10 @@ pub struct CodeGenConfig {
     pub output_dir: Option<String>,
     /// File naming pattern
     pub file_pattern: String,
+    /// Custom header to include in generated files
+    pub custom_header: Option<String>,
+    /// Whether to include guard clauses
+    pub include_guards: bool,
 }
 
 impl Default for CodeGenConfig {
@@ -38,6 +42,8 @@ impl Default for CodeGenConfig {
             generate_tests: false,
             output_dir: None,
             file_pattern: "{machine_name}.rs".to_string(),
+            custom_header: None,
+            include_guards: true,
         }
     }
 }

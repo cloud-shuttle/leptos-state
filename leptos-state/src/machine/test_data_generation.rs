@@ -59,8 +59,8 @@ pub struct MachineTestDataGenerator<C: Clone + Send + Sync + std::fmt::Debug + '
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     > MachineTestDataGenerator<C, E>
 {
     /// Create a new machine test data generator
@@ -129,12 +129,12 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
         unsafe { std::mem::zeroed() } // This is unsafe and should be replaced
     }
 
-    fn generate_context_for_state(&self, state: &str) -> C {
-        self.generate_context_for_state(state)
+    fn generate_context_for_state(&self, _state: &str) -> C {
+        self.generate_context()
     }
 
-    fn generate_event_for_transition(&self, from: &str, to: &str) -> E {
-        self.generate_event_for_transition(from, to)
+    fn generate_event_for_transition(&self, _from: &str, _to: &str) -> E {
+        self.generate_event()
     }
 }
 

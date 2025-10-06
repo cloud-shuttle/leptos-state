@@ -3,7 +3,7 @@
 use super::core::TimeUtils;
 
 /// Time-based trigger for scheduling events
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct TimeTrigger<F> {
     /// Trigger name
     pub name: String,
@@ -204,7 +204,27 @@ where
     }
 }
 
-impl<F> std::fmt::Display for TimeTrigger<F> {
+impl<F> std::fmt::Debug for TimeTrigger<F>
+where
+    F: Fn() + Send + Sync + 'static,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TimeTrigger")
+            .field("name", &self.name)
+            .field("schedule", &self.schedule)
+            .field("last_execution", &self.last_execution)
+            .field("next_execution", &self.next_execution)
+            .field("execution_count", &self.execution_count)
+            .field("enabled", &self.enabled)
+            .field("max_executions", &self.max_executions)
+            .finish()
+    }
+}
+
+impl<F> std::fmt::Display for TimeTrigger<F>
+where
+    F: Fn() + Send + Sync + 'static,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let status = if !self.enabled {
             "disabled"
@@ -257,16 +277,19 @@ pub struct TriggerManager<F> {
     triggers: Vec<TimeTrigger<F>>,
 }
 
-impl<F> TriggerManager<F>
-where
-    F: Fn() + Send + Sync + 'static,
-{
+impl<F> TriggerManager<F> {
     /// Create a new trigger manager
     pub fn new() -> Self {
         Self {
             triggers: Vec::new(),
         }
     }
+}
+
+impl<F> TriggerManager<F>
+where
+    F: Fn() + Send + Sync + 'static,
+{
 
     /// Add a trigger
     pub fn add_trigger(&mut self, trigger: TimeTrigger<F>) {

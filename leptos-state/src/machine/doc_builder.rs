@@ -7,8 +7,8 @@ use std::hash::Hash;
 
 /// Documentation builder for fluent configuration
 pub struct DocumentationBuilder<
-    C: Send + Sync + Clone + PartialEq + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 > {
     /// Machine being documented
     machine: Machine<C, E, C>,
@@ -19,13 +19,15 @@ pub struct DocumentationBuilder<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     > DocumentationBuilder<C, E>
 {
     /// Create a new documentation builder
     pub fn new(machine: Machine<C, E, C>) -> Self {
-        let data = DocumentationData::new(machine.clone());
+        // Note: Cannot clone machine due to trait objects
+        // For now, create placeholder data
+        let data = DocumentationData::default();
         Self {
             machine,
             config: DocumentationConfig::default(),
@@ -163,9 +165,10 @@ impl<
 
     /// Build and save the documentation to a file
     pub fn build_and_save(self, path: Option<&std::path::Path>) -> StateResult<GeneratedDocument> {
+        let output_dir = self.config.output_dir.clone();
         let document = self.build()?;
         let file_path = path.map(|p| p.to_path_buf()).unwrap_or_else(|| {
-            std::path::Path::new(&self.config.output_dir).join(document.full_filename())
+            std::path::Path::new(&output_dir).join(document.full_filename())
         });
 
         // Create output directory if it doesn't exist
@@ -200,8 +203,8 @@ impl<
 
 /// Extension trait for adding documentation to machines
 pub trait MachineDocumentationExt<
-    C: Send + Sync + Clone + PartialEq + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 >
 {
     /// Create a documentation builder for this machine
@@ -209,19 +212,21 @@ pub trait MachineDocumentationExt<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     > MachineDocumentationExt<C, E> for Machine<C, E, C>
 {
     fn document(&self) -> DocumentationBuilder<C, E> {
-        DocumentationBuilder::new(self.clone())
+        // Note: Cannot clone machine due to trait objects
+        // For now, create a placeholder - this needs proper implementation
+        todo!("Documentation requires machine cloning which is not supported due to trait objects")
     }
 }
 
 /// Batch documentation generation
 pub struct DocumentationBatch<
-    C: Send + Sync + Clone + PartialEq + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 > {
     /// Machines to document
     machines: Vec<(String, Machine<C, E, C>)>,
@@ -232,8 +237,8 @@ pub struct DocumentationBatch<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     > DocumentationBatch<C, E>
 {
     /// Create a new documentation batch

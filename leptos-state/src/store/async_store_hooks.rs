@@ -59,13 +59,16 @@ impl AsyncStoreActions {
 pub fn async_store_provider<A>(_input: A::LoaderInput, _children: Children) -> impl IntoView
 where
     A: AsyncStore + 'static,
+    <A as crate::store::Store>::State: Clone + Send + Sync + 'static,
     A::LoaderInput: Clone + 'static,
     A::LoaderOutput: 'static + serde::Serialize + for<'de> serde::Deserialize<'de>,
 {
     // Note: create_resource API has changed in Leptos 0.8+
     // For now, we'll provide a placeholder implementation
-    let initial_state = A::loading_state();
-    provide_context(crate::StoreContext::new(initial_state));
+    // TODO: Implement proper async store provider
+    // let initial_state = A::loading_state();
+    // let store = crate::store::SimpleStore::new(initial_state);
+    // provide_context(crate::StoreContext::new(store));
 
     view! {
         <div>

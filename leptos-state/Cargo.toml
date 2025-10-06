@@ -10,10 +10,12 @@ keywords = ["leptos", "state-management", "reactive", "wasm"]
 categories = ["wasm", "web-programming"]
 
 [dependencies]
-leptos = { workspace = true }
+leptos = "0.8.10"
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 serde_yaml = { workspace = true, optional = true }
+toml = { version = "0.8", optional = true }
+num_cpus = "1.16"
 thiserror = { workspace = true }
 tracing = { workspace = true }
 web-sys = { workspace = true }

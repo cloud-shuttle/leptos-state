@@ -10,6 +10,7 @@ pub enum ConfigSource {
     /// Configuration from a JSON file
     JsonFile(String),
     /// Configuration from a TOML file
+    #[cfg(feature = "toml")]
     TomlFile(String),
     /// Configuration from command line arguments
     CommandLine,
@@ -29,6 +30,7 @@ impl ConfigSource {
         match self {
             Self::Environment => "environment",
             Self::JsonFile(_) => "json_file",
+            #[cfg(feature = "toml")]
             Self::TomlFile(_) => "toml_file",
             Self::CommandLine => "command_line",
             Self::RemoteUrl(_) => "remote_url",
@@ -42,6 +44,7 @@ impl ConfigSource {
     pub fn location(&self) -> Option<&str> {
         match self {
             Self::JsonFile(path) => Some(path),
+            #[cfg(feature = "toml")]
             Self::TomlFile(path) => Some(path),
             Self::RemoteUrl(url) => Some(url),
             Self::Database(conn) => Some(conn),
@@ -57,7 +60,12 @@ impl ConfigSource {
 
     /// Check if the source requires file system access
     pub fn requires_filesystem(&self) -> bool {
-        matches!(self, Self::JsonFile(_) | Self::TomlFile(_))
+        match self {
+            Self::JsonFile(_) => true,
+            #[cfg(feature = "toml")]
+            Self::TomlFile(_) => true,
+            _ => false,
+        }
     }
 
     /// Check if the source is dynamic (can change at runtime)
@@ -76,6 +84,7 @@ impl ConfigSource {
             Self::CommandLine => 100,       // Highest priority
             Self::Environment => 90,
             Self::JsonFile(_) => 80,
+            #[cfg(feature = "toml")]
             Self::TomlFile(_) => 80,
             Self::RemoteUrl(_) => 70,
             Self::Database(_) => 60,
@@ -87,11 +96,16 @@ impl ConfigSource {
     /// Validate the source configuration
     pub fn validate(&self) -> Result<(), String> {
         match self {
-            Self::JsonFile(path) | Self::TomlFile(path) => {
+            Self::JsonFile(path) => {
                 if path.trim().is_empty() {
                     return Err("File path cannot be empty".to_string());
                 }
-                // Could add more validation here (check if path exists, etc.)
+            }
+            #[cfg(feature = "toml")]
+            Self::TomlFile(path) => {
+                if path.trim().is_empty() {
+                    return Err("File path cannot be empty".to_string());
+                }
             }
             Self::RemoteUrl(url) => {
                 if url.trim().is_empty() {
@@ -203,6 +217,7 @@ impl ConfigLoader {
         let config = match source {
             ConfigSource::Environment => self.load_from_environment(),
             ConfigSource::JsonFile(path) => self.load_from_json_file(path).await,
+            #[cfg(feature = "toml")]
             ConfigSource::TomlFile(path) => self.load_from_toml_file(path).await,
             ConfigSource::CommandLine => self.load_from_command_line(),
             ConfigSource::RemoteUrl(url) => self.load_from_remote_url(url).await,
@@ -235,6 +250,7 @@ impl ConfigLoader {
     }
 
     /// Load configuration from a TOML file
+    #[cfg(feature = "toml")]
     async fn load_from_toml_file(&self, path: &str) -> Result<Config, String> {
         let content = tokio::fs::read_to_string(path)
             .await
@@ -382,7 +398,10 @@ impl ConfigLoader {
             "yaml" => self.load_from_yaml_file(data).await,
             "yml" => self.load_from_yaml_file(data).await,
             "ini" => self.load_from_ini_file(data).await,
+            #[cfg(feature = "toml")]
             "toml" => self.load_from_toml_file(data).await,
+            #[cfg(not(feature = "toml"))]
+            "toml" => Err("TOML support not enabled".to_string()),
             "json" => self.load_from_json_file(data).await,
             _ => Err(format!("Unsupported custom format: {}", format)),
         }

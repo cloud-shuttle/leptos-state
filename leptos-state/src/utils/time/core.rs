@@ -168,7 +168,7 @@ impl TimeUtils {
     /// Scale duration by factor
     pub fn scale_duration(duration: std::time::Duration, factor: f64) -> std::time::Duration {
         let nanos = (duration.as_nanos() as f64 * factor) as u128;
-        std::time::Duration::from_nanos(nanos)
+        std::time::Duration::from_nanos(nanos.try_into().unwrap_or(u64::MAX))
     }
 
     /// Linear interpolation between two durations

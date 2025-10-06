@@ -134,7 +134,6 @@ impl<T: Clone + WithId> Default for Registry<T> {
 }
 
 /// Observable registry that notifies on changes
-#[derive(Debug)]
 pub struct ObservableRegistry<T: Clone + WithId> {
     /// Underlying registry
     registry: Registry<T>,
@@ -228,6 +227,15 @@ pub enum RegistryEvent<T> {
     Updated(String, T, T),
     /// All items were cleared
     Cleared(Vec<T>),
+}
+
+impl<T: Clone + WithId + std::fmt::Debug> std::fmt::Debug for ObservableRegistry<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ObservableRegistry")
+            .field("registry", &self.registry)
+            .field("listeners_count", &self.listeners.len())
+            .finish()
+    }
 }
 
 impl<T: Clone + WithId> std::ops::Deref for ObservableRegistry<T> {

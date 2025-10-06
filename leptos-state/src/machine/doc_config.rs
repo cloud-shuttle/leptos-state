@@ -194,7 +194,7 @@ impl ColorScheme {
             ColorScheme::Green => "#34C759",
             ColorScheme::Red => "#FF3B30",
             ColorScheme::Purple => "#AF52DE",
-            ColorScheme::Custom(colors) => colors.get(0).unwrap_or("#4A90E2"),
+            ColorScheme::Custom(colors) => colors.get(0).map(|s| s.as_str()).unwrap_or("#4A90E2"),
         }
     }
 
@@ -206,7 +206,7 @@ impl ColorScheme {
             ColorScheme::Green => "#E8F5E8",
             ColorScheme::Red => "#FFEBEE",
             ColorScheme::Purple => "#F3E5F5",
-            ColorScheme::Custom(colors) => colors.get(1).unwrap_or("#E5E5EA"),
+            ColorScheme::Custom(colors) => colors.get(1).map(|s| s.as_str()).unwrap_or("#E5E5EA"),
         }
     }
 }

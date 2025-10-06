@@ -49,8 +49,8 @@ pub struct PropertyTestResult {
 
 /// Property-based test runner
 pub struct PropertyTestRunner<
-    C: Send + Sync + Clone + PartialEq + 'static,
-    E: Clone + Send + Sync + Hash + Eq + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+    E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
 > {
     /// Machine being tested
     pub machine: Machine<C, E, C>,
@@ -61,8 +61,8 @@ pub struct PropertyTestRunner<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + 'static,
-        E: Clone + Send + Sync + Hash + Eq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     > PropertyTestRunner<C, E>
 {
     /// Create a new property test runner

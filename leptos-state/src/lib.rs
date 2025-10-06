@@ -181,3 +181,10 @@ pub use utils::{LogLevel, StateError, StateResult};
 // Compatibility layer
 pub use compat::*;
 
+// Marker traits for state machine compatibility
+/// Marker trait for state types used in state machines
+pub trait State {}
+
+/// Marker trait for event types used in state machines
+pub trait Event {}
+

@@ -119,13 +119,7 @@ where
     }
 }
 
-impl<T> Clone for Lazy<T> {
-    fn clone(&self) -> Self {
-        Self {
-            evaluator: self.evaluator.clone(),
-        }
-    }
-}
+// Note: Lazy cannot implement Clone because it contains function types that can't be cloned
 
 /// Lazy computation result with metadata
 #[derive(Debug, Clone)]
@@ -279,11 +273,4 @@ where
     }
 }
 
-impl<T> Clone for PerformanceLazy<T> {
-    fn clone(&self) -> Self {
-        Self {
-            lazy: self.lazy.clone(),
-            threshold: self.threshold,
-        }
-    }
-}
+// Note: PerformanceLazy cannot implement Clone because it contains LazyWithMetadata which contains function types

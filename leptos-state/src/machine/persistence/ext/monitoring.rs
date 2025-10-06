@@ -274,7 +274,7 @@ impl PersistenceMonitor {
 
         PersistenceReport {
             timestamp: std::time::SystemTime::now(),
-            stats,
+            stats: stats.clone(),
             recommendations: self.generate_recommendations(&stats),
         }
     }

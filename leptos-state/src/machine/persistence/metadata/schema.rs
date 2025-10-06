@@ -130,7 +130,7 @@ impl ValidationRule {
     /// Create a new validation rule
     pub fn new(name: String, validation_type: ValidationType, parameters: serde_json::Value) -> Self {
         Self {
-            name,
+            name: name.clone(),
             description: format!("{} validation rule", name),
             validation_type,
             parameters,

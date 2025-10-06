@@ -4,8 +4,8 @@ use super::*;
 
 /// Extension trait for adding code generation to machines
 pub trait MachineCodeGenExt<
-    C: Send + Sync + Clone + 'static,
-    E: Send + Clone + 'static,
+    C: Send + Sync + Clone + std::fmt::Debug + 'static,
+    E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
 >
 {
     /// Generate code for this machine
@@ -33,8 +33,8 @@ pub trait MachineCodeGenExt<
 }
 
 impl<
-        C: Send + Sync + Clone + std::fmt::Debug + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        C: crate::machine::core::traits::CloneableStateMachineType,
+        E: crate::machine::core::traits::EquatableStateMachineType,
     > MachineCodeGenExt<C, E> for Machine<C, E, C>
 {
     fn generate_code(&self, config: CodeGenConfig) -> Result<GeneratedFile, String> {
@@ -89,8 +89,8 @@ impl<
 
 /// Extension trait for state machine builders
 pub trait MachineBuilderCodeGenExt<
-    C: Send + Sync + Clone + 'static,
-    E: Send + Clone + 'static,
+    C: crate::machine::core::traits::CloneableStateMachineType,
+    E: crate::machine::core::traits::EquatableStateMachineType,
 >
 {
     /// Build and generate code
@@ -101,8 +101,8 @@ pub trait MachineBuilderCodeGenExt<
 }
 
 impl<
-        C: Send + Sync + Clone + std::fmt::Debug + 'static,
-        E: Send + Clone + Sync + std::fmt::Debug + PartialEq + 'static,
+        C: crate::machine::core::traits::CloneableStateMachineType + Default,
+        E: crate::machine::core::traits::EquatableStateMachineType,
     > MachineBuilderCodeGenExt<C, E> for crate::machine::MachineBuilder<C, E>
 {
     fn build_and_generate(
@@ -121,8 +121,8 @@ pub mod codegen {
 
     /// Create a code generator for Rust
     pub fn rust<
-        C: Send + Sync + Clone + std::fmt::Debug + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + Sync + std::hash::Hash + std::cmp::Eq + 'static,
     >() -> CodeGenerator<C, E> {
         let config = CodeGenConfig {
             language: ProgrammingLanguage::Rust,
@@ -133,8 +133,8 @@ pub mod codegen {
 
     /// Create a code generator for TypeScript
     pub fn typescript<
-        C: Send + Sync + Clone + std::fmt::Debug + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + Sync + std::hash::Hash + std::cmp::Eq + 'static,
     >() -> CodeGenerator<C, E> {
         let config = CodeGenConfig {
             language: ProgrammingLanguage::TypeScript,
@@ -145,8 +145,8 @@ pub mod codegen {
 
     /// Create a code generator for Python
     pub fn python<
-        C: Send + Sync + Clone + std::fmt::Debug + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + Sync + std::hash::Hash + std::cmp::Eq + 'static,
     >() -> CodeGenerator<C, E> {
         let config = CodeGenConfig {
             language: ProgrammingLanguage::Python,
@@ -157,8 +157,8 @@ pub mod codegen {
 
     /// Create a code generator with custom config
     pub fn with_config<
-        C: Send + Sync + Clone + std::fmt::Debug + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + Sync + std::hash::Hash + std::cmp::Eq + 'static,
     >(
         config: CodeGenConfig,
     ) -> CodeGenerator<C, E> {
@@ -167,8 +167,8 @@ pub mod codegen {
 
     /// Generate code for a machine
     pub fn generate<
-        C: Send + Sync + Clone + std::fmt::Debug + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + Sync + std::hash::Hash + std::cmp::Eq + 'static,
     >(
         machine: &Machine<C, E, C>,
         config: CodeGenConfig,
@@ -178,8 +178,8 @@ pub mod codegen {
 
     /// Generate code in multiple languages
     pub fn generate_multi<
-        C: Send + Sync + Clone + std::fmt::Debug + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + Sync + std::hash::Hash + std::cmp::Eq + 'static,
     >(
         machine: &Machine<C, E, C>,
         languages: Vec<ProgrammingLanguage>,
@@ -198,7 +198,7 @@ pub mod codegen {
     /// Generate and save code
     pub fn generate_and_save<
         C: Send + Sync + Clone + std::fmt::Debug + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
     >(
         machine: &Machine<C, E, C>,
         config: CodeGenConfig,
@@ -264,8 +264,8 @@ impl Default for PipelineConfig {
 }
 
 impl<
-        C: Send + Sync + Clone + std::fmt::Debug + 'static,
-        E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        E: Send + Clone + std::fmt::Debug + PartialEq + Sync + std::hash::Hash + std::cmp::Eq + 'static,
     > CodeGenPipeline<C, E>
 {
     /// Create a new pipeline
@@ -307,12 +307,13 @@ impl<
             }
         }
 
+        let total_execution_time = results.iter().map(|r| r.generation_time).sum();
         Ok(PipelineResult {
             successful_steps: results.len(),
             failed_steps: errors.len(),
             results,
             errors,
-            total_execution_time: results.iter().map(|r| r.generation_time).sum(),
+            total_execution_time,
         })
     }
 }
@@ -320,7 +321,7 @@ impl<
 /// Code generation step trait
 pub trait CodeGenStep<
     C: Send + Sync + Clone + std::fmt::Debug + 'static,
-    E: Send + Clone + std::fmt::Debug + PartialEq + 'static,
+    E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
 >
 {
     /// Execute this step

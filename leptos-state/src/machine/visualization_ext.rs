@@ -112,7 +112,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
 
         // Complete the transition event
         let mut completed_event = transition_event;
-        completed_event.to_state = new_state.value().to_string();
+        completed_event.to_state = new_state.value.to_string();
         completed_event.success = true;
 
         // Record the event
@@ -120,8 +120,8 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
 
         // Notify monitor
         let state_change = StateChangeEvent::new(
-            from_state.value().to_string(),
-            new_state.value().to_string(),
+            from_state.value.to_string(),
+            new_state.value.to_string(),
             StateChangeType::Transition,
         );
         self.monitor.notify_state_change(&state_change);
@@ -171,7 +171,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Se
 }
 
 /// Automatic visualization integration
-pub struct AutoVisualizer<C: Clone + Send + Sync + 'static, E: Clone + Send + Sync + 'static> {
+pub struct AutoVisualizer<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + std::cmp::Eq + std::hash::Hash + 'static> {
     /// The visualized machine
     pub machine: VisualizedMachine<C, E>,
     /// Auto-export settings
@@ -192,7 +192,7 @@ pub struct AutoExportSettings {
     pub last_export: Option<std::time::Instant>,
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + 'static> AutoVisualizer<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + std::cmp::Eq + std::hash::Hash + 'static> AutoVisualizer<C, E> {
     /// Create a new auto visualizer
     pub fn new(machine: Machine<C, E, C>) -> Self {
         Self {
@@ -283,14 +283,14 @@ pub mod visualization {
     }
 
     /// Create a visualized machine
-    pub fn visualized_machine<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static>(
+    pub fn visualized_machine<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + std::cmp::Eq + std::hash::Hash + 'static>(
         machine: Machine<C, E, C>,
     ) -> VisualizedMachine<C, E> {
         VisualizedMachine::new(machine)
     }
 
     /// Create an auto-visualizer
-    pub fn auto_visualizer<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + 'static>(machine: Machine<C, E, C>) -> AutoVisualizer<C, E> {
+    pub fn auto_visualizer<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + std::cmp::Eq + std::hash::Hash + 'static>(machine: Machine<C, E, C>) -> AutoVisualizer<C, E> {
         AutoVisualizer::new(machine)
     }
 

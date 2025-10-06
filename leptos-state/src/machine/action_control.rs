@@ -16,6 +16,22 @@ pub struct RetryAction<C, E> {
     pub description: String,
 }
 
+impl<C, E> std::fmt::Debug for RetryAction<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RetryAction")
+            .field("action", &self.action)
+            .field("max_attempts", &self.max_attempts)
+            .field("delay", &self.delay)
+            .field("backoff", &self.backoff)
+            .field("description", &self.description)
+            .finish()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum RetryBackoff {
     /// Fixed delay between retries
@@ -57,7 +73,7 @@ impl<C, E> RetryAction<C, E> {
     }
 }
 
-impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for RetryAction<C, E> {
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + 'static> Action<C, E> for RetryAction<C, E> {
     fn execute(&self, context: &mut C, event: &E) {
         // For now, just execute the action once
         // In a real implementation, this would retry on failure
@@ -95,6 +111,21 @@ pub struct TimerAction<C, E> {
     pub description: String,
 }
 
+impl<C, E> std::fmt::Debug for TimerAction<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TimerAction")
+            .field("action", &self.action)
+            .field("timer_name", &self.timer_name)
+            .field("log_execution_time", &self.log_execution_time)
+            .field("description", &self.description)
+            .finish()
+    }
+}
+
 impl<C, E> TimerAction<C, E> {
     /// Create a new timer action
     pub fn new(action: Box<dyn Action<C, E>>, timer_name: String) -> Self {
@@ -119,7 +150,7 @@ impl<C, E> TimerAction<C, E> {
     }
 }
 
-impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for TimerAction<C, E> {
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + 'static> Action<C, E> for TimerAction<C, E> {
     fn name(&self) -> &str {
         "timer"
     }
@@ -162,6 +193,21 @@ pub struct MetricsAction<C, E> {
     pub description: String,
 }
 
+impl<C, E> std::fmt::Debug for MetricsAction<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MetricsAction")
+            .field("action", &self.action)
+            .field("metrics_name", &self.metrics_name)
+            .field("tags", &self.tags)
+            .field("description", &self.description)
+            .finish()
+    }
+}
+
 impl<C, E> MetricsAction<C, E> {
     /// Create a new metrics action
     pub fn new(action: Box<dyn Action<C, E>>, metrics_name: String) -> Self {
@@ -192,7 +238,7 @@ impl<C, E> MetricsAction<C, E> {
     }
 }
 
-impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for MetricsAction<C, E> {
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + 'static> Action<C, E> for MetricsAction<C, E> {
     fn name(&self) -> &str {
         "metrics"
     }
@@ -246,6 +292,21 @@ pub struct TimeoutAction<C, E> {
     pub description: String,
 }
 
+impl<C, E> std::fmt::Debug for TimeoutAction<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TimeoutAction")
+            .field("action", &self.action)
+            .field("timeout", &self.timeout)
+            .field("timeout_action", &self.timeout_action)
+            .field("description", &self.description)
+            .finish()
+    }
+}
+
 impl<C, E> TimeoutAction<C, E> {
     /// Create a new timeout action
     pub fn new(action: Box<dyn Action<C, E>>, timeout: std::time::Duration) -> Self {
@@ -270,7 +331,7 @@ impl<C, E> TimeoutAction<C, E> {
     }
 }
 
-impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E> for TimeoutAction<C, E> {
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + 'static> Action<C, E> for TimeoutAction<C, E> {
     fn name(&self) -> &str {
         "timeout"
     }
@@ -311,6 +372,23 @@ pub struct CircuitBreakerAction<C, E> {
     pub description: String,
 }
 
+impl<C, E> std::fmt::Debug for CircuitBreakerAction<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CircuitBreakerAction")
+            .field("action", &self.action)
+            .field("name", &self.name)
+            .field("failure_threshold", &self.failure_threshold)
+            .field("recovery_timeout", &self.recovery_timeout)
+            .field("fallback_action", &self.fallback_action)
+            .field("description", &self.description)
+            .finish()
+    }
+}
+
 impl<C, E> CircuitBreakerAction<C, E> {
     /// Create a new circuit breaker action
     pub fn new(action: Box<dyn Action<C, E>>, name: String) -> Self {
@@ -349,7 +427,7 @@ impl<C, E> CircuitBreakerAction<C, E> {
     }
 }
 
-impl<C: Send + Sync + 'static, E: Send + Sync + 'static> Action<C, E>
+impl<C: Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + std::fmt::Debug + 'static> Action<C, E>
     for CircuitBreakerAction<C, E>
 {
     fn name(&self) -> &str {

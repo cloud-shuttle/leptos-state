@@ -47,7 +47,7 @@ impl GeneratedFile {
 
     /// Get file extension
     pub fn extension(&self) -> &str {
-        self.language.extension()
+        self.language.file_extension()
     }
 
     /// Get file size in bytes

@@ -13,7 +13,7 @@ pub trait StateMachine: Sized + 'static {
 }
 
 /// Main builder trait for constructing state machines
-pub trait MachineBuilder<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Hash + Eq + 'static, S: Clone + Send + Sync + std::fmt::Debug + 'static> {
+pub trait MachineBuilder<C: crate::machine::core::traits::CloneableStateMachineType, E: crate::machine::core::traits::EquatableStateMachineType, S: crate::machine::core::traits::CloneableStateMachineType> {
     fn new() -> Self;
     fn state<Name: Into<String>>(self, name: Name) -> Self;
     fn initial<Name: Into<String>>(self, state: Name) -> Self;
@@ -24,11 +24,7 @@ pub trait MachineBuilder<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: 
     fn build_with_context(self, context: C) -> crate::StateResult<Machine<C, E, S>>;
     fn build(self) -> crate::StateResult<Machine<C, E, S>>
     where
-        C: Default,
-        Self: Sized,
-    {
-        self.build_with_context(C::default())
-    }
+        Self: Sized;
 }
 
 /// Trait for machine states

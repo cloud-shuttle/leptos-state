@@ -56,7 +56,7 @@ pub fn save_to_local_storage<T: serde::Serialize>(key: &str, value: &T) -> Resul
 }
 
 /// Create an effect that persists store changes to localStorage
-pub fn persist_to_local_storage<T: Clone + PartialEq + serde::Serialize + 'static>(
+pub fn persist_to_local_storage<T: Clone + PartialEq + Send + Sync + serde::Serialize + 'static>(
     key: &str,
     store: StoreContext<T>,
 ) {
@@ -122,12 +122,12 @@ pub fn is_local_storage_available() -> bool {
 }
 
 /// Persistence middleware that automatically saves changes
-pub struct PersistenceMiddleware<T: Clone + PartialEq + serde::Serialize + 'static> {
+pub struct PersistenceMiddleware<T: Clone + PartialEq + Send + Sync + serde::Serialize + for<'de> serde::Deserialize<'de> + 'static> {
     store: StoreContext<T>,
     key: String,
 }
 
-impl<T: Clone + PartialEq + serde::Serialize + 'static> PersistenceMiddleware<T> {
+impl<T: Clone + PartialEq + Send + Sync + serde::Serialize + for<'de> serde::Deserialize<'de> + 'static> PersistenceMiddleware<T> {
     /// Create a new persistence middleware
     pub fn new(store: StoreContext<T>, key: String) -> Self {
         // Set up the persistence effect
@@ -207,13 +207,13 @@ impl<T: Clone + PartialEq + 'static> MigrationManager<T> {
 }
 
 /// Versioned persistent store
-pub struct VersionedPersistentStore<T: Clone + PartialEq + serde::Serialize + 'static> {
+pub struct VersionedPersistentStore<T: Clone + PartialEq + Send + Sync + serde::Serialize + for<'de> serde::Deserialize<'de> + 'static> {
     store: StoreContext<T>,
     key: String,
     migrations: MigrationManager<T>,
 }
 
-impl<T: Clone + PartialEq + serde::Serialize + 'static> VersionedPersistentStore<T> {
+impl<T: Clone + PartialEq + Send + Sync + serde::Serialize + for<'de> serde::Deserialize<'de> + 'static> VersionedPersistentStore<T> {
     /// Create a new versioned persistent store
     pub fn new(initial: T, key: String) -> Self {
         let migrations = MigrationManager::new();

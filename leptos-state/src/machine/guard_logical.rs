@@ -10,6 +10,19 @@ pub struct AndGuard<C, E> {
     pub description: String,
 }
 
+impl<C, E> std::fmt::Debug for AndGuard<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AndGuard")
+            .field("guards", &self.guards)
+            .field("description", &self.description)
+            .finish()
+    }
+}
+
 impl<C, E> AndGuard<C, E> {
     /// Create a new AND guard
     pub fn new(guards: Vec<Box<dyn GuardEvaluator<C, E>>>) -> Self {
@@ -59,6 +72,19 @@ pub struct OrGuard<C, E> {
     pub guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
     /// Description of the guard
     pub description: String,
+}
+
+impl<C, E> std::fmt::Debug for OrGuard<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("OrGuard")
+            .field("guards", &self.guards)
+            .field("description", &self.description)
+            .finish()
+    }
 }
 
 impl<C, E> OrGuard<C, E> {
@@ -112,6 +138,19 @@ pub struct NotGuard<C, E> {
     pub description: String,
 }
 
+impl<C, E> std::fmt::Debug for NotGuard<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("NotGuard")
+            .field("guard", &self.guard)
+            .field("description", &self.description)
+            .finish()
+    }
+}
+
 impl<C, E> NotGuard<C, E> {
     /// Create a new NOT guard
     pub fn new(guard: Box<dyn GuardEvaluator<C, E>>) -> Self {
@@ -150,6 +189,19 @@ pub struct XorGuard<C, E> {
     pub guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
     /// Description of the guard
     pub description: String,
+}
+
+impl<C, E> std::fmt::Debug for XorGuard<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("XorGuard")
+            .field("guards", &self.guards)
+            .field("description", &self.description)
+            .finish()
+    }
 }
 
 impl<C, E> XorGuard<C, E> {
@@ -209,6 +261,19 @@ pub struct MajorityGuard<C, E> {
     pub guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
     /// Description of the guard
     pub description: String,
+}
+
+impl<C, E> std::fmt::Debug for MajorityGuard<C, E>
+where
+    C: std::fmt::Debug,
+    E: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MajorityGuard")
+            .field("guards", &self.guards)
+            .field("description", &self.description)
+            .finish()
+    }
 }
 
 impl<C, E> MajorityGuard<C, E> {

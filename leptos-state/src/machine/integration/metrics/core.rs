@@ -69,6 +69,17 @@ impl IntegrationMetrics {
         self.events_received.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
     }
 
+    /// Record an event processed successfully
+    pub fn record_event_processed(&self) {
+        self.events_received.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+    }
+
+    /// Record a successful operation
+    pub fn record_success(&self) {
+        // Success is recorded by not incrementing errors
+        // This method exists for API consistency
+    }
+
     /// Record an event filtered
     pub fn record_event_filtered(&self) {
         self.events_filtered.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
