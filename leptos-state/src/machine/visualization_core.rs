@@ -26,7 +26,7 @@ pub struct MachineVisualizer<C: Send + Sync + Clone + std::fmt::Debug + 'static,
     pub enabled: bool,
 }
 
-impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> MachineVisualizer<C, E> {
+impl<C: Send + Sync + Clone + std::fmt::Debug + Default + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> MachineVisualizer<C, E> {
     /// Create a new machine visualizer
     pub fn new() -> Self {
         Self {
@@ -186,7 +186,7 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Sync + Clone 
 
         // Add initial state
         let initial_state = machine.initial_state();
-        let initial_state_name = match initial_state.value() {
+        let initial_state_name = match &initial_state.value {
             crate::machine::states::StateValue::Simple(name) => name.clone(),
             _ => machine.initial_state_id().to_string(),
         };

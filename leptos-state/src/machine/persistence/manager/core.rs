@@ -331,7 +331,7 @@ impl<C: crate::machine::core::traits::CloneableStateMachineType, E: crate::machi
 
     /// Encode data for storage
     fn encode_data(&self, data: &impl serde::Serialize) -> Result<Vec<u8>, PersistenceError> {
-        if self.config.compression_enabled {
+        if self.config.compression_level > 0 {
             // In a real implementation, this would compress the data
             serde_json::to_vec(data).map_err(|e| PersistenceError::SerializationError(e.to_string()))
         } else {

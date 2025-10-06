@@ -313,6 +313,7 @@ impl std::fmt::Display for ValidationRule {
 
 /// Validation types
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ValidationType {
     /// Required field validation
     Required,

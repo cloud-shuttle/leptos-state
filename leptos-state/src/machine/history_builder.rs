@@ -336,7 +336,7 @@ pub mod handlers {
 
     impl<C: Send + Sync + Clone + 'static> HistoryEventHandler<C> for LoggingHistoryHandler {
         fn handle_event(&self, event: &HistoryEntry<C>) {
-            eprintln!("History event: {} at {:?}", event.state, event.timestamp);
+            eprintln!("History event: {} at {:?}", event.to_state, event.timestamp);
         }
 
         fn handle_cleanup(&self, removed_count: usize) {

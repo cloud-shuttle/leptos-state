@@ -113,7 +113,7 @@ impl<C: Send + Sync + std::fmt::Debug + Clone + 'static, E: std::fmt::Debug + Pa
         format!(
             "StateInfo(machine: {}, state: {}, status: {}, transitions: {}, errors: {}, health: {})",
             self.machine_id,
-            self.state.value(),
+            self.state.value,
             self.status,
             self.transition_count,
             self.error_count,

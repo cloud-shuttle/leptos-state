@@ -132,7 +132,7 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync 
             // In a full implementation, this would transition to the historical state
             eprintln!(
                 "Restoring history for state {}: {}",
-                history_state.id, last_state.state
+                history_state.id, last_state.to_state
             );
         } else if let Some(default_target) = &history_state.default_target {
             // Transition to default target if no history exists

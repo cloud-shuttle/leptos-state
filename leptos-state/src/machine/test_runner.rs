@@ -23,7 +23,7 @@ pub struct MachineTestRunner<
 }
 
 impl<
-        C: Send + Sync + Clone + PartialEq + std::fmt::Debug + 'static,
+        C: Send + Sync + Clone + PartialEq + std::fmt::Debug + Default + 'static,
         E: Clone + Send + Sync + Hash + Eq + std::fmt::Debug + PartialEq + 'static,
     > MachineTestRunner<C, E>
 {

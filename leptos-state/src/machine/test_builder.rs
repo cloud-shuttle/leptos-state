@@ -22,7 +22,7 @@ pub struct TestBuilder<
 }
 
 impl<
-        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static,
+        C: Send + Sync + Clone + std::fmt::Debug + PartialEq + Default + 'static,
         E: Clone + Send + Sync + std::fmt::Debug + Hash + Eq + 'static,
     > TestBuilder<C, E>
 {
