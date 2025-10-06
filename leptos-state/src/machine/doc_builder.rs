@@ -259,11 +259,11 @@ impl<
     pub fn generate_all(&mut self) -> StateResult<&[GeneratedDocument]> {
         self.documents.clear();
 
-        for (name, machine) in &self.machines {
+        for (name, machine) in std::mem::take(&mut self.machines) {
             let mut config = self.base_config.clone();
-            config.file_prefix = name.clone();
+            config.file_prefix = name;
 
-            let generator = DocumentationGenerator::new(machine.clone(), config);
+            let generator = DocumentationGenerator::new(machine, config);
             let document = generator.generate()?;
             self.documents.push(document);
         }

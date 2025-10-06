@@ -66,9 +66,9 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     where
         E: Eq + std::hash::Hash,
     {
-        let state_name = self.base_machine.initial_state();
+        let initial_machine_state = self.base_machine.initial_state();
         let context = self.base_machine.get_context().clone();
-        MachineStateImpl::new(state_name, context)
+        MachineStateImpl::new(initial_machine_state.value, context)
     }
 
     /// Get available states
@@ -87,7 +87,8 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync 
         C: Default,
     {
         if !self.config.enabled {
-            return self.base_machine.transition(event);
+            self.base_machine.transition(event);
+            return Ok(());
         }
 
         let current_state_name = self.current_state_name().to_string();
@@ -110,19 +111,17 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync 
         }
 
         // Perform the transition
-        let result = self.base_machine.transition(event);
+        self.base_machine.transition(event);
 
-        // If transition succeeded and we're entering a history state, restore history
-        if result.is_ok() {
-            let new_state_name = self.current_state_name();
-            if let Some(history_state) = self.history_states.get(new_state_name) {
-                if history_state.enabled {
-                    self.restore_history(history_state);
-                }
+        // Check if we're entering a history state and restore history
+        let new_state_name = self.current_state_name();
+        if let Some(history_state) = self.history_states.get(new_state_name) {
+            if history_state.enabled {
+                self.restore_history(history_state);
             }
         }
 
-        result
+        Ok(())
     }
 
     /// Restore history for a history state

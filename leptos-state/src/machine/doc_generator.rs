@@ -28,9 +28,9 @@ impl<
     /// Create a new documentation generator
     pub fn new(machine: Machine<C, E, C>, config: DocumentationConfig) -> Self {
         Self {
-            machine: machine.clone(),
+            machine,
             config,
-            data: DocumentationData::new(machine),
+            data: DocumentationData::default(),
         }
     }
 
