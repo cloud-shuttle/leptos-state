@@ -76,7 +76,11 @@ impl EventBatch {
 
     /// Get batch age
     pub fn age(&self) -> std::time::Duration {
-        self.created_at.elapsed()
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        std::time::Duration::from_secs(now.saturating_sub(self.created_at))
     }
 
     /// Get events by priority

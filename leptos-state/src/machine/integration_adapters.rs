@@ -383,7 +383,13 @@ impl IntegrationAdapterTrait for FileSystemAdapter {
                     event.id,
                     event.event_type,
                     event.source,
-                    event.timestamp.elapsed().as_secs()
+                    {
+                        let now = std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap_or_default()
+                            .as_secs();
+                        now.saturating_sub(event.timestamp)
+                    }
                 )
             }
             FileFormat::Text => {

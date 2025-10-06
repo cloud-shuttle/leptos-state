@@ -2,6 +2,7 @@
 
 /// Machine statistics
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct MachineStats {
     /// Total transitions executed
     pub transitions_total: u64,

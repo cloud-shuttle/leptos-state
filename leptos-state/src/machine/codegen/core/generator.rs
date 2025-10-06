@@ -28,7 +28,7 @@ pub struct CodeGenerator<
 {
     /// Create a new code generator
     pub fn new(config: CodeGenConfig) -> Self {
-        let templates = CodeTemplates::for_language(config.language.clone());
+        let templates = CodeTemplates::new();
         Self {
             config,
             templates,
@@ -139,7 +139,7 @@ pub struct CodeGenerator<
     /// Update configuration
     pub fn update_config(&mut self, config: CodeGenConfig) {
         self.config = config;
-        self.templates = CodeTemplates::for_language(self.config.language.clone());
+        self.templates = CodeTemplates::new();
     }
 }
 

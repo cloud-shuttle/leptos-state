@@ -269,22 +269,23 @@ pub mod integrations {
 
     /// Create an event filter that allows all events
     pub fn allow_all_events() -> EventFilter {
-        EventFilter::allow_all()
+        EventFilter::new("allow_all".to_string())
     }
 
     /// Create an event filter that blocks all events
     pub fn block_all_events() -> EventFilter {
-        EventFilter::block_all()
+        // For now, create a filter that blocks by setting impossible event types
+        EventFilter::new("block_all".to_string()).with_event_types(vec![])
     }
 
     /// Create an event filter for specific event types
     pub fn filter_event_types(event_types: Vec<String>) -> EventFilter {
-        EventFilter::allow_all().include_event_types(event_types)
+        EventFilter::new("filter_event_types".to_string()).with_event_types(event_types)
     }
 
     /// Create an event filter for specific sources
     pub fn filter_sources(sources: Vec<String>) -> EventFilter {
-        EventFilter::allow_all().include_sources(sources)
+        EventFilter::new("filter_sources".to_string()).with_sources(sources)
     }
 
     /// Create a routing rule

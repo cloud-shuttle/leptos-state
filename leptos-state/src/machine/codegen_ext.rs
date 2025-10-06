@@ -208,8 +208,8 @@ pub mod codegen {
     }
 
     /// Create templates for a language
-    pub fn templates_for(language: ProgrammingLanguage) -> CodeTemplates {
-        CodeTemplates::for_language(language)
+    pub fn templates_for(_language: ProgrammingLanguage) -> CodeTemplates {
+        CodeTemplates::new()
     }
 
     /// Create custom templates

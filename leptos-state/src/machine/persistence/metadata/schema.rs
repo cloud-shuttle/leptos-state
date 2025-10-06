@@ -2,6 +2,7 @@
 
 /// Schema information for machine validation
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SchemaInfo {
     /// Schema version
     pub version: String,

@@ -75,7 +75,11 @@ impl IntegrationEvent {
 
     /// Get age of the event
     pub fn age(&self) -> std::time::Duration {
-        self.timestamp.elapsed()
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        std::time::Duration::from_secs(now.saturating_sub(self.timestamp))
     }
 
     /// Check if event is expired based on TTL
