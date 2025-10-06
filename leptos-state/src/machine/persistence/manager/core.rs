@@ -48,7 +48,7 @@ impl<C: crate::machine::core::traits::CloneableStateMachineType, E: crate::machi
         machine: &Machine<C, E, C>,
     ) -> Result<(), PersistenceError>
     where
-        C: serde::Serialize,
+        C: serde::Serialize + Default,
         E: serde::Serialize + std::hash::Hash + Eq,
     {
         let machine_id = machine.id().to_string();

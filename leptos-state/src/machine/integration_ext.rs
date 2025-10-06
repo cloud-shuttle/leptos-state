@@ -2,6 +2,7 @@
 
 use super::*;
 use crate::machine::integration::config::IntegrationConfig as IntegrationConfigCore;
+use crate::machine::integration::config::EventRoutingConfig as EventRoutingConfigCore;
 
 /// Extension trait for adding integration to machines
 pub trait MachineIntegrationExt<
@@ -179,7 +180,7 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Sync + Clone 
     }
 
     /// Add event routing rules
-    pub fn with_routing(mut self, routing_config: EventRoutingConfig) -> Self {
+    pub fn with_routing(mut self, routing_config: EventRoutingConfigCore) -> Self {
         self.config.event_routing = routing_config.clone();
         self.manager.config.event_routing = routing_config;
         self
@@ -345,7 +346,7 @@ pub mod presets {
             .max_concurrent(50)
             .with_message_queue(ConnectionConfig::new())
             .with_database(ConnectionConfig::new())
-            .with_routing(EventRoutingConfig::default())
+            .with_routing(EventRoutingConfigCore::default())
             .with_metrics(true)
     }
 
