@@ -235,7 +235,7 @@ impl<C: crate::machine::core::traits::CloneableStateMachineType, E: crate::machi
     /// Serialize a machine
     async fn serialize_machine(&self, machine: &Machine<C, E, C>) -> Result<SerializedMachine<C, E, ()>, PersistenceError>
     where
-        C: serde::Serialize + 'static,
+        C: serde::Serialize + Default + 'static,
         E: serde::Serialize + std::hash::Hash + Eq + 'static,
     {
         // Simplified serialization - in a real implementation this would be more complex

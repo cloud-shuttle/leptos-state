@@ -110,7 +110,7 @@ impl EventBatch {
 
     /// Get events with correlation ID
     pub fn events_with_correlation(&self, correlation_id: &str) -> Vec<&super::core::IntegrationEvent> {
-        self.events.iter().filter(|e| e.correlation_id() == correlation_id).collect()
+        self.events.iter().filter(|e| e.correlation_id.as_deref().unwrap_or("") == correlation_id).collect()
     }
 
     /// Split batch by priority

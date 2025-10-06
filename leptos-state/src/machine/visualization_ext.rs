@@ -21,7 +21,7 @@ pub trait MachineVisualizationExt<C: Clone + Send + Sync + std::fmt::Debug + 'st
     fn monitor(&self) -> StateMonitor<C, E>;
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> MachineVisualizationExt<C, E> for Machine<C, E, C> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> MachineVisualizationExt<C, E> for Machine<C, E, C> {
     fn visualizer(&self) -> MachineVisualizer<C, E> {
         // Note: Cannot clone machine, so create visualizer without machine
         // User must set machine separately

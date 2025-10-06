@@ -1,6 +1,7 @@
 //! Extension traits for integration
 
 use super::*;
+use crate::machine::integration::config::IntegrationConfig as IntegrationConfigCore;
 
 /// Extension trait for adding integration to machines
 pub trait MachineIntegrationExt<
@@ -9,7 +10,7 @@ pub trait MachineIntegrationExt<
 >
 {
     /// Get an integration manager for this machine
-    fn integration_manager(&self, config: IntegrationConfig) -> IntegrationManager<C, E>;
+    fn integration_manager(&self, config: IntegrationConfigCore) -> IntegrationManager<C, E>;
 
     /// Send an event through integrations
     fn send_integration_event(
@@ -45,7 +46,7 @@ pub trait MachineIntegrationExt<
 impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static>
     MachineIntegrationExt<C, E> for Machine<C, E, C>
 {
-    fn integration_manager(&self, config: IntegrationConfig) -> IntegrationManager<C, E> {
+    fn integration_manager(&self, config: IntegrationConfigCore) -> IntegrationManager<C, E> {
         IntegrationManager::new(config)
     }
 
@@ -98,7 +99,7 @@ pub struct IntegrationBuilder<
     /// Integration manager being built
     pub manager: IntegrationManager<C, E>,
     /// Builder configuration
-    pub config: IntegrationConfig,
+    pub config: IntegrationConfigCore,
 }
 
 impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static>
@@ -106,14 +107,14 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Send + Sync + Clone 
 {
     /// Create a new integration builder
     pub fn new(machine: &Machine<C, E, C>) -> Self {
-        let config = IntegrationConfig::default();
+        let config = IntegrationConfigCore::default();
         let manager = machine.integration_manager(config.clone());
 
         Self { manager, config }
     }
 
     /// Set integration configuration
-    pub fn with_config(mut self, config: IntegrationConfig) -> Self {
+    pub fn with_config(mut self, config: IntegrationConfigCore) -> Self {
         self.config = config.clone();
         self.manager.config = config;
         self

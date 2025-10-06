@@ -130,7 +130,10 @@ impl IntegrationEvent {
     pub fn copy_with_new_id(&self) -> Self {
         let mut copy = self.clone();
         copy.id = uuid::Uuid::new_v4().to_string();
-        copy.timestamp = std::time::Instant::now();
+        copy.timestamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
         copy
     }
 
