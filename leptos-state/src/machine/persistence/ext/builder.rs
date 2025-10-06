@@ -97,7 +97,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     pub fn build(self) -> Result<crate::machine::persistence::ext::machine::PersistentMachine<C, E>, PersistenceError> {
         let machine = self.machine.ok_or_else(|| PersistenceError::ConfigError("No machine provided".to_string()))?;
 
-        let storage = StorageFactory::new().create_storage(&self.config.storage_type, self.custom_config)?;
+        let storage = StorageFactory::new().create_storage(self.config.storage_type.as_str(), self.custom_config)?;
         let persistence = MachinePersistence::new(storage, self.config);
 
         Ok(crate::machine::persistence::ext::machine::PersistentMachine::new(machine, persistence))

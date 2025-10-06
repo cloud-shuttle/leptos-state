@@ -13,7 +13,7 @@ pub struct StateBuilder<C: crate::machine::core::traits::CloneableStateMachineTy
 }
 
 impl<C: crate::machine::core::traits::CloneableStateMachineType + Default, E: crate::machine::core::traits::EquatableStateMachineType> StateBuilder<C, E> {
-    pub fn new(machine_builder: MachineBuilder<C, E>, state_id: String) -> Self {
+    pub fn new(machine_builder: crate::machine::MachineBuilderImpl<C, E>, state_id: String) -> Self {
         Self {
             machine_builder,
             current_state: state_id,
@@ -66,7 +66,7 @@ impl<C: crate::machine::core::traits::CloneableStateMachineType + Default, E: cr
         E: std::fmt::Debug,
     {
         self.entry_actions
-            .push(Box::new(actions::LogAction::new(message)));
+            .push(Box::new(actions::LogAction::new(message.into())));
         self
     }
 
@@ -77,7 +77,7 @@ impl<C: crate::machine::core::traits::CloneableStateMachineType + Default, E: cr
         E: std::fmt::Debug,
     {
         self.exit_actions
-            .push(Box::new(actions::LogAction::new(message)));
+            .push(Box::new(actions::LogAction::new(message.into())));
         self
     }
 

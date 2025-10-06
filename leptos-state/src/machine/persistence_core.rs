@@ -178,6 +178,12 @@ impl StorageType {
     }
 }
 
+impl std::fmt::Display for StorageType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
 /// Backup configuration for state machine persistence
 #[derive(Debug, Clone, PartialEq)]
 pub struct BackupConfig {

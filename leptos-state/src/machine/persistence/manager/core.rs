@@ -25,7 +25,7 @@ impl<C: crate::machine::core::traits::CloneableStateMachineType, E: crate::machi
     pub fn new(storage: Box<dyn MachineStorage>, config: PersistenceConfig) -> Self {
         let backup_manager = if config.backup_config.enabled {
             Some(super::backup::BackupManager::new(
-                storage.info().storage_type,
+                config.storage_type,
                 config.backup_config.clone(),
             ))
         } else {

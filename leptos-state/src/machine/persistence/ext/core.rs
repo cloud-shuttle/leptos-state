@@ -21,7 +21,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
         self,
         config: PersistenceConfig,
     ) -> Result<crate::machine::persistence::ext::machine::PersistentMachine<C, E>, PersistenceError> {
-        let storage = StorageFactory::new().create_storage(&config.storage_type, crate::machine::persistence::storage::StorageConfig::new())?;
+        let storage = StorageFactory::new().create_storage(config.storage_type.as_str(), crate::machine::persistence::storage::StorageConfig::new())?;
         let persistence_manager = crate::machine::MachinePersistence::new(storage, config);
         Ok(crate::machine::persistence::ext::machine::PersistentMachine::new(self, persistence_manager))
     }

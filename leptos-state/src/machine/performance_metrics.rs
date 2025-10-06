@@ -67,11 +67,10 @@ impl PerformanceMetrics {
             self.max_transition_time = duration;
             self.min_transition_time = duration;
         } else {
-            self.avg_transition_time = Duration::from_nanos(
-                ((self.avg_transition_time.as_nanos() * (self.total_transitions - 1) as u128)
-                    + duration.as_nanos())
-                    / self.total_transitions as u128,
-            );
+            let total_nanos = (self.avg_transition_time.as_nanos() * (self.total_transitions - 1) as u128)
+                + duration.as_nanos();
+            let avg_nanos = total_nanos / self.total_transitions as u128;
+            self.avg_transition_time = Duration::from_nanos(avg_nanos.try_into().unwrap_or(u64::MAX));
 
             if duration > self.max_transition_time {
                 self.max_transition_time = duration;

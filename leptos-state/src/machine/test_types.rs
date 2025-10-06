@@ -99,10 +99,26 @@ pub struct PerformanceMetrics {
     pub avg_transition_time: Duration,
     /// Maximum transition time
     pub max_transition_time: Duration,
-    /// Memory usage during test
+    /// Minimum transition time
+    pub min_transition_time: Duration,
+    /// Total number of transitions
+    pub total_transitions: usize,
+    /// Cache hit rate (0.0 to 1.0)
+    pub cache_hit_rate: f64,
+    /// Memory usage in bytes
     pub memory_usage: usize,
+    /// Peak memory usage
+    pub peak_memory_usage: usize,
     /// Number of allocations
     pub allocations: usize,
+    /// Number of deallocations
+    pub deallocations: usize,
+    /// CPU time used
+    pub cpu_time: Duration,
+    /// I/O time used
+    pub io_time: Duration,
+    /// Number of concurrent operations
+    pub concurrent_operations: usize,
 }
 
 /// Test step in a test path

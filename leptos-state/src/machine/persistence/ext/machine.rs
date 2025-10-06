@@ -85,7 +85,7 @@ impl<C: crate::machine::core::traits::CloneableStateMachineType, E: crate::machi
     /// Get persistence information
     pub fn persistence_info(&self) -> super::info::PersistenceInfo {
         super::info::PersistenceInfo {
-            storage_type: self.persistence.config().storage_type.clone(),
+            storage_type: self.persistence.config().storage_type.to_string(),
             auto_save_enabled: self.auto_save_enabled,
             last_save_time: None, // Would need to be tracked
             save_count: 0, // Would need to be tracked

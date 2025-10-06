@@ -85,7 +85,7 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     /// Set memory tracking
     pub fn with_memory_tracking(mut self, enable: bool, max_usage: usize) -> Self {
         self.config.enable_memory_tracking = enable;
-        self.config.max_memory_usage = max_usage;
+        self.config.max_memory_usage = max_usage as u64;
         self
     }
 

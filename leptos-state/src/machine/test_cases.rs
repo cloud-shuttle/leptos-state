@@ -153,7 +153,7 @@ impl<
 
             // Record test step
             test_path.push(TestStep {
-                event: step.event.clone(),
+                event: format!("{:?}", step.event),
                 from_state: current_state.value.to_string(),
                 to_state: new_state.value.to_string(),
                 context_before: format!("{:?}", "placeholder_context"),

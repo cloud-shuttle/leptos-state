@@ -72,50 +72,50 @@ impl<
         }
 
         // Run property tests
-        // TODO: Property testing temporarily disabled due to compilation issues
-        // if !self.properties.is_empty() {
-        //     let mut property_runner = PropertyTestRunner::new(runner.machine, runner.config);
-        //     for property in self.properties {
-        //         property_runner.add_property(property);
-        //     }
-        //     let property_results = property_runner.run_all_tests();
-        //     // Convert property results to test results
-        //     for property_result in property_results {
-        //         results.push(TestResult {
-        //             passed: property_result.passed,
-        //             execution_time: property_result.total_execution_time,
-        //             transitions_executed: 0, // Property tests don't track transitions
-        //             final_state: "property_tested".to_string(),
-        //             error_message: if property_result.passed {
-        //                 None
-        //             } else {
-        //                 Some("Property test failed".to_string())
-        //             },
-        //             coverage: TestCoverage {
-        //                 state_coverage: 0.0,
-        //                 transition_coverage: 0.0,
-        //                 guard_coverage: 0.0,
-        //                 action_coverage: 0.0,
-        //                 covered_states: Vec::new(),
-        //                 covered_transitions: Vec::new(),
-        //             },
-        //             performance: PerformanceMetrics {
-        //                 avg_transition_time: Duration::from_nanos(0),
-        //                 max_transition_time: Duration::from_nanos(0),
-        //                 min_transition_time: Duration::from_nanos(0),
-        //                 total_transitions: 0,
-        //                 cache_hit_rate: 0.0,
-        //                 memory_usage: 0,
-        //                 peak_memory_usage: 0,
-        //                 allocations: 0,
-        //                 deallocations: 0,
-        //                 cpu_time: Duration::from_nanos(0),
-        //                 io_time: Duration::from_nanos(0),
-        //                 concurrent_operations: 0,
-        //             },
-        //         });
-        //     }
-        // }
+        if !self.properties.is_empty() {
+            let mut property_runner = PropertyTestRunner::new(runner.machine, runner.config);
+            for property in self.properties {
+                property_runner.add_property(property);
+            }
+            let property_results = property_runner.run_all_tests();
+            // Convert property results to test results
+            for property_result in property_results {
+                results.push(TestResult {
+                    passed: property_result.passed,
+                    execution_time: property_result.total_execution_time,
+                    transitions_executed: 0, // Property tests don't track transitions
+                    final_state: "property_tested".to_string(),
+                    error_message: if property_result.passed {
+                        None
+                    } else {
+                        Some("Property test failed".to_string())
+                    },
+                    coverage: TestCoverage {
+                        state_coverage: 0.0,
+                        transition_coverage: 0.0,
+                        guard_coverage: 0.0,
+                        action_coverage: 0.0,
+                        covered_states: Vec::new(),
+                        covered_transitions: Vec::new(),
+                    },
+                    performance: PerformanceMetrics {
+                        avg_transition_time: Duration::from_nanos(0),
+                        max_transition_time: Duration::from_nanos(0),
+                        min_transition_time: Duration::from_nanos(0),
+                        total_transitions: 0,
+                        cache_hit_rate: 0.0,
+                        memory_usage: 0,
+                        peak_memory_usage: 0,
+                        allocations: 0,
+                        deallocations: 0,
+                        cpu_time: Duration::from_nanos(0),
+                        io_time: Duration::from_nanos(0),
+                        concurrent_operations: 0,
+                    },
+                    });
+                }
+            }
+        }
 
         // Run integration tests
         if !self.scenarios.is_empty() {
@@ -147,6 +147,8 @@ impl<
             total_execution_time: results.iter().map(|r| r.execution_time).sum(),
         }
     }
+}
+
 /// Test suite result
 #[derive(Debug, Clone, PartialEq)]
 pub struct TestSuiteResult {

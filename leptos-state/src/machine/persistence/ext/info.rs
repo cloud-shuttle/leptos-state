@@ -52,7 +52,7 @@ impl PersistenceInfo {
     pub fn save_frequency(&self) -> Option<f64> {
         if let Some(time_since_last) = self.time_since_last_save() {
             if time_since_last.as_secs() > 0 {
-                self.save_count as f64 / time_since_last.as_secs_f64()
+                Some(self.save_count as f64 / time_since_last.as_secs_f64())
             } else {
                 None
             }
