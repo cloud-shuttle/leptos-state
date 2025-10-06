@@ -154,7 +154,7 @@ impl<C: crate::machine::core::traits::CloneableStateMachineType, E: crate::machi
     pub fn composite(
         mut self,
         guards: Vec<Box<dyn GuardEvaluator<C, E>>>,
-        logic: crate::machine::guards::composite::CompositeLogic,
+        logic: crate::machine::guard_composite::CompositeLogic,
     ) -> Self {
         self.guards
             .push(Box::new(CompositeGuard::new(guards, logic)));
@@ -172,7 +172,7 @@ impl<C: crate::machine::core::traits::CloneableStateMachineType, E: crate::machi
     }
 
     /// Create a composite guard from all added guards
-    pub fn composite_guard(mut self, logic: crate::machine::guards::composite::CompositeLogic) -> Box<dyn GuardEvaluator<C, E>> {
+    pub fn composite_guard(mut self, logic: crate::machine::guard_composite::CompositeLogic) -> Box<dyn GuardEvaluator<C, E>> {
         Box::new(
             CompositeGuard::new(std::mem::take(&mut self.guards), logic)
                 .with_description(self.description),

@@ -30,6 +30,7 @@ impl<C: Send + Sync + std::fmt::Debug + Clone + 'static, E: std::fmt::Debug + Pa
     /// Create new state info from a machine
     pub fn from_machine(machine: &Machine<C, E, C>) -> Self
     where
+        C: Default,
         E: Eq + std::hash::Hash,
     {
         let now = std::time::SystemTime::now();

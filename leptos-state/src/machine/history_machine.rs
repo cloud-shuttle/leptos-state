@@ -64,6 +64,7 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     /// Get the initial state
     pub fn initial_state(&self) -> MachineStateImpl<C>
     where
+        C: Default,
         E: Eq + std::hash::Hash,
     {
         let initial_machine_state = self.base_machine.initial_state();

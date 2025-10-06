@@ -85,6 +85,7 @@ impl<
     /// Run a single scenario
     pub fn run_scenario(&self, scenario: &IntegrationScenario<C, E>) -> IntegrationTestResult
     where
+        C: Default,
         E: Eq + std::hash::Hash,
     {
         let start_time = std::time::Instant::now();

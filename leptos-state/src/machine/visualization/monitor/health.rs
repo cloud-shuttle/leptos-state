@@ -20,7 +20,7 @@ pub struct HealthChecker<C: Send + Sync + Clone + std::fmt::Debug, E: Send + Syn
     max_history: usize,
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static> HealthChecker<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static> HealthChecker<C, E> {
     /// Create a new health checker
     pub fn new() -> Self {
         Self {
@@ -87,6 +87,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Send + Sync + Clone 
     /// Perform actual machine health check
     fn perform_machine_check(&self, machine: &Machine<C, E, C>) -> HealthCheckResult
     where
+        C: Default,
         E: Eq + std::hash::Hash,
     {
         let start_time = std::time::Instant::now();

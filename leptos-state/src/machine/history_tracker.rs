@@ -257,7 +257,12 @@ impl<C: Send + Sync + Clone + std::fmt::Debug + 'static> HistoryTracker<C> {
             .map(|entries| {
                 entries
                     .iter()
-                    .filter(|entry| entry.timestamp >= start && entry.timestamp <= end)
+                    .filter(|entry| {
+                        // Convert instants to system time for comparison
+                        let start_sys = std::time::SystemTime::UNIX_EPOCH + start.elapsed();
+                        let end_sys = std::time::SystemTime::UNIX_EPOCH + end.elapsed();
+                        entry.timestamp >= start_sys && entry.timestamp <= end_sys
+                    })
                     .collect()
             })
             .unwrap_or_default()

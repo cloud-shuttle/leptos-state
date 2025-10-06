@@ -52,7 +52,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync 
     }
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + std::cmp::Eq + std::hash::Hash + 'static> StateMonitor<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Clone + Send + Sync + std::fmt::Debug + PartialEq + std::cmp::Eq + std::hash::Hash + 'static> StateMonitor<C, E> {
     /// Create a new state monitor
     pub fn new() -> Self {
         Self {

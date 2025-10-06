@@ -130,6 +130,7 @@ impl<
     /// Execute a test case
     pub fn execute_test_case(&self, test_case: &TestCase<C, E>) -> TestResult
     where
+        C: Default,
         E: Eq + std::hash::Hash,
     {
         let start_time = std::time::Instant::now();
