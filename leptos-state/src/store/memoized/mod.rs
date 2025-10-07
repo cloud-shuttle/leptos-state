@@ -13,4 +13,4 @@ pub use dependency::{DependencyTrackedSelector, DependencyTracker};
 pub use combined::{CombinedSelector, CombinationStrategy, SelectorPipeline};
 pub use performance::{PerformanceSelector, SelectorStats, SelectorPerformanceMonitor};
 pub use lazy::{LazySelector, LazyEvaluationManager, LazySelectorStats};
-pub use factory::{SelectorFactory, presets};
+pub use factory::SelectorFactory;

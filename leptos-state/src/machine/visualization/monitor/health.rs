@@ -20,7 +20,7 @@ pub struct HealthChecker<C: Send + Sync + Clone + std::fmt::Debug, E: Send + Syn
     max_history: usize,
 }
 
-impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + 'static> HealthChecker<C, E> {
+impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Send + Sync + Clone + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> HealthChecker<C, E> {
     /// Create a new health checker
     pub fn new() -> Self {
         Self {
@@ -56,7 +56,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Send + Syn
         // Check if enough time has passed since last check
         if let Some(last) = self.last_check {
             if now.duration_since(last).unwrap_or_default() < self.check_interval {
-                return self.last_result().unwrap_or_else(|| HealthCheckResult::unknown("No previous check"));
+                return self.last_result().cloned().unwrap_or_else(|| HealthCheckResult::unknown("No previous check"));
             }
         }
 
@@ -69,7 +69,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Send + Syn
         };
 
         // Update error count
-        if result.status.is_error() {
+        if matches!(result.status, HealthStatus::Error(_)) {
             self.error_count += 1;
         } else if result.status.is_healthy() {
             self.error_count = 0; // Reset on successful check
@@ -93,9 +93,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Send + Syn
         let start_time = std::time::Instant::now();
 
         // Try to get initial state
-        let initial_result = std::panic::catch_unwind(|| {
-            machine.initial_state()
-        });
+        let initial_result = Ok(machine.initial_state());
 
         let mut status = HealthStatus::Healthy;
         let mut message = "Machine is healthy".to_string();
@@ -103,7 +101,7 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Send + Syn
 
         match initial_result {
             Ok(initial_state) => {
-                metadata.insert("initial_state".to_string(), serde_json::json!(initial_state.value()));
+                metadata.insert("initial_state".to_string(), serde_json::json!(initial_state.value));
 
                 // Try a simple transition (if possible)
                 // This is a basic check - in practice you'd want more comprehensive checks
@@ -139,7 +137,10 @@ impl<C: Clone + Send + Sync + std::fmt::Debug + Default + 'static, E: Send + Syn
     }
 
     /// Get health status
-    pub fn status(&self) -> HealthStatus {
+    pub fn status(&self) -> HealthStatus
+    where
+        C: Default,
+    {
         self.last_result()
             .map(|r| r.status)
             .unwrap_or(HealthStatus::Unknown)

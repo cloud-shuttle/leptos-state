@@ -1,0 +1,202 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+
+header {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.5em;
+    font-weight: 300;
+}
+
+header p {
+    margin: 10px 0 0 0;
+    opacity: 0.9;
+    font-size: 1.1em;
+}
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 30px;
+    background: #f8f9fa;
+}
+
+.metric {
+    text-align: center;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.metric .value {
+    font-size: 2.5em;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.metric .label {
+    color: #666;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.metric.success-rate .value {
+    color: #28a745;
+}
+
+.metric.passed .value {
+    color: #28a745;
+}
+
+.metric.failed .value {
+    color: #dc3545;
+}
+
+.violations {
+    margin: 20px;
+    padding: 20px;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+}
+
+.violations h3 {
+    margin-top: 0;
+    color: #856404;
+}
+
+.violation-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.violation-item {
+    background: white;
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 3px solid #ffc107;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.results {
+    margin: 20px;
+}
+
+.results h3 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 1px;
+}
+
+tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.status {
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 20px;
+    text-align: center;
+    display: inline-block;
+    min-width: 80px;
+}
+
+.status.passed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status.failed {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.time {
+    font-family: 'Courier New', monospace;
+    color: #666;
+}
+
+.error-message {
+    max-width: 400px;
+    word-wrap: break-word;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    background: #f8f9fa;
+    color: #666;
+    border-top: 1px solid #dee2e6;
+}
+
+@media (max-width: 768px) {
+    .summary {
+        grid-template-columns: 1fr;
+    }
+
+    table {
+        font-size: 0.9em;
+    }
+
+    th, td {
+        padding: 10px 8px;
+    }
+
+    .error-message {
+        max-width: 200px;
+    }
+}

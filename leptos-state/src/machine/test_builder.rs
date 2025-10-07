@@ -147,6 +147,8 @@ impl<
             total_execution_time: results.iter().map(|r| r.execution_time).sum(),
         }
     }
+}
+
 /// Test suite result
 #[derive(Debug, Clone, PartialEq)]
 pub struct TestSuiteResult {

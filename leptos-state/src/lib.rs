@@ -159,6 +159,7 @@
 //! ```
 
 pub mod compat;
+pub mod contract_testing;
 pub mod hooks;
 pub mod machine;
 pub mod store;

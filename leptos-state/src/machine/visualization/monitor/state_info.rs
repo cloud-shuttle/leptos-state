@@ -242,7 +242,7 @@ impl<C: Send + Sync + std::fmt::Debug + Clone + 'static, E: std::fmt::Debug + Pa
     pub fn new() -> Self {
         Self {
             states: std::collections::HashMap::new(),
-            stats: CollectionStats::new(),
+            stats: CollectionStats::default(),
         }
     }
 
@@ -329,7 +329,7 @@ impl<C: Send + Sync + std::fmt::Debug + Clone + 'static, E: std::fmt::Debug + Pa
     /// Clear all state information
     pub fn clear(&mut self) {
         self.states.clear();
-        self.stats = CollectionStats::new();
+        self.stats = CollectionStats::default();
     }
 }
 

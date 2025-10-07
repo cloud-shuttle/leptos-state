@@ -41,7 +41,7 @@ pub mod history_core;
 pub mod history_machine;
 pub mod history_tracker;
 pub mod integration;
-pub mod integration_adapters;
+// pub mod integration_adapters; // Replaced with modular integration/adapters
 // Integration config is now in integration::config
 // Integration core is now in integration::core
 // Integration events are now in integration::events
@@ -204,7 +204,7 @@ pub use history_core::{
 pub use history_machine::{HistoryMachineBuilder, MachineHistoryExt};
 pub use history_tracker::{HistoryIterator, HistorySnapshot};
 pub use integration::core::{IntegrationAdapter, IntegrationManager};
-pub use integration_adapters::{
+pub use integration::adapters::{
     DatabaseAdapter, FileFormat, FileSystemAdapter, HttpApiAdapter, MessageQueueAdapter,
     WebSocketAdapter,
 };
